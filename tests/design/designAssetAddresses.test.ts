@@ -239,6 +239,15 @@ const KNOWN: { file: string; address: string; why: string }[] = [
     address: '/sign-up',
     why: "motir-core's sign-up route (`app/(auth)/sign-up/page.tsx` there), named in the notes' verification that the door chain reads `next` alone. It lives on app.motir.co, not on this host.",
   },
+  // ── A page DRAWN before it is built ────────────────────────────────────────
+  // The price page's design is published before its route exists. The row goes
+  // with the commit that adds `app/[locale]/price/`: from then on it matches
+  // nothing and `expired()` fails until it is removed.
+  {
+    file: 'design/price/design-notes.md',
+    address: '/price',
+    why: 'The price page this asset designs. Its route is built after the design is approved, so until then the address resolves to nothing on purpose.',
+  },
 ]
 
 // ── The reconciler, shared by both sweeps ───────────────────────────────────
