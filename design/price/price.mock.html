@@ -59,6 +59,8 @@
           --text-xs--line-height: calc(1 / 0.75);
           --text-sm: 0.875rem;
           --text-sm--line-height: calc(1.25 / 0.875);
+          --text-base: 1rem;
+          --text-base--line-height: calc(1.5 / 1);
           --text-lg: 1.125rem;
           --text-lg--line-height: calc(1.75 / 1.125);
           --text-xl: 1.25rem;
@@ -119,7 +121,6 @@
           --shadow-card: 0 4px 12px rgba(15, 15, 15, 0.08);
           --shadow-elevated: 0 8px 24px rgba(15, 15, 15, 0.12);
           --shadow-modal: 0 16px 48px -8px rgba(15, 15, 15, 0.16);
-          --spacing-sm: 12px;
           --spacing-md: 16px;
           --spacing-btn-x: 18px;
           --spacing-input-x: 16px;
@@ -362,35 +363,23 @@
         }
       }
       @layer utilities {
-        .col-span-2 {
-          grid-column: span 2 / span 2;
-        }
-        .col-span-4 {
-          grid-column: span 4 / span 4;
-        }
-        .col-start-2 {
-          grid-column-start: 2;
-        }
-        .row-span-3 {
-          grid-row: span 3 / span 3;
-        }
-        .row-start-1 {
-          grid-row-start: 1;
-        }
         .mx-auto {
           margin-inline: auto;
         }
         .mt-\(--spacing-md\) {
           margin-top: var(--spacing-md);
         }
-        .mt-\(--spacing-sm\) {
-          margin-top: var(--spacing-sm);
+        .mt-0\.5 {
+          margin-top: calc(var(--spacing) * 0.5);
+        }
+        .mt-1 {
+          margin-top: var(--spacing);
+        }
+        .mt-auto {
+          margin-top: auto;
         }
         .mb-\(--spacing-md\) {
           margin-bottom: var(--spacing-md);
-        }
-        .ml-1 {
-          margin-left: var(--spacing);
         }
         .ml-auto {
           margin-left: auto;
@@ -436,11 +425,17 @@
         .h-full {
           height: 100%;
         }
+        .min-h-\[2\.75rem\] {
+          min-height: 2.75rem;
+        }
         .w-4 {
           width: calc(var(--spacing) * 4);
         }
         .w-12 {
           width: calc(var(--spacing) * 12);
+        }
+        .w-\[15rem\] {
+          width: 15rem;
         }
         .w-\[390px\] {
           width: 390px;
@@ -451,6 +446,9 @@
         .max-w-\[64rem\] {
           max-width: 64rem;
         }
+        .max-w-\[1400px\] {
+          max-width: 1400px;
+        }
         .max-w-prose {
           max-width: 65ch;
         }
@@ -460,14 +458,17 @@
         .shrink-0 {
           flex-shrink: 0;
         }
+        .grow {
+          flex-grow: 1;
+        }
+        .basis-0 {
+          flex-basis: 0px;
+        }
         .animate-spin {
           animation: var(--animate-spin);
         }
         .grid-cols-2 {
           grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-        .grid-cols-3 {
-          grid-template-columns: repeat(3, minmax(0, 1fr));
         }
         .grid-cols-4 {
           grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -484,8 +485,11 @@
         .items-center {
           align-items: center;
         }
-        .items-end {
-          align-items: flex-end;
+        .items-start {
+          align-items: flex-start;
+        }
+        .items-stretch {
+          align-items: stretch;
         }
         .justify-between {
           justify-content: space-between;
@@ -520,11 +524,8 @@
         .gap-10 {
           gap: calc(var(--spacing) * 10);
         }
-        .gap-x-6 {
-          column-gap: calc(var(--spacing) * 6);
-        }
-        .gap-y-2 {
-          row-gap: calc(var(--spacing) * 2);
+        .overflow-x-auto {
+          overflow-x: auto;
         }
         .rounded-\(--radius-badge\) {
           border-radius: var(--radius-badge);
@@ -578,9 +579,6 @@
         .border-\(--el-button-border\) {
           border-color: var(--el-button-border);
         }
-        .border-\(--el-chip-border\) {
-          border-color: var(--el-chip-border);
-        }
         .border-\(--el-danger\) {
           border-color: var(--el-danger);
         }
@@ -601,9 +599,6 @@
         }
         .bg-\(--el-card\) {
           background-color: var(--el-card);
-        }
-        .bg-\(--el-chip-bg\) {
-          background-color: var(--el-chip-bg);
         }
         .bg-\(--el-page-bg\) {
           background-color: var(--el-page-bg);
@@ -686,8 +681,14 @@
         .py-8 {
           padding-block: calc(var(--spacing) * 8);
         }
-        .pt-\(--spacing-md\) {
-          padding-top: var(--spacing-md);
+        .pt-1 {
+          padding-top: var(--spacing);
+        }
+        .pt-2 {
+          padding-top: calc(var(--spacing) * 2);
+        }
+        .pb-1\.5 {
+          padding-bottom: calc(var(--spacing) * 1.5);
         }
         .pl-6 {
           padding-left: calc(var(--spacing) * 6);
@@ -708,6 +709,10 @@
           font-size: var(--text-2xl);
           line-height: var(--tw-leading, var(--text-2xl--line-height));
         }
+        .text-base {
+          font-size: var(--text-base);
+          line-height: var(--tw-leading, var(--text-base--line-height));
+        }
         .text-lg {
           font-size: var(--text-lg);
           line-height: var(--tw-leading, var(--text-lg--line-height));
@@ -723,6 +728,9 @@
         .text-xs {
           font-size: var(--text-xs);
           line-height: var(--tw-leading, var(--text-xs--line-height));
+        }
+        .text-\[11\.5px\] {
+          font-size: 11.5px;
         }
         .text-\[13px\] {
           font-size: 13px;
@@ -752,11 +760,11 @@
         .text-\(--el-link\) {
           color: var(--el-link);
         }
+        .text-\(--el-success\) {
+          color: var(--el-success);
+        }
         .text-\(--el-text\) {
           color: var(--el-text);
-        }
-        .text-\(--el-text-muted\) {
-          color: var(--el-text-muted);
         }
         .text-\(--el-text-secondary\) {
           color: var(--el-text-secondary);
@@ -779,6 +787,13 @@
         .antialiased {
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
+        }
+        .shadow-\(--shadow-card\) {
+          --tw-shadow: var(--shadow-card);
+          box-shadow:
+            var(--tw-inset-shadow), var(--tw-inset-ring-shadow),
+            var(--tw-ring-offset-shadow), var(--tw-ring-shadow),
+            var(--tw-shadow);
         }
         .shadow-\(--shadow-subtle\) {
           --tw-shadow: var(--shadow-subtle);
@@ -5301,7 +5316,7 @@
     </style>
   </head>
   <body class="bg-(--el-page-bg) text-(--el-text) font-sans antialiased">
-    <main class="mx-auto flex max-w-[64rem] flex-col gap-8 p-8">
+    <main class="mx-auto flex w-full flex-col gap-8 p-8">
       <h1 class="font-sans text-2xl font-semibold text-(--el-text)">
         motir.co/price — the plan ladder, seats and the calculator
       </h1>
@@ -5498,25 +5513,26 @@
                 </button></span
               >
             </header>
-            <main class="grid gap-10 px-8 py-8">
+            <main class="mx-auto grid w-full max-w-[1400px] gap-10 px-8 py-8">
               <p class="text-sm text-(--el-text-secondary) italic">
                 Figures are illustrative stand-ins from a recorded catalog and
                 engine response — not a price source.
               </p>
               <section aria-labelledby="plans-h" class="grid gap-4">
-                <div class="flex flex-wrap items-end justify-between gap-3">
-                  <div class="grid gap-1">
-                    <h2
-                      id="plans-h"
-                      class="text-2xl font-semibold text-(--el-text-strong)"
-                    >
-                      Plans and prices
-                    </h2>
-                    <p class="text-(--el-text-secondary)">
-                      One AI plan per organization, shared by everyone in it.
-                      Every figure below comes from the live catalog.
-                    </p>
-                  </div>
+                <div class="grid gap-2">
+                  <h2
+                    id="plans-h"
+                    class="text-2xl font-semibold text-(--el-text-strong)"
+                  >
+                    Choose your plan
+                  </h2>
+                  <p class="max-w-prose text-sm text-(--el-text-secondary)">
+                    An org-level monthly credit pool, billed separately from
+                    seats. Any org can buy it — a paid Motir seat plan is not
+                    required. Pro is the recommended anchor.
+                  </p>
+                </div>
+                <div class="flex items-center gap-3">
                   <div
                     role="group"
                     aria-label="Billing cadence"
@@ -5537,257 +5553,500 @@
                     </button>
                   </div>
                 </div>
-                <div class="grid grid-cols-4 gap-3" role="list">
-                  <div role="listitem" class="">
+                <div class="flex items-stretch gap-3" role="list">
+                  <div role="listitem" class="grow basis-0">
                     <div
-                      class="rounded-(--radius-card) border border-(--el-border) p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-card) h-full"
-                      data-tilt=""
-                      data-surface="card"
                       data-plan="standard"
+                      class="flex h-full flex-col gap-2 rounded-(--radius-card) border bg-(--el-surface) p-(--spacing-card-padding) shadow-(--shadow-card)"
+                      style="
+                        min-width: 10rem;
+                        border-color: var(--el-border-soft);
+                      "
                     >
-                      <div data-tilt-layer="front" class="mb-(--spacing-md)">
-                        <div class="flex items-center justify-between gap-2">
-                          <h3
-                            class="text-lg font-semibold text-(--el-text-strong)"
-                          >
-                            Standard
-                          </h3>
-                        </div>
+                      <div class="flex items-center justify-between gap-2">
+                        <h3 class="text-base font-semibold text-(--el-text)">
+                          Standard
+                        </h3>
                       </div>
-                      <div>
-                        <div class="grid gap-2">
-                          <p>
-                            <span
-                              class="text-2xl font-semibold whitespace-nowrap text-(--el-text-strong)"
-                              >$25</span
-                            ><span
-                              class="text-sm ml-1 whitespace-nowrap text-(--el-text-secondary)"
-                              >/ month</span
-                            >
-                          </p>
-                          <p class="text-sm text-(--el-text)">
-                            5,000 credits a month
-                          </p>
-                          <p class="text-sm text-(--el-text-secondary)">
-                            ✓ One tracker seat included at no charge
-                          </p>
-                        </div>
-                      </div>
-                      <div
-                        data-tilt-layer="back"
-                        class="border-(--el-border) mt-(--spacing-md) border-t pt-(--spacing-md)"
+                      <p
+                        class="min-h-[2.75rem] text-xs text-(--el-text-secondary)"
                       >
+                        Plan your projects with the Motir AI planner.
+                      </p>
+                      <div>
+                        <span
+                          class="font-serif text-2xl text-(--el-text) whitespace-nowrap"
+                          >$25 / mo</span
+                        >
+                        <p class="text-xs text-(--el-text-secondary)">
+                          $300 / yr · Save $100 with annual
+                        </p>
+                      </div>
+                      <p class="text-sm font-semibold text-(--el-text-strong)">
+                        5,000 credits / mo
+                      </p>
+                      <p class="text-[11.5px] text-(--el-text-secondary)">
+                        Same price per credit on every plan
+                      </p>
+                      <p class="text-xs text-(--el-text-secondary)">
+                        + 1 Motir seat · work items uncapped
+                      </p>
+                      <ul
+                        class="flex flex-col gap-1.5 text-xs text-(--el-text-secondary)"
+                      >
+                        <li class="flex items-start gap-1.5">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span>Plan the project, in detail</span>
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span>Credits refresh monthly · top up anytime</span>
+                        </li>
+                      </ul>
+                      <div class="mt-auto pt-1">
                         <button
                           type="button"
                           data-variant="secondary"
-                          class="inline-flex items-center justify-center gap-2 font-sans text-sm font-medium leading-none whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-md) px-(--spacing-btn-x) w-full"
+                          class="inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-sm) px-3 text-xs w-full"
                         >
                           <span>Choose Standard</span>
                         </button>
                       </div>
                     </div>
                   </div>
-                  <div role="listitem" class="">
+                  <div role="listitem" class="grow basis-0">
                     <div
-                      class="rounded-(--radius-card) border border-(--el-border) p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-card) h-full"
-                      data-tilt=""
-                      data-surface="card"
                       data-plan="pro"
+                      class="flex h-full flex-col gap-2 rounded-(--radius-card) border bg-(--el-surface) p-(--spacing-card-padding) shadow-(--shadow-card)"
+                      style="min-width: 10rem; border-color: var(--el-accent)"
                     >
-                      <div data-tilt-layer="front" class="mb-(--spacing-md)">
-                        <div class="flex items-center justify-between gap-2">
-                          <h3
-                            class="text-lg font-semibold text-(--el-text-strong)"
-                          >
-                            Pro
-                          </h3>
-                        </div>
+                      <div class="flex items-center justify-between gap-2">
+                        <h3 class="text-base font-semibold text-(--el-text)">
+                          Pro
+                        </h3>
+                        <span
+                          class="inline-flex items-center gap-1 rounded-(--radius-badge) px-(--spacing-chip-x) py-(--spacing-chip-y) font-sans text-xs font-medium border bg-(--el-tint-lavender) text-(--el-text-strong) border-transparent"
+                          >Recommended</span
+                        >
                       </div>
-                      <div>
-                        <div class="grid gap-2">
-                          <p>
-                            <span
-                              class="text-2xl font-semibold whitespace-nowrap text-(--el-text-strong)"
-                              >$75</span
-                            ><span
-                              class="text-sm ml-1 whitespace-nowrap text-(--el-text-secondary)"
-                              >/ month</span
-                            >
-                          </p>
-                          <p class="text-sm text-(--el-text)">
-                            15,000 credits a month
-                          </p>
-                          <p class="text-sm text-(--el-text-secondary)">
-                            ✓ One tracker seat included at no charge
-                          </p>
-                        </div>
-                      </div>
-                      <div
-                        data-tilt-layer="back"
-                        class="border-(--el-border) mt-(--spacing-md) border-t pt-(--spacing-md)"
+                      <p
+                        class="min-h-[2.75rem] text-xs text-(--el-text-secondary)"
                       >
+                        Standard, plus stronger models for planning.
+                      </p>
+                      <div>
+                        <span
+                          class="font-serif text-2xl text-(--el-text) whitespace-nowrap"
+                          >$75 / mo</span
+                        >
+                        <p class="text-xs text-(--el-text-secondary)">
+                          $900 / yr · Save $300 with annual
+                        </p>
+                      </div>
+                      <p class="text-sm font-semibold text-(--el-text-strong)">
+                        15,000 credits / mo
+                      </p>
+                      <p class="text-[11.5px] text-(--el-text-secondary)">
+                        3× Standard’s credits · same price per credit
+                      </p>
+                      <p class="text-xs text-(--el-text-secondary)">
+                        + 1 Motir seat · work items uncapped
+                      </p>
+                      <ul
+                        class="flex flex-col gap-1.5 text-xs text-(--el-text-secondary)"
+                      >
+                        <li class="flex items-start gap-1.5 font-medium">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span>Everything in Standard, plus</span>
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span>Stronger models enabled for planning</span>
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span
+                            >Switch the planning model for each kind of
+                            work</span
+                          >
+                        </li>
+                      </ul>
+                      <div class="mt-auto pt-1">
                         <button
                           type="button"
-                          data-variant="secondary"
-                          class="inline-flex items-center justify-center gap-2 font-sans text-sm font-medium leading-none whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-md) px-(--spacing-btn-x) w-full"
+                          data-variant="primary"
+                          class="inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-(--el-accent) text-(--el-accent-text) hover:opacity-90 h-(--height-btn-sm) px-3 text-xs w-full"
                         >
-                          <span>Choose Pro</span>
+                          <span>Upgrade to Pro</span>
                         </button>
                       </div>
                     </div>
                   </div>
-                  <div role="listitem" class="">
+                  <div role="listitem" class="grow basis-0">
                     <div
-                      class="rounded-(--radius-card) border border-(--el-border) p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-card) h-full"
-                      data-tilt=""
-                      data-surface="card"
                       data-plan="max"
+                      class="flex h-full flex-col gap-2 rounded-(--radius-card) border bg-(--el-surface) p-(--spacing-card-padding) shadow-(--shadow-card)"
+                      style="
+                        min-width: 10rem;
+                        border-color: var(--el-border-soft);
+                      "
                     >
-                      <div data-tilt-layer="front" class="mb-(--spacing-md)">
-                        <div class="flex items-center justify-between gap-2">
-                          <h3
-                            class="text-lg font-semibold text-(--el-text-strong)"
-                          >
-                            Max
-                          </h3>
-                        </div>
+                      <div class="flex items-center justify-between gap-2">
+                        <h3 class="text-base font-semibold text-(--el-text)">
+                          Max
+                        </h3>
                       </div>
-                      <div>
-                        <div class="grid gap-2">
-                          <p>
-                            <span
-                              class="text-2xl font-semibold whitespace-nowrap text-(--el-text-strong)"
-                              >$150</span
-                            ><span
-                              class="text-sm ml-1 whitespace-nowrap text-(--el-text-secondary)"
-                              >/ month</span
-                            >
-                          </p>
-                          <p class="text-sm text-(--el-text)">
-                            30,000 credits a month
-                          </p>
-                          <p class="text-sm text-(--el-text-secondary)">
-                            ✓ One tracker seat included at no charge
-                          </p>
-                        </div>
-                      </div>
-                      <div
-                        data-tilt-layer="back"
-                        class="border-(--el-border) mt-(--spacing-md) border-t pt-(--spacing-md)"
+                      <p
+                        class="min-h-[2.75rem] text-xs text-(--el-text-secondary)"
                       >
+                        Pro, plus headroom to hand planned work to the agent.
+                      </p>
+                      <div>
+                        <span
+                          class="font-serif text-2xl text-(--el-text) whitespace-nowrap"
+                          >$150 / mo</span
+                        >
+                        <p class="text-xs text-(--el-text-secondary)">
+                          $1,800 / yr · Save $600 with annual
+                        </p>
+                      </div>
+                      <p class="text-sm font-semibold text-(--el-text-strong)">
+                        30,000 credits / mo
+                      </p>
+                      <p class="text-[11.5px] text-(--el-text-secondary)">
+                        2× Pro’s credits · same price per credit
+                      </p>
+                      <p class="text-xs text-(--el-text-secondary)">
+                        + 1 Motir seat · work items uncapped
+                      </p>
+                      <ul
+                        class="flex flex-col gap-1.5 text-xs text-(--el-text-secondary)"
+                      >
+                        <li class="flex items-start gap-1.5 font-medium">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span>Everything in Pro, plus</span>
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span
+                            >Plan more work, so your project moves faster</span
+                          >
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span
+                            >Headroom to dispatch some planned work to the agent
+                            automatically</span
+                          >
+                        </li>
+                      </ul>
+                      <div class="mt-auto pt-1">
                         <button
                           type="button"
                           data-variant="secondary"
-                          class="inline-flex items-center justify-center gap-2 font-sans text-sm font-medium leading-none whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-md) px-(--spacing-btn-x) w-full"
+                          class="inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-sm) px-3 text-xs w-full"
                         >
                           <span>Choose Max</span>
                         </button>
                       </div>
                     </div>
                   </div>
-                  <div role="listitem" class="">
+                  <div role="listitem" class="grow basis-0">
                     <div
-                      class="rounded-(--radius-card) border border-(--el-border) p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-card) h-full"
-                      data-tilt=""
-                      data-surface="card"
                       data-plan="max_x2"
+                      class="flex h-full flex-col gap-2 rounded-(--radius-card) border bg-(--el-surface) p-(--spacing-card-padding) shadow-(--shadow-card)"
+                      style="
+                        min-width: 10rem;
+                        border-color: var(--el-border-soft);
+                      "
                     >
-                      <div data-tilt-layer="front" class="mb-(--spacing-md)">
-                        <div class="flex items-center justify-between gap-2">
-                          <h3
-                            class="text-lg font-semibold text-(--el-text-strong)"
-                          >
-                            Max ×2
-                          </h3>
-                        </div>
+                      <div class="flex items-center justify-between gap-2">
+                        <h3 class="text-base font-semibold text-(--el-text)">
+                          Max ×2
+                        </h3>
                       </div>
-                      <div>
-                        <div class="grid gap-2">
-                          <p>
-                            <span
-                              class="text-2xl font-semibold whitespace-nowrap text-(--el-text-strong)"
-                              >$300</span
-                            ><span
-                              class="text-sm ml-1 whitespace-nowrap text-(--el-text-secondary)"
-                              >/ month</span
-                            >
-                          </p>
-                          <p class="text-sm text-(--el-text)">
-                            60,000 credits a month
-                          </p>
-                          <p class="text-sm text-(--el-text-secondary)">
-                            ✓ One tracker seat included at no charge
-                          </p>
-                        </div>
-                      </div>
-                      <div
-                        data-tilt-layer="back"
-                        class="border-(--el-border) mt-(--spacing-md) border-t pt-(--spacing-md)"
+                      <p
+                        class="min-h-[2.75rem] text-xs text-(--el-text-secondary)"
                       >
+                        Max, at twice the volume.
+                      </p>
+                      <div>
+                        <span
+                          class="font-serif text-2xl text-(--el-text) whitespace-nowrap"
+                          >$300 / mo</span
+                        >
+                        <p class="text-xs text-(--el-text-secondary)">
+                          $3,600 / yr · Save $1,200 with annual
+                        </p>
+                      </div>
+                      <p class="text-sm font-semibold text-(--el-text-strong)">
+                        60,000 credits / mo
+                      </p>
+                      <p class="text-[11.5px] text-(--el-text-secondary)">
+                        2× Max’s credits · same price per credit
+                      </p>
+                      <p class="text-xs text-(--el-text-secondary)">
+                        + 1 Motir seat · work items uncapped
+                      </p>
+                      <ul
+                        class="flex flex-col gap-1.5 text-xs text-(--el-text-secondary)"
+                      >
+                        <li class="flex items-start gap-1.5 font-medium">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span>Everything in Max, plus</span>
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span>Twice the Max monthly credit pool</span>
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span
+                            >Dispatch more planned work to the agent
+                            automatically</span
+                          >
+                        </li>
+                      </ul>
+                      <div class="mt-auto pt-1">
                         <button
                           type="button"
                           data-variant="secondary"
-                          class="inline-flex items-center justify-center gap-2 font-sans text-sm font-medium leading-none whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-md) px-(--spacing-btn-x) w-full"
+                          class="inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-sm) px-3 text-xs w-full"
                         >
                           <span>Choose Max ×2</span>
                         </button>
                       </div>
                     </div>
                   </div>
-                  <div role="listitem" class="col-span-4">
+                  <div role="listitem" class="grow basis-0">
                     <div
-                      class="rounded-(--radius-card) border p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-tint-lavender) border-transparent h-full"
-                      data-tilt=""
                       data-plan="host"
+                      class="flex h-full flex-col gap-2 rounded-(--radius-card) border bg-(--el-surface) p-(--spacing-card-padding) shadow-(--shadow-card)"
+                      style="
+                        min-width: 10rem;
+                        border-color: var(--el-border-soft);
+                      "
                     >
-                      <div data-tilt-layer="front" class="mb-(--spacing-md)">
-                        <div class="flex items-center justify-between gap-2">
-                          <h3
-                            class="text-lg font-semibold text-(--el-text-strong)"
-                          >
-                            Host
-                          </h3>
-                          <span
-                            class="inline-flex items-center gap-1 rounded-(--radius-badge) px-(--spacing-chip-x) py-(--spacing-chip-y) font-sans text-xs font-medium border bg-(--el-chip-bg) text-(--el-text-secondary) border-(--el-chip-border)"
-                            >Own capacity</span
-                          >
-                        </div>
+                      <div class="flex items-center justify-between gap-2">
+                        <h3 class="text-base font-semibold text-(--el-text)">
+                          Host
+                        </h3>
                       </div>
-                      <div>
-                        <div class="grid grid-cols-2 gap-x-6 gap-y-2">
-                          <p>
-                            <span
-                              class="text-2xl font-semibold whitespace-nowrap text-(--el-text-strong)"
-                              >$1,500</span
-                            ><span
-                              class="text-sm ml-1 whitespace-nowrap text-(--el-text-secondary)"
-                              >/ month</span
-                            >
-                          </p>
-                          <p class="text-sm text-(--el-text)">
-                            300,000 credits a month
-                          </p>
-                          <p class="text-sm text-(--el-text-secondary)">
-                            ✓ One tracker seat included at no charge
-                          </p>
-                          <p
-                            class="text-sm col-start-2 row-start-1 row-span-3 text-(--el-text)"
-                          >
-                            Host runs on AWS capacity of its own: its own pools
-                            for CI, for agent runs, and for indexing and hosted
-                            agents together. Until that capacity is ready, it
-                            runs on the shared pools at Max’s limits.
-                          </p>
-                        </div>
-                      </div>
-                      <div
-                        data-tilt-layer="back"
-                        class="border-(--el-border) mt-(--spacing-md) border-t pt-(--spacing-md)"
+                      <p
+                        class="min-h-[2.75rem] text-xs text-(--el-text-secondary)"
                       >
+                        Motir at fleet scale, on AWS accounts of your own.
+                      </p>
+                      <div>
+                        <span
+                          class="font-serif text-2xl text-(--el-text) whitespace-nowrap"
+                          >$1,500 / mo</span
+                        >
+                        <p class="text-xs text-(--el-text-secondary)">
+                          $18,000 / yr · Save $6,000 with annual
+                        </p>
+                      </div>
+                      <p class="text-sm font-semibold text-(--el-text-strong)">
+                        300,000 credits / mo
+                      </p>
+                      <p class="text-[11.5px] text-(--el-text-secondary)">
+                        5× Max ×2’s credits · same price per credit
+                      </p>
+                      <p class="text-xs text-(--el-text-secondary)">
+                        + 1 Motir seat · work items uncapped
+                      </p>
+                      <ul
+                        class="flex flex-col gap-1.5 text-xs text-(--el-text-secondary)"
+                      >
+                        <li class="flex items-start gap-1.5 font-medium">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span>Everything in Max ×2, plus</span>
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span>Motir runs your project autonomously</span>
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span
+                            >Dedicated pools for CI runners, agent runs, the
+                            indexer and hosted agents</span
+                          >
+                        </li>
+                      </ul>
+                      <div class="mt-auto pt-1">
                         <button
                           type="button"
-                          data-variant="primary"
-                          class="inline-flex items-center justify-center gap-2 font-sans text-sm font-medium leading-none whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-(--el-accent) text-(--el-accent-text) hover:opacity-90 h-(--height-btn-md) px-(--spacing-btn-x)"
+                          data-variant="secondary"
+                          class="inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-sm) px-3 text-xs w-full"
                         >
                           <span>Choose Host</span>
                         </button>
@@ -5795,56 +6054,86 @@
                     </div>
                   </div>
                 </div>
-                <p class="text-sm text-(--el-text-secondary)">
-                  Need more in a month? Top up at $5 per 1,000 credits.
-                </p>
-                <div class="grid grid-cols-3 gap-3">
-                  <div
-                    class="rounded-(--radius-card) border p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-tint-mint) border-transparent"
-                    data-tilt=""
-                  >
-                    <div data-tilt-layer="front" class="mb-(--spacing-md)">
-                      <h3 class="font-semibold text-(--el-text-strong)">
-                        Seats
-                      </h3>
-                    </div>
-                    <div>
-                      <p class="text-(--el-text)">
-                        $5 a month per user for seats beyond the first.
-                      </p>
-                    </div>
-                  </div>
-                  <div class="col-span-2 grid content-start gap-2">
-                    <p class="text-(--el-text)">
-                      AI plans and top-ups belong to the organization: one AI
-                      plan per organization, its credits shared by everyone,
-                      never priced per user.
-                    </p>
-                    <p class="text-(--el-text)">
-                      Every AI plan includes one tracker seat; each further seat
-                      is priced per user.
-                    </p>
-                    <p class="text-sm text-(--el-text-secondary)">
-                      Need an invoice? We bill through Stripe invoicing — write
-                      to billing@motir.co.
-                    </p>
-                  </div>
-                </div>
                 <div
                   class="rounded-(--radius-card) border border-(--el-border) p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-card)"
                   data-tilt=""
                   data-surface="card"
                 >
-                  <div data-tilt-layer="front" class="mb-(--spacing-md)">
-                    <h3 class="font-semibold text-(--el-text-strong)">
-                      Larger credit pools
-                    </h3>
-                  </div>
                   <div>
-                    <p class="text-(--el-text-secondary)">
-                      Above Host, larger pools are sized to an estimate. The
-                      calculator below offers one when your range needs it.
-                    </p>
+                    <div
+                      class="flex flex-wrap items-center justify-between gap-3"
+                    >
+                      <div class="grid gap-1">
+                        <h3 class="font-semibold text-(--el-text-strong)">
+                          Need more credits?
+                        </h3>
+                        <p
+                          class="max-w-prose text-sm text-(--el-text-secondary)"
+                        >
+                          If your organization uses more than Host’s 300,000
+                          credits a month, estimate your usage and the
+                          Calculator offers a larger credit pool sized to it,
+                          with AWS accounts of your own.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        data-variant="secondary"
+                        class="inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-sm) px-3 text-xs"
+                      >
+                        <span>Open the Calculator</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div
+                    class="rounded-(--radius-card) border border-(--el-border) p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-card)"
+                    data-tilt=""
+                    data-surface="card"
+                  >
+                    <div data-tilt-layer="front" class="mb-(--spacing-md)">
+                      <h3 class="font-semibold text-(--el-text-strong)">
+                        Top up credits
+                      </h3>
+                    </div>
+                    <div>
+                      <div class="grid gap-1">
+                        <p class="text-sm text-(--el-text)">
+                          A one-time purchase on top of your plan — added to
+                          your balance right away, used after your monthly
+                          allotment.
+                        </p>
+                        <p class="text-xs text-(--el-text-secondary)">
+                          $5 per 1,000 credits · one-time · tax at checkout.
+                          Credits are an allotment, not currency — this is the
+                          price you pay Stripe.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="rounded-(--radius-card) border p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-tint-mint) border-transparent"
+                    data-tilt=""
+                  >
+                    <div>
+                      <div class="grid gap-1">
+                        <p class="text-sm text-(--el-text)">
+                          Every AI plan includes 1 Motir seat at no charge.
+                        </p>
+                        <p class="text-sm text-(--el-text)">
+                          Further seats: $5 per user, per month.
+                        </p>
+                        <p class="text-sm text-(--el-text)">
+                          One plan for the whole organization — its credits are
+                          shared by everyone.
+                        </p>
+                        <p class="text-xs text-(--el-text-secondary)">
+                          Need an invoice? We bill through Stripe invoicing —
+                          write to billing@motir.co.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </section>
@@ -5921,21 +6210,22 @@
                 </button></span
               >
             </header>
-            <main class="grid gap-10 px-8 py-8">
+            <main class="mx-auto grid w-full max-w-[1400px] gap-10 px-8 py-8">
               <section aria-labelledby="plans-h" class="grid gap-4">
-                <div class="flex flex-wrap items-end justify-between gap-3">
-                  <div class="grid gap-1">
-                    <h2
-                      id="plans-h"
-                      class="text-2xl font-semibold text-(--el-text-strong)"
-                    >
-                      Plans and prices
-                    </h2>
-                    <p class="text-(--el-text-secondary)">
-                      One AI plan per organization, shared by everyone in it.
-                      Every figure below comes from the live catalog.
-                    </p>
-                  </div>
+                <div class="grid gap-2">
+                  <h2
+                    id="plans-h"
+                    class="text-2xl font-semibold text-(--el-text-strong)"
+                  >
+                    Choose your plan
+                  </h2>
+                  <p class="max-w-prose text-sm text-(--el-text-secondary)">
+                    An org-level monthly credit pool, billed separately from
+                    seats. Any org can buy it — a paid Motir seat plan is not
+                    required. Pro is the recommended anchor.
+                  </p>
+                </div>
+                <div class="flex items-center gap-3">
                   <div
                     role="group"
                     aria-label="Billing cadence"
@@ -5955,258 +6245,525 @@
                       Annual
                     </button>
                   </div>
+                  <span
+                    class="inline-flex items-center gap-1 rounded-(--radius-badge) px-(--spacing-chip-x) py-(--spacing-chip-y) font-sans text-xs font-medium border bg-(--el-tint-mint) text-(--el-text-strong) border-transparent"
+                    >Save ~33%</span
+                  >
                 </div>
-                <div class="grid grid-cols-4 gap-3" role="list">
-                  <div role="listitem" class="">
+                <div class="flex items-stretch gap-3" role="list">
+                  <div role="listitem" class="grow basis-0">
                     <div
-                      class="rounded-(--radius-card) border border-(--el-border) p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-card) h-full"
-                      data-tilt=""
-                      data-surface="card"
                       data-plan="standard"
+                      class="flex h-full flex-col gap-2 rounded-(--radius-card) border bg-(--el-surface) p-(--spacing-card-padding) shadow-(--shadow-card)"
+                      style="
+                        min-width: 10rem;
+                        border-color: var(--el-border-soft);
+                      "
                     >
-                      <div data-tilt-layer="front" class="mb-(--spacing-md)">
-                        <div class="flex items-center justify-between gap-2">
-                          <h3
-                            class="text-lg font-semibold text-(--el-text-strong)"
-                          >
-                            Standard
-                          </h3>
-                        </div>
+                      <div class="flex items-center justify-between gap-2">
+                        <h3 class="text-base font-semibold text-(--el-text)">
+                          Standard
+                        </h3>
                       </div>
-                      <div>
-                        <div class="grid gap-2">
-                          <p>
-                            <span
-                              class="text-2xl font-semibold whitespace-nowrap text-(--el-text-strong)"
-                              >$250</span
-                            ><span
-                              class="text-sm ml-1 whitespace-nowrap text-(--el-text-secondary)"
-                              >/ year</span
-                            >
-                          </p>
-                          <p class="text-sm text-(--el-text)">
-                            5,000 credits a month
-                          </p>
-                          <p class="text-sm text-(--el-text-secondary)">
-                            ✓ One tracker seat included at no charge
-                          </p>
-                        </div>
-                      </div>
-                      <div
-                        data-tilt-layer="back"
-                        class="border-(--el-border) mt-(--spacing-md) border-t pt-(--spacing-md)"
+                      <p
+                        class="min-h-[2.75rem] text-xs text-(--el-text-secondary)"
                       >
+                        Plan your projects with the Motir AI planner.
+                      </p>
+                      <div>
+                        <span
+                          class="font-serif text-2xl text-(--el-text) whitespace-nowrap"
+                          >$17 / mo</span
+                        >
+                        <p class="text-xs text-(--el-text-secondary)">
+                          billed annually · $200 / yr
+                        </p>
+                        <span
+                          class="inline-flex items-center gap-1 rounded-(--radius-badge) px-(--spacing-chip-x) py-(--spacing-chip-y) font-sans text-xs font-medium border mt-1 bg-(--el-tint-mint) text-(--el-text-strong) border-transparent"
+                          >Save $100/yr</span
+                        >
+                      </div>
+                      <p class="text-sm font-semibold text-(--el-text-strong)">
+                        5,000 credits / mo
+                      </p>
+                      <p class="text-[11.5px] text-(--el-text-secondary)">
+                        Same price per credit on every plan
+                      </p>
+                      <p class="text-xs text-(--el-text-secondary)">
+                        + 1 Motir seat · work items uncapped
+                      </p>
+                      <ul
+                        class="flex flex-col gap-1.5 text-xs text-(--el-text-secondary)"
+                      >
+                        <li class="flex items-start gap-1.5">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span>Plan the project, in detail</span>
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span>Credits refresh monthly · top up anytime</span>
+                        </li>
+                      </ul>
+                      <div class="mt-auto pt-1">
                         <button
                           type="button"
                           data-variant="secondary"
-                          class="inline-flex items-center justify-center gap-2 font-sans text-sm font-medium leading-none whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-md) px-(--spacing-btn-x) w-full"
+                          class="inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-sm) px-3 text-xs w-full"
                         >
                           <span>Choose Standard</span>
                         </button>
                       </div>
                     </div>
                   </div>
-                  <div role="listitem" class="">
+                  <div role="listitem" class="grow basis-0">
                     <div
-                      class="rounded-(--radius-card) border border-(--el-border) p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-card) h-full"
-                      data-tilt=""
-                      data-surface="card"
                       data-plan="pro"
+                      class="flex h-full flex-col gap-2 rounded-(--radius-card) border bg-(--el-surface) p-(--spacing-card-padding) shadow-(--shadow-card)"
+                      style="min-width: 10rem; border-color: var(--el-accent)"
                     >
-                      <div data-tilt-layer="front" class="mb-(--spacing-md)">
-                        <div class="flex items-center justify-between gap-2">
-                          <h3
-                            class="text-lg font-semibold text-(--el-text-strong)"
-                          >
-                            Pro
-                          </h3>
-                        </div>
+                      <div class="flex items-center justify-between gap-2">
+                        <h3 class="text-base font-semibold text-(--el-text)">
+                          Pro
+                        </h3>
+                        <span
+                          class="inline-flex items-center gap-1 rounded-(--radius-badge) px-(--spacing-chip-x) py-(--spacing-chip-y) font-sans text-xs font-medium border bg-(--el-tint-lavender) text-(--el-text-strong) border-transparent"
+                          >Recommended</span
+                        >
                       </div>
-                      <div>
-                        <div class="grid gap-2">
-                          <p>
-                            <span
-                              class="text-2xl font-semibold whitespace-nowrap text-(--el-text-strong)"
-                              >$750</span
-                            ><span
-                              class="text-sm ml-1 whitespace-nowrap text-(--el-text-secondary)"
-                              >/ year</span
-                            >
-                          </p>
-                          <p class="text-sm text-(--el-text)">
-                            15,000 credits a month
-                          </p>
-                          <p class="text-sm text-(--el-text-secondary)">
-                            ✓ One tracker seat included at no charge
-                          </p>
-                        </div>
-                      </div>
-                      <div
-                        data-tilt-layer="back"
-                        class="border-(--el-border) mt-(--spacing-md) border-t pt-(--spacing-md)"
+                      <p
+                        class="min-h-[2.75rem] text-xs text-(--el-text-secondary)"
                       >
+                        Standard, plus stronger models for planning.
+                      </p>
+                      <div>
+                        <span
+                          class="font-serif text-2xl text-(--el-text) whitespace-nowrap"
+                          >$50 / mo</span
+                        >
+                        <p class="text-xs text-(--el-text-secondary)">
+                          billed annually · $600 / yr
+                        </p>
+                        <span
+                          class="inline-flex items-center gap-1 rounded-(--radius-badge) px-(--spacing-chip-x) py-(--spacing-chip-y) font-sans text-xs font-medium border mt-1 bg-(--el-tint-mint) text-(--el-text-strong) border-transparent"
+                          >Save $300/yr</span
+                        >
+                      </div>
+                      <p class="text-sm font-semibold text-(--el-text-strong)">
+                        15,000 credits / mo
+                      </p>
+                      <p class="text-[11.5px] text-(--el-text-secondary)">
+                        3× Standard’s credits · same price per credit
+                      </p>
+                      <p class="text-xs text-(--el-text-secondary)">
+                        + 1 Motir seat · work items uncapped
+                      </p>
+                      <ul
+                        class="flex flex-col gap-1.5 text-xs text-(--el-text-secondary)"
+                      >
+                        <li class="flex items-start gap-1.5 font-medium">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span>Everything in Standard, plus</span>
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span>Stronger models enabled for planning</span>
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span
+                            >Switch the planning model for each kind of
+                            work</span
+                          >
+                        </li>
+                      </ul>
+                      <div class="mt-auto pt-1">
                         <button
                           type="button"
-                          data-variant="secondary"
-                          class="inline-flex items-center justify-center gap-2 font-sans text-sm font-medium leading-none whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-md) px-(--spacing-btn-x) w-full"
+                          data-variant="primary"
+                          class="inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-(--el-accent) text-(--el-accent-text) hover:opacity-90 h-(--height-btn-sm) px-3 text-xs w-full"
                         >
-                          <span>Choose Pro</span>
+                          <span>Upgrade to Pro</span>
                         </button>
                       </div>
                     </div>
                   </div>
-                  <div role="listitem" class="">
+                  <div role="listitem" class="grow basis-0">
                     <div
-                      class="rounded-(--radius-card) border border-(--el-border) p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-card) h-full"
-                      data-tilt=""
-                      data-surface="card"
                       data-plan="max"
+                      class="flex h-full flex-col gap-2 rounded-(--radius-card) border bg-(--el-surface) p-(--spacing-card-padding) shadow-(--shadow-card)"
+                      style="
+                        min-width: 10rem;
+                        border-color: var(--el-border-soft);
+                      "
                     >
-                      <div data-tilt-layer="front" class="mb-(--spacing-md)">
-                        <div class="flex items-center justify-between gap-2">
-                          <h3
-                            class="text-lg font-semibold text-(--el-text-strong)"
-                          >
-                            Max
-                          </h3>
-                        </div>
+                      <div class="flex items-center justify-between gap-2">
+                        <h3 class="text-base font-semibold text-(--el-text)">
+                          Max
+                        </h3>
                       </div>
-                      <div>
-                        <div class="grid gap-2">
-                          <p>
-                            <span
-                              class="text-2xl font-semibold whitespace-nowrap text-(--el-text-strong)"
-                              >$1,500</span
-                            ><span
-                              class="text-sm ml-1 whitespace-nowrap text-(--el-text-secondary)"
-                              >/ year</span
-                            >
-                          </p>
-                          <p class="text-sm text-(--el-text)">
-                            30,000 credits a month
-                          </p>
-                          <p class="text-sm text-(--el-text-secondary)">
-                            ✓ One tracker seat included at no charge
-                          </p>
-                        </div>
-                      </div>
-                      <div
-                        data-tilt-layer="back"
-                        class="border-(--el-border) mt-(--spacing-md) border-t pt-(--spacing-md)"
+                      <p
+                        class="min-h-[2.75rem] text-xs text-(--el-text-secondary)"
                       >
+                        Pro, plus headroom to hand planned work to the agent.
+                      </p>
+                      <div>
+                        <span
+                          class="font-serif text-2xl text-(--el-text) whitespace-nowrap"
+                          >$100 / mo</span
+                        >
+                        <p class="text-xs text-(--el-text-secondary)">
+                          billed annually · $1,200 / yr
+                        </p>
+                        <span
+                          class="inline-flex items-center gap-1 rounded-(--radius-badge) px-(--spacing-chip-x) py-(--spacing-chip-y) font-sans text-xs font-medium border mt-1 bg-(--el-tint-mint) text-(--el-text-strong) border-transparent"
+                          >Save $600/yr</span
+                        >
+                      </div>
+                      <p class="text-sm font-semibold text-(--el-text-strong)">
+                        30,000 credits / mo
+                      </p>
+                      <p class="text-[11.5px] text-(--el-text-secondary)">
+                        2× Pro’s credits · same price per credit
+                      </p>
+                      <p class="text-xs text-(--el-text-secondary)">
+                        + 1 Motir seat · work items uncapped
+                      </p>
+                      <ul
+                        class="flex flex-col gap-1.5 text-xs text-(--el-text-secondary)"
+                      >
+                        <li class="flex items-start gap-1.5 font-medium">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span>Everything in Pro, plus</span>
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span
+                            >Plan more work, so your project moves faster</span
+                          >
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span
+                            >Headroom to dispatch some planned work to the agent
+                            automatically</span
+                          >
+                        </li>
+                      </ul>
+                      <div class="mt-auto pt-1">
                         <button
                           type="button"
                           data-variant="secondary"
-                          class="inline-flex items-center justify-center gap-2 font-sans text-sm font-medium leading-none whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-md) px-(--spacing-btn-x) w-full"
+                          class="inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-sm) px-3 text-xs w-full"
                         >
                           <span>Choose Max</span>
                         </button>
                       </div>
                     </div>
                   </div>
-                  <div role="listitem" class="">
+                  <div role="listitem" class="grow basis-0">
                     <div
-                      class="rounded-(--radius-card) border border-(--el-border) p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-card) h-full"
-                      data-tilt=""
-                      data-surface="card"
                       data-plan="max_x2"
+                      class="flex h-full flex-col gap-2 rounded-(--radius-card) border bg-(--el-surface) p-(--spacing-card-padding) shadow-(--shadow-card)"
+                      style="
+                        min-width: 10rem;
+                        border-color: var(--el-border-soft);
+                      "
                     >
-                      <div data-tilt-layer="front" class="mb-(--spacing-md)">
-                        <div class="flex items-center justify-between gap-2">
-                          <h3
-                            class="text-lg font-semibold text-(--el-text-strong)"
-                          >
-                            Max ×2
-                          </h3>
-                        </div>
+                      <div class="flex items-center justify-between gap-2">
+                        <h3 class="text-base font-semibold text-(--el-text)">
+                          Max ×2
+                        </h3>
                       </div>
-                      <div>
-                        <div class="grid gap-2">
-                          <p>
-                            <span
-                              class="text-2xl font-semibold whitespace-nowrap text-(--el-text-strong)"
-                              >$3,000</span
-                            ><span
-                              class="text-sm ml-1 whitespace-nowrap text-(--el-text-secondary)"
-                              >/ year</span
-                            >
-                          </p>
-                          <p class="text-sm text-(--el-text)">
-                            60,000 credits a month
-                          </p>
-                          <p class="text-sm text-(--el-text-secondary)">
-                            ✓ One tracker seat included at no charge
-                          </p>
-                        </div>
-                      </div>
-                      <div
-                        data-tilt-layer="back"
-                        class="border-(--el-border) mt-(--spacing-md) border-t pt-(--spacing-md)"
+                      <p
+                        class="min-h-[2.75rem] text-xs text-(--el-text-secondary)"
                       >
+                        Max, at twice the volume.
+                      </p>
+                      <div>
+                        <span
+                          class="font-serif text-2xl text-(--el-text) whitespace-nowrap"
+                          >$200 / mo</span
+                        >
+                        <p class="text-xs text-(--el-text-secondary)">
+                          billed annually · $2,400 / yr
+                        </p>
+                        <span
+                          class="inline-flex items-center gap-1 rounded-(--radius-badge) px-(--spacing-chip-x) py-(--spacing-chip-y) font-sans text-xs font-medium border mt-1 bg-(--el-tint-mint) text-(--el-text-strong) border-transparent"
+                          >Save $1,200/yr</span
+                        >
+                      </div>
+                      <p class="text-sm font-semibold text-(--el-text-strong)">
+                        60,000 credits / mo
+                      </p>
+                      <p class="text-[11.5px] text-(--el-text-secondary)">
+                        2× Max’s credits · same price per credit
+                      </p>
+                      <p class="text-xs text-(--el-text-secondary)">
+                        + 1 Motir seat · work items uncapped
+                      </p>
+                      <ul
+                        class="flex flex-col gap-1.5 text-xs text-(--el-text-secondary)"
+                      >
+                        <li class="flex items-start gap-1.5 font-medium">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span>Everything in Max, plus</span>
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span>Twice the Max monthly credit pool</span>
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span
+                            >Dispatch more planned work to the agent
+                            automatically</span
+                          >
+                        </li>
+                      </ul>
+                      <div class="mt-auto pt-1">
                         <button
                           type="button"
                           data-variant="secondary"
-                          class="inline-flex items-center justify-center gap-2 font-sans text-sm font-medium leading-none whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-md) px-(--spacing-btn-x) w-full"
+                          class="inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-sm) px-3 text-xs w-full"
                         >
                           <span>Choose Max ×2</span>
                         </button>
                       </div>
                     </div>
                   </div>
-                  <div role="listitem" class="col-span-4">
+                  <div role="listitem" class="grow basis-0">
                     <div
-                      class="rounded-(--radius-card) border p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-tint-lavender) border-transparent h-full"
-                      data-tilt=""
                       data-plan="host"
+                      class="flex h-full flex-col gap-2 rounded-(--radius-card) border bg-(--el-surface) p-(--spacing-card-padding) shadow-(--shadow-card)"
+                      style="
+                        min-width: 10rem;
+                        border-color: var(--el-border-soft);
+                      "
                     >
-                      <div data-tilt-layer="front" class="mb-(--spacing-md)">
-                        <div class="flex items-center justify-between gap-2">
-                          <h3
-                            class="text-lg font-semibold text-(--el-text-strong)"
-                          >
-                            Host
-                          </h3>
-                          <span
-                            class="inline-flex items-center gap-1 rounded-(--radius-badge) px-(--spacing-chip-x) py-(--spacing-chip-y) font-sans text-xs font-medium border bg-(--el-chip-bg) text-(--el-text-secondary) border-(--el-chip-border)"
-                            >Own capacity</span
-                          >
-                        </div>
+                      <div class="flex items-center justify-between gap-2">
+                        <h3 class="text-base font-semibold text-(--el-text)">
+                          Host
+                        </h3>
                       </div>
-                      <div>
-                        <div class="grid grid-cols-2 gap-x-6 gap-y-2">
-                          <p>
-                            <span
-                              class="text-2xl font-semibold whitespace-nowrap text-(--el-text-strong)"
-                              >$15,000</span
-                            ><span
-                              class="text-sm ml-1 whitespace-nowrap text-(--el-text-secondary)"
-                              >/ year</span
-                            >
-                          </p>
-                          <p class="text-sm text-(--el-text)">
-                            300,000 credits a month
-                          </p>
-                          <p class="text-sm text-(--el-text-secondary)">
-                            ✓ One tracker seat included at no charge
-                          </p>
-                          <p
-                            class="text-sm col-start-2 row-start-1 row-span-3 text-(--el-text)"
-                          >
-                            Host runs on AWS capacity of its own: its own pools
-                            for CI, for agent runs, and for indexing and hosted
-                            agents together. Until that capacity is ready, it
-                            runs on the shared pools at Max’s limits.
-                          </p>
-                        </div>
-                      </div>
-                      <div
-                        data-tilt-layer="back"
-                        class="border-(--el-border) mt-(--spacing-md) border-t pt-(--spacing-md)"
+                      <p
+                        class="min-h-[2.75rem] text-xs text-(--el-text-secondary)"
                       >
+                        Motir at fleet scale, on AWS accounts of your own.
+                      </p>
+                      <div>
+                        <span
+                          class="font-serif text-2xl text-(--el-text) whitespace-nowrap"
+                          >$1,000 / mo</span
+                        >
+                        <p class="text-xs text-(--el-text-secondary)">
+                          billed annually · $12,000 / yr
+                        </p>
+                        <span
+                          class="inline-flex items-center gap-1 rounded-(--radius-badge) px-(--spacing-chip-x) py-(--spacing-chip-y) font-sans text-xs font-medium border mt-1 bg-(--el-tint-mint) text-(--el-text-strong) border-transparent"
+                          >Save $6,000/yr</span
+                        >
+                      </div>
+                      <p class="text-sm font-semibold text-(--el-text-strong)">
+                        300,000 credits / mo
+                      </p>
+                      <p class="text-[11.5px] text-(--el-text-secondary)">
+                        5× Max ×2’s credits · same price per credit
+                      </p>
+                      <p class="text-xs text-(--el-text-secondary)">
+                        + 1 Motir seat · work items uncapped
+                      </p>
+                      <ul
+                        class="flex flex-col gap-1.5 text-xs text-(--el-text-secondary)"
+                      >
+                        <li class="flex items-start gap-1.5 font-medium">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span>Everything in Max ×2, plus</span>
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span>Motir runs your project autonomously</span>
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="mt-0.5 shrink-0 text-(--el-success)"
+                          >
+                            <path d="M20 6 9 17l-5-5"></path></svg
+                          ><span
+                            >Dedicated pools for CI runners, agent runs, the
+                            indexer and hosted agents</span
+                          >
+                        </li>
+                      </ul>
+                      <div class="mt-auto pt-1">
                         <button
                           type="button"
-                          data-variant="primary"
-                          class="inline-flex items-center justify-center gap-2 font-sans text-sm font-medium leading-none whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-(--el-accent) text-(--el-accent-text) hover:opacity-90 h-(--height-btn-md) px-(--spacing-btn-x)"
+                          data-variant="secondary"
+                          class="inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-sm) px-3 text-xs w-full"
                         >
                           <span>Choose Host</span>
                         </button>
@@ -6214,56 +6771,86 @@
                     </div>
                   </div>
                 </div>
-                <p class="text-sm text-(--el-text-secondary)">
-                  Need more in a month? Top up at $5 per 1,000 credits.
-                </p>
-                <div class="grid grid-cols-3 gap-3">
-                  <div
-                    class="rounded-(--radius-card) border p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-tint-mint) border-transparent"
-                    data-tilt=""
-                  >
-                    <div data-tilt-layer="front" class="mb-(--spacing-md)">
-                      <h3 class="font-semibold text-(--el-text-strong)">
-                        Seats
-                      </h3>
-                    </div>
-                    <div>
-                      <p class="text-(--el-text)">
-                        $5 a month per user for seats beyond the first.
-                      </p>
-                    </div>
-                  </div>
-                  <div class="col-span-2 grid content-start gap-2">
-                    <p class="text-(--el-text)">
-                      AI plans and top-ups belong to the organization: one AI
-                      plan per organization, its credits shared by everyone,
-                      never priced per user.
-                    </p>
-                    <p class="text-(--el-text)">
-                      Every AI plan includes one tracker seat; each further seat
-                      is priced per user.
-                    </p>
-                    <p class="text-sm text-(--el-text-secondary)">
-                      Need an invoice? We bill through Stripe invoicing — write
-                      to billing@motir.co.
-                    </p>
-                  </div>
-                </div>
                 <div
                   class="rounded-(--radius-card) border border-(--el-border) p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-card)"
                   data-tilt=""
                   data-surface="card"
                 >
-                  <div data-tilt-layer="front" class="mb-(--spacing-md)">
-                    <h3 class="font-semibold text-(--el-text-strong)">
-                      Larger credit pools
-                    </h3>
-                  </div>
                   <div>
-                    <p class="text-(--el-text-secondary)">
-                      Above Host, larger pools are sized to an estimate. The
-                      calculator below offers one when your range needs it.
-                    </p>
+                    <div
+                      class="flex flex-wrap items-center justify-between gap-3"
+                    >
+                      <div class="grid gap-1">
+                        <h3 class="font-semibold text-(--el-text-strong)">
+                          Need more credits?
+                        </h3>
+                        <p
+                          class="max-w-prose text-sm text-(--el-text-secondary)"
+                        >
+                          If your organization uses more than Host’s 300,000
+                          credits a month, estimate your usage and the
+                          Calculator offers a larger credit pool sized to it,
+                          with AWS accounts of your own.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        data-variant="secondary"
+                        class="inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-sm) px-3 text-xs"
+                      >
+                        <span>Open the Calculator</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div
+                    class="rounded-(--radius-card) border border-(--el-border) p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-card)"
+                    data-tilt=""
+                    data-surface="card"
+                  >
+                    <div data-tilt-layer="front" class="mb-(--spacing-md)">
+                      <h3 class="font-semibold text-(--el-text-strong)">
+                        Top up credits
+                      </h3>
+                    </div>
+                    <div>
+                      <div class="grid gap-1">
+                        <p class="text-sm text-(--el-text)">
+                          A one-time purchase on top of your plan — added to
+                          your balance right away, used after your monthly
+                          allotment.
+                        </p>
+                        <p class="text-xs text-(--el-text-secondary)">
+                          $5 per 1,000 credits · one-time · tax at checkout.
+                          Credits are an allotment, not currency — this is the
+                          price you pay Stripe.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="rounded-(--radius-card) border p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-tint-mint) border-transparent"
+                    data-tilt=""
+                  >
+                    <div>
+                      <div class="grid gap-1">
+                        <p class="text-sm text-(--el-text)">
+                          Every AI plan includes 1 Motir seat at no charge.
+                        </p>
+                        <p class="text-sm text-(--el-text)">
+                          Further seats: $5 per user, per month.
+                        </p>
+                        <p class="text-sm text-(--el-text)">
+                          One plan for the whole organization — its credits are
+                          shared by everyone.
+                        </p>
+                        <p class="text-xs text-(--el-text-secondary)">
+                          Need an invoice? We bill through Stripe invoicing —
+                          write to billing@motir.co.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </section>
@@ -6341,21 +6928,20 @@
                 </button></span
               >
             </header>
-            <main class="grid gap-10 px-8 py-8">
+            <main class="mx-auto grid w-full max-w-[1400px] gap-10 px-8 py-8">
               <section aria-labelledby="plans-h" class="grid gap-4">
-                <div class="flex flex-wrap items-end justify-between gap-3">
-                  <div class="grid gap-1">
-                    <h2
-                      id="plans-h"
-                      class="text-2xl font-semibold text-(--el-text-strong)"
-                    >
-                      Plans and prices
-                    </h2>
-                    <p class="text-(--el-text-secondary)">
-                      One AI plan per organization, shared by everyone in it.
-                      Every figure below comes from the live catalog.
-                    </p>
-                  </div>
+                <div class="grid gap-2">
+                  <h2
+                    id="plans-h"
+                    class="text-2xl font-semibold text-(--el-text-strong)"
+                  >
+                    Choose your plan
+                  </h2>
+                  <p class="max-w-prose text-sm text-(--el-text-secondary)">
+                    An org-level monthly credit pool, billed separately from
+                    seats. Any org can buy it — a paid Motir seat plan is not
+                    required. Pro is the recommended anchor.
+                  </p>
                 </div>
                 <div
                   class="rounded-(--radius-card) border border-(--el-border) p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-card) flex flex-col items-center text-center"
@@ -6392,11 +6978,6 @@
                       Plan prices can’t be shown right now. Try again in a
                       moment.
                     </h2>
-                    <p
-                      class="text-(--el-text-muted) mt-(--spacing-sm) max-w-prose font-sans text-sm"
-                    >
-                      The seat and per-organization lines below still hold.
-                    </p>
                     <div class="mt-(--spacing-md)">
                       <button
                         type="button"
@@ -6408,36 +6989,49 @@
                     </div>
                   </div>
                 </div>
-                <div class="grid grid-cols-3 gap-3">
+                <div class="grid grid-cols-2 gap-3">
+                  <div
+                    class="rounded-(--radius-card) border border-(--el-border) p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-card)"
+                    data-tilt=""
+                    data-surface="card"
+                  >
+                    <div data-tilt-layer="front" class="mb-(--spacing-md)">
+                      <h3 class="font-semibold text-(--el-text-strong)">
+                        Top up credits
+                      </h3>
+                    </div>
+                    <div>
+                      <div class="grid gap-1">
+                        <p class="text-sm text-(--el-text)">
+                          A one-time purchase on top of your plan — added to
+                          your balance right away, used after your monthly
+                          allotment.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                   <div
                     class="rounded-(--radius-card) border p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-tint-mint) border-transparent"
                     data-tilt=""
                   >
-                    <div data-tilt-layer="front" class="mb-(--spacing-md)">
-                      <h3 class="font-semibold text-(--el-text-strong)">
-                        Seats
-                      </h3>
-                    </div>
                     <div>
-                      <p class="text-(--el-text)">
-                        $5 a month per user for seats beyond the first.
-                      </p>
+                      <div class="grid gap-1">
+                        <p class="text-sm text-(--el-text)">
+                          Every AI plan includes 1 Motir seat at no charge.
+                        </p>
+                        <p class="text-sm text-(--el-text)">
+                          Further seats: $5 per user, per month.
+                        </p>
+                        <p class="text-sm text-(--el-text)">
+                          One plan for the whole organization — its credits are
+                          shared by everyone.
+                        </p>
+                        <p class="text-xs text-(--el-text-secondary)">
+                          Need an invoice? We bill through Stripe invoicing —
+                          write to billing@motir.co.
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div class="col-span-2 grid content-start gap-2">
-                    <p class="text-(--el-text)">
-                      AI plans and top-ups belong to the organization: one AI
-                      plan per organization, its credits shared by everyone,
-                      never priced per user.
-                    </p>
-                    <p class="text-(--el-text)">
-                      Every AI plan includes one tracker seat; each further seat
-                      is priced per user.
-                    </p>
-                    <p class="text-sm text-(--el-text-secondary)">
-                      Need an invoice? We bill through Stripe invoicing — write
-                      to billing@motir.co.
-                    </p>
                   </div>
                 </div>
               </section>
@@ -6513,7 +7107,7 @@
                 </button></span
               >
             </header>
-            <main class="grid gap-10 px-8 py-8">
+            <main class="mx-auto grid w-full max-w-[1400px] gap-10 px-8 py-8">
               <section aria-labelledby="calc-h" class="grid grid-cols-2 gap-6">
                 <form class="grid content-start gap-4" novalidate="">
                   <div class="grid gap-1">
@@ -6525,8 +7119,9 @@
                     </h2>
                     <p class="text-(--el-text-secondary)">
                       What your organization finishes in a month, and which
-                      model categories it uses. The answer is an estimate from
-                      the same engine the billing page asks.
+                      model categories it uses. Motir estimates the credits and
+                      the plan that fits — the answer is an estimate, and
+                      nothing here changes your subscription.
                     </p>
                   </div>
                   <fieldset class="grid gap-1">
@@ -6571,6 +7166,12 @@
                         </div>
                       </div>
                     </div>
+                    <p
+                      class="text-sm text-(--el-text-secondary)"
+                      id="planned-help"
+                    >
+                      A range is fine — the low and high ends of a normal month.
+                    </p>
                   </fieldset>
                   <fieldset class="grid gap-1">
                     <legend class="text-sm font-medium text-(--el-text-strong)">
@@ -6615,9 +7216,10 @@
                       </div>
                     </div>
                     <p class="text-sm text-(--el-text-secondary)" id="run-help">
-                      Items you run on your own agent through Motir’s MCP or CLI
-                      use no credits here. Count only what Motir’s runner
-                      builds; 0 is fine.
+                      A range is fine — the low and high ends of a normal month.
+                      Items you run on your own agent — Claude Code, Codex —
+                      through Motir’s MCP or CLI use no credits here. Count only
+                      the items Motir’s runner builds; 0 is fine.
                     </p>
                   </fieldset>
                   <fieldset class="grid gap-2">
@@ -6626,8 +7228,9 @@
                     </legend>
                     <p class="text-sm text-(--el-text-secondary)">
                       Pick one to three. The run is split evenly across what you
-                      pick. Each category lists the models it serves as
-                      examples.
+                      pick: one takes 100%, two take 50% each, all three take
+                      33% each. You never choose a model — each category lists
+                      the models it serves as examples.
                     </p>
                     <div class="grid gap-0.5">
                       <button
@@ -6716,7 +7319,7 @@
                   </fieldset>
                   <div
                     role="group"
-                    aria-label="Price the estimate"
+                    aria-label="Billing cadence"
                     class="items-center gap-0.5 rounded-(--radius-btn) border border-(--el-border) bg-(--el-tabnav-track) p-0.5 inline-flex"
                   >
                     <button
@@ -6755,7 +7358,7 @@
                     <div>
                       <div class="grid gap-1">
                         <p class="text-(--el-text)">
-                          Nothing is estimated until you ask: enter the ranges,
+                          Nothing is estimated until you ask: enter the range,
                           pick one to three categories, then choose Estimate
                           credits.
                         </p>
@@ -6836,7 +7439,7 @@
                 </button></span
               >
             </header>
-            <main class="grid gap-10 px-8 py-8">
+            <main class="mx-auto grid w-full max-w-[1400px] gap-10 px-8 py-8">
               <section aria-labelledby="calc-h" class="grid grid-cols-2 gap-6">
                 <form class="grid content-start gap-4" novalidate="">
                   <div class="grid gap-1">
@@ -6848,8 +7451,9 @@
                     </h2>
                     <p class="text-(--el-text-secondary)">
                       What your organization finishes in a month, and which
-                      model categories it uses. The answer is an estimate from
-                      the same engine the billing page asks.
+                      model categories it uses. Motir estimates the credits and
+                      the plan that fits — the answer is an estimate, and
+                      nothing here changes your subscription.
                     </p>
                   </div>
                   <fieldset class="grid gap-1">
@@ -6894,6 +7498,12 @@
                         </div>
                       </div>
                     </div>
+                    <p
+                      class="text-sm text-(--el-text-secondary)"
+                      id="planned-help"
+                    >
+                      A range is fine — the low and high ends of a normal month.
+                    </p>
                   </fieldset>
                   <fieldset class="grid gap-1">
                     <legend class="text-sm font-medium text-(--el-text-strong)">
@@ -6938,9 +7548,10 @@
                       </div>
                     </div>
                     <p class="text-sm text-(--el-text-secondary)" id="run-help">
-                      Items you run on your own agent through Motir’s MCP or CLI
-                      use no credits here. Count only what Motir’s runner
-                      builds; 0 is fine.
+                      A range is fine — the low and high ends of a normal month.
+                      Items you run on your own agent — Claude Code, Codex —
+                      through Motir’s MCP or CLI use no credits here. Count only
+                      the items Motir’s runner builds; 0 is fine.
                     </p>
                   </fieldset>
                   <fieldset class="grid gap-2">
@@ -6949,8 +7560,9 @@
                     </legend>
                     <p class="text-sm text-(--el-text-secondary)">
                       Pick one to three. The run is split evenly across what you
-                      pick. Each category lists the models it serves as
-                      examples.
+                      pick: one takes 100%, two take 50% each, all three take
+                      33% each. You never choose a model — each category lists
+                      the models it serves as examples.
                     </p>
                     <div class="grid gap-0.5">
                       <button
@@ -7006,6 +7618,8 @@
                         ></button
                       ><span class="text-sm pl-6 text-(--el-text-secondary)"
                         >For example: claude-sonnet-5-5, gemini-3-pro</span
+                      ><span class="text-sm pl-6 text-(--el-text-secondary)"
+                        >100% of the run</span
                       >
                     </div>
                     <div class="grid gap-0.5">
@@ -7039,7 +7653,7 @@
                   </fieldset>
                   <div
                     role="group"
-                    aria-label="Price the estimate"
+                    aria-label="Billing cadence"
                     class="items-center gap-0.5 rounded-(--radius-btn) border border-(--el-border) bg-(--el-tabnav-track) p-0.5 inline-flex"
                   >
                     <button
@@ -7163,7 +7777,7 @@
                 </button></span
               >
             </header>
-            <main class="grid gap-10 px-8 py-8">
+            <main class="mx-auto grid w-full max-w-[1400px] gap-10 px-8 py-8">
               <section aria-labelledby="calc-h" class="grid grid-cols-2 gap-6">
                 <form class="grid content-start gap-4" novalidate="">
                   <div class="grid gap-1">
@@ -7175,8 +7789,9 @@
                     </h2>
                     <p class="text-(--el-text-secondary)">
                       What your organization finishes in a month, and which
-                      model categories it uses. The answer is an estimate from
-                      the same engine the billing page asks.
+                      model categories it uses. Motir estimates the credits and
+                      the plan that fits — the answer is an estimate, and
+                      nothing here changes your subscription.
                     </p>
                   </div>
                   <fieldset class="grid gap-1">
@@ -7221,6 +7836,12 @@
                         </div>
                       </div>
                     </div>
+                    <p
+                      class="text-sm text-(--el-text-secondary)"
+                      id="planned-help"
+                    >
+                      A range is fine — the low and high ends of a normal month.
+                    </p>
                   </fieldset>
                   <fieldset class="grid gap-1">
                     <legend class="text-sm font-medium text-(--el-text-strong)">
@@ -7265,9 +7886,10 @@
                       </div>
                     </div>
                     <p class="text-sm text-(--el-text-secondary)" id="run-help">
-                      Items you run on your own agent through Motir’s MCP or CLI
-                      use no credits here. Count only what Motir’s runner
-                      builds; 0 is fine.
+                      A range is fine — the low and high ends of a normal month.
+                      Items you run on your own agent — Claude Code, Codex —
+                      through Motir’s MCP or CLI use no credits here. Count only
+                      the items Motir’s runner builds; 0 is fine.
                     </p>
                   </fieldset>
                   <fieldset class="grid gap-2">
@@ -7276,8 +7898,9 @@
                     </legend>
                     <p class="text-sm text-(--el-text-secondary)">
                       Pick one to three. The run is split evenly across what you
-                      pick. Each category lists the models it serves as
-                      examples.
+                      pick: one takes 100%, two take 50% each, all three take
+                      33% each. You never choose a model — each category lists
+                      the models it serves as examples.
                     </p>
                     <div class="grid gap-0.5">
                       <button
@@ -7333,6 +7956,8 @@
                         ></button
                       ><span class="text-sm pl-6 text-(--el-text-secondary)"
                         >For example: claude-sonnet-5-5, gemini-3-pro</span
+                      ><span class="text-sm pl-6 text-(--el-text-secondary)"
+                        >100% of the run</span
                       >
                     </div>
                     <div class="grid gap-0.5">
@@ -7366,7 +7991,7 @@
                   </fieldset>
                   <div
                     role="group"
-                    aria-label="Price the estimate"
+                    aria-label="Billing cadence"
                     class="items-center gap-0.5 rounded-(--radius-btn) border border-(--el-border) bg-(--el-tabnav-track) p-0.5 inline-flex"
                   >
                     <button
@@ -7416,6 +8041,10 @@
                           ><span
                             class="text-lg font-semibold text-(--el-text-strong)"
                             >9,800 – 14,200</span
+                          ><span class="text-sm text-(--el-text)"
+                            >This is an estimate for the range you entered: the
+                            credits come back as a range, never one exact
+                            figure.</span
                           >
                         </div>
                         <div
@@ -7438,9 +8067,21 @@
                             >None</span
                           >
                         </div>
-                        <a href="#" class="text-sm text-(--el-link) underline"
-                          >How the estimate is worked out</a
-                        >
+                        <div class="grid gap-2 pt-2">
+                          <p class="text-sm text-(--el-text)">
+                            One plan for the whole organization — its credits
+                            are shared by everyone.
+                          </p>
+                          <div>
+                            <button
+                              type="button"
+                              data-variant="secondary"
+                              class="inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-sm) px-3 text-xs"
+                            >
+                              <span>Go to this plan</span>
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -7518,7 +8159,7 @@
                 </button></span
               >
             </header>
-            <main class="grid gap-10 px-8 py-8">
+            <main class="mx-auto grid w-full max-w-[1400px] gap-10 px-8 py-8">
               <section aria-labelledby="calc-h" class="grid grid-cols-2 gap-6">
                 <form class="grid content-start gap-4" novalidate="">
                   <div class="grid gap-1">
@@ -7530,8 +8171,9 @@
                     </h2>
                     <p class="text-(--el-text-secondary)">
                       What your organization finishes in a month, and which
-                      model categories it uses. The answer is an estimate from
-                      the same engine the billing page asks.
+                      model categories it uses. Motir estimates the credits and
+                      the plan that fits — the answer is an estimate, and
+                      nothing here changes your subscription.
                     </p>
                   </div>
                   <fieldset class="grid gap-1">
@@ -7576,6 +8218,12 @@
                         </div>
                       </div>
                     </div>
+                    <p
+                      class="text-sm text-(--el-text-secondary)"
+                      id="planned-help"
+                    >
+                      A range is fine — the low and high ends of a normal month.
+                    </p>
                   </fieldset>
                   <fieldset class="grid gap-1">
                     <legend class="text-sm font-medium text-(--el-text-strong)">
@@ -7620,9 +8268,10 @@
                       </div>
                     </div>
                     <p class="text-sm text-(--el-text-secondary)" id="run-help">
-                      Items you run on your own agent through Motir’s MCP or CLI
-                      use no credits here. Count only what Motir’s runner
-                      builds; 0 is fine.
+                      A range is fine — the low and high ends of a normal month.
+                      Items you run on your own agent — Claude Code, Codex —
+                      through Motir’s MCP or CLI use no credits here. Count only
+                      the items Motir’s runner builds; 0 is fine.
                     </p>
                   </fieldset>
                   <fieldset class="grid gap-2">
@@ -7631,8 +8280,9 @@
                     </legend>
                     <p class="text-sm text-(--el-text-secondary)">
                       Pick one to three. The run is split evenly across what you
-                      pick. Each category lists the models it serves as
-                      examples.
+                      pick: one takes 100%, two take 50% each, all three take
+                      33% each. You never choose a model — each category lists
+                      the models it serves as examples.
                     </p>
                     <div class="grid gap-0.5">
                       <button
@@ -7660,6 +8310,8 @@
                         ></button
                       ><span class="text-sm pl-6 text-(--el-text-secondary)"
                         >For example: claude-opus-5-5, gpt-5</span
+                      ><span class="text-sm pl-6 text-(--el-text-secondary)"
+                        >50% of the run</span
                       >
                     </div>
                     <div class="grid gap-0.5">
@@ -7688,6 +8340,8 @@
                         ></button
                       ><span class="text-sm pl-6 text-(--el-text-secondary)"
                         >For example: claude-sonnet-5-5, gemini-3-pro</span
+                      ><span class="text-sm pl-6 text-(--el-text-secondary)"
+                        >50% of the run</span
                       >
                     </div>
                     <div class="grid gap-0.5">
@@ -7721,7 +8375,7 @@
                   </fieldset>
                   <div
                     role="group"
-                    aria-label="Price the estimate"
+                    aria-label="Billing cadence"
                     class="items-center gap-0.5 rounded-(--radius-btn) border border-(--el-border) bg-(--el-tabnav-track) p-0.5 inline-flex"
                   >
                     <button
@@ -7793,15 +8447,32 @@
                             >0 – 11 × 1,000 credits, up to $55 a month</span
                           >
                         </div>
+                        <p class="text-sm text-(--el-text)">
+                          Your estimate is above Max ×2’s 60,000 credits a
+                          month, so the answer is Max ×2 with top-ups for the
+                          rest.
+                        </p>
                         <p
                           class="text-(--el-text) bg-(--el-tint-lavender) rounded-(--radius-card) px-(--spacing-card-padding-12) py-(--spacing-control-y-8)"
                         >
                           Running at this size every month? Host may suit you
                           better — see the Host plan above.
                         </p>
-                        <a href="#" class="text-sm text-(--el-link) underline"
-                          >How the estimate is worked out</a
-                        >
+                        <div class="grid gap-2 pt-2">
+                          <p class="text-sm text-(--el-text)">
+                            One plan for the whole organization — its credits
+                            are shared by everyone.
+                          </p>
+                          <div>
+                            <button
+                              type="button"
+                              data-variant="secondary"
+                              class="inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-sm) px-3 text-xs"
+                            >
+                              <span>Go to this plan</span>
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -7813,13 +8484,13 @@
       </section>
       <section
         class="flex flex-col gap-3"
-        aria-label="9 · Estimate, larger pool plan — returned name, pool and price, the more-machines line and See-Host"
+        aria-label="9 · Estimate, larger pool plan — returned name, pool and price, the own-accounts line and See-Host"
       >
         <h2
           class="font-mono text-xs uppercase tracking-wide text-(--el-text-secondary)"
         >
           9 · Estimate, larger pool plan — returned name, pool and price, the
-          more-machines line and See-Host
+          own-accounts line and See-Host
         </h2>
         <div
           class="rounded-(--radius-card) border border-(--el-border) bg-(--el-page-bg) p-(--spacing-card-padding)"
@@ -7880,7 +8551,7 @@
                 </button></span
               >
             </header>
-            <main class="grid gap-10 px-8 py-8">
+            <main class="mx-auto grid w-full max-w-[1400px] gap-10 px-8 py-8">
               <section aria-labelledby="calc-h" class="grid grid-cols-2 gap-6">
                 <form class="grid content-start gap-4" novalidate="">
                   <div class="grid gap-1">
@@ -7892,8 +8563,9 @@
                     </h2>
                     <p class="text-(--el-text-secondary)">
                       What your organization finishes in a month, and which
-                      model categories it uses. The answer is an estimate from
-                      the same engine the billing page asks.
+                      model categories it uses. Motir estimates the credits and
+                      the plan that fits — the answer is an estimate, and
+                      nothing here changes your subscription.
                     </p>
                   </div>
                   <fieldset class="grid gap-1">
@@ -7938,6 +8610,12 @@
                         </div>
                       </div>
                     </div>
+                    <p
+                      class="text-sm text-(--el-text-secondary)"
+                      id="planned-help"
+                    >
+                      A range is fine — the low and high ends of a normal month.
+                    </p>
                   </fieldset>
                   <fieldset class="grid gap-1">
                     <legend class="text-sm font-medium text-(--el-text-strong)">
@@ -7982,9 +8660,10 @@
                       </div>
                     </div>
                     <p class="text-sm text-(--el-text-secondary)" id="run-help">
-                      Items you run on your own agent through Motir’s MCP or CLI
-                      use no credits here. Count only what Motir’s runner
-                      builds; 0 is fine.
+                      A range is fine — the low and high ends of a normal month.
+                      Items you run on your own agent — Claude Code, Codex —
+                      through Motir’s MCP or CLI use no credits here. Count only
+                      the items Motir’s runner builds; 0 is fine.
                     </p>
                   </fieldset>
                   <fieldset class="grid gap-2">
@@ -7993,8 +8672,9 @@
                     </legend>
                     <p class="text-sm text-(--el-text-secondary)">
                       Pick one to three. The run is split evenly across what you
-                      pick. Each category lists the models it serves as
-                      examples.
+                      pick: one takes 100%, two take 50% each, all three take
+                      33% each. You never choose a model — each category lists
+                      the models it serves as examples.
                     </p>
                     <div class="grid gap-0.5">
                       <button
@@ -8022,6 +8702,8 @@
                         ></button
                       ><span class="text-sm pl-6 text-(--el-text-secondary)"
                         >For example: claude-opus-5-5, gpt-5</span
+                      ><span class="text-sm pl-6 text-(--el-text-secondary)"
+                        >33% of the run</span
                       >
                     </div>
                     <div class="grid gap-0.5">
@@ -8050,6 +8732,8 @@
                         ></button
                       ><span class="text-sm pl-6 text-(--el-text-secondary)"
                         >For example: claude-sonnet-5-5, gemini-3-pro</span
+                      ><span class="text-sm pl-6 text-(--el-text-secondary)"
+                        >33% of the run</span
                       >
                     </div>
                     <div class="grid gap-0.5">
@@ -8078,12 +8762,14 @@
                         ></button
                       ><span class="text-sm pl-6 text-(--el-text-secondary)"
                         >For example: claude-haiku-5-5, gpt-5-mini</span
+                      ><span class="text-sm pl-6 text-(--el-text-secondary)"
+                        >33% of the run</span
                       >
                     </div>
                   </fieldset>
                   <div
                     role="group"
-                    aria-label="Price the estimate"
+                    aria-label="Billing cadence"
                     class="items-center gap-0.5 rounded-(--radius-btn) border border-(--el-border) bg-(--el-tabnav-track) p-0.5 inline-flex"
                   >
                     <button
@@ -8144,32 +8830,46 @@
                             class="text-lg font-semibold text-(--el-text-strong)"
                             >Pool 600k</span
                           ><span class="text-sm text-(--el-text)"
-                            >600,000 credits a month · $3,000 / month</span
+                            >600,000 credits / mo · $3,000 / mo</span
                           >
                         </div>
                         <p class="text-sm text-(--el-text)">
-                          A larger pool carries more machines per fleet, on AWS
-                          accounts of its own.
+                          Your estimate is above our largest regular plan, so
+                          the answer is a larger credit pool sized to it: Pool
+                          600k.
                         </p>
-                        <div
-                          class="grid gap-0.5 border-b border-(--el-border-soft) py-2"
-                        >
-                          <span class="text-sm text-(--el-text-secondary)"
-                            >Top-up we’d estimate</span
-                          ><span
-                            class="text-lg font-semibold text-(--el-text-strong)"
-                            >None</span
-                          >
-                        </div>
+                        <p class="text-sm text-(--el-text)">
+                          Three AWS accounts of your organization’s own: one for
+                          CI runners, one for agent runs, and one shared by the
+                          indexer and the hosted agents, each sized for this
+                          pool
+                        </p>
+                        <p class="text-sm text-(--el-text-secondary)">
+                          The pool and its price are worked out from your
+                          estimate, so both are an estimate — the exact amounts
+                          are confirmed before anything is charged.
+                        </p>
                         <p
                           class="text-(--el-text) bg-(--el-tint-lavender) rounded-(--radius-card) px-(--spacing-card-padding-12) py-(--spacing-control-y-8)"
                         >
                           Running at this size every month? Host may suit you
                           better — see the Host plan above.
                         </p>
-                        <a href="#" class="text-sm text-(--el-link) underline"
-                          >How the estimate is worked out</a
-                        >
+                        <div class="grid gap-2 pt-2">
+                          <p class="text-sm text-(--el-text)">
+                            One plan for the whole organization — its credits
+                            are shared by everyone.
+                          </p>
+                          <div>
+                            <button
+                              type="button"
+                              data-variant="secondary"
+                              class="inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-sm) px-3 text-xs"
+                            >
+                              <span>Go to this plan</span>
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -8248,7 +8948,7 @@
                 </button></span
               >
             </header>
-            <main class="grid gap-10 px-8 py-8">
+            <main class="mx-auto grid w-full max-w-[1400px] gap-10 px-8 py-8">
               <section aria-labelledby="calc-h" class="grid grid-cols-2 gap-6">
                 <form class="grid content-start gap-4" novalidate="">
                   <div class="grid gap-1">
@@ -8260,8 +8960,9 @@
                     </h2>
                     <p class="text-(--el-text-secondary)">
                       What your organization finishes in a month, and which
-                      model categories it uses. The answer is an estimate from
-                      the same engine the billing page asks.
+                      model categories it uses. Motir estimates the credits and
+                      the plan that fits — the answer is an estimate, and
+                      nothing here changes your subscription.
                     </p>
                   </div>
                   <fieldset class="grid gap-1">
@@ -8317,6 +9018,12 @@
                         </p>
                       </div>
                     </div>
+                    <p
+                      class="text-sm text-(--el-text-secondary)"
+                      id="planned-help"
+                    >
+                      A range is fine — the low and high ends of a normal month.
+                    </p>
                   </fieldset>
                   <fieldset class="grid gap-1">
                     <legend class="text-sm font-medium text-(--el-text-strong)">
@@ -8367,15 +9074,16 @@
                           class="font-sans text-xs"
                           style="color: var(--el-danger)"
                         >
-                          Enter how many items Motir’s runner builds a month — 0
-                          is fine.
+                          Enter how many work items your organization finishes a
+                          month.
                         </p>
                       </div>
                     </div>
                     <p class="text-sm text-(--el-text-secondary)" id="run-help">
-                      Items you run on your own agent through Motir’s MCP or CLI
-                      use no credits here. Count only what Motir’s runner
-                      builds; 0 is fine.
+                      A range is fine — the low and high ends of a normal month.
+                      Items you run on your own agent — Claude Code, Codex —
+                      through Motir’s MCP or CLI use no credits here. Count only
+                      the items Motir’s runner builds; 0 is fine.
                     </p>
                   </fieldset>
                   <fieldset class="grid gap-2">
@@ -8384,8 +9092,9 @@
                     </legend>
                     <p class="text-sm text-(--el-text-secondary)">
                       Pick one to three. The run is split evenly across what you
-                      pick. Each category lists the models it serves as
-                      examples.
+                      pick: one takes 100%, two take 50% each, all three take
+                      33% each. You never choose a model — each category lists
+                      the models it serves as examples.
                     </p>
                     <div class="grid gap-0.5">
                       <button
@@ -8441,6 +9150,8 @@
                         ></button
                       ><span class="text-sm pl-6 text-(--el-text-secondary)"
                         >For example: claude-sonnet-5-5, gemini-3-pro</span
+                      ><span class="text-sm pl-6 text-(--el-text-secondary)"
+                        >100% of the run</span
                       >
                     </div>
                     <div class="grid gap-0.5">
@@ -8474,7 +9185,7 @@
                   </fieldset>
                   <div
                     role="group"
-                    aria-label="Price the estimate"
+                    aria-label="Billing cadence"
                     class="items-center gap-0.5 rounded-(--radius-btn) border border-(--el-border) bg-(--el-tabnav-track) p-0.5 inline-flex"
                   >
                     <button
@@ -8513,7 +9224,9 @@
                     <div>
                       <div class="grid gap-1">
                         <p class="text-(--el-text)">
-                          Fix the highlighted field to get an estimate.
+                          Nothing is estimated until you ask: enter the range,
+                          pick one to three categories, then choose Estimate
+                          credits.
                         </p>
                       </div>
                     </div>
@@ -8593,7 +9306,7 @@
                 </button></span
               >
             </header>
-            <main class="grid gap-10 px-8 py-8">
+            <main class="mx-auto grid w-full max-w-[1400px] gap-10 px-8 py-8">
               <section aria-labelledby="calc-h" class="grid grid-cols-2 gap-6">
                 <form class="grid content-start gap-4" novalidate="">
                   <div class="grid gap-1">
@@ -8605,8 +9318,9 @@
                     </h2>
                     <p class="text-(--el-text-secondary)">
                       What your organization finishes in a month, and which
-                      model categories it uses. The answer is an estimate from
-                      the same engine the billing page asks.
+                      model categories it uses. Motir estimates the credits and
+                      the plan that fits — the answer is an estimate, and
+                      nothing here changes your subscription.
                     </p>
                   </div>
                   <fieldset class="grid gap-1">
@@ -8651,6 +9365,12 @@
                         </div>
                       </div>
                     </div>
+                    <p
+                      class="text-sm text-(--el-text-secondary)"
+                      id="planned-help"
+                    >
+                      A range is fine — the low and high ends of a normal month.
+                    </p>
                   </fieldset>
                   <fieldset class="grid gap-1">
                     <legend class="text-sm font-medium text-(--el-text-strong)">
@@ -8695,9 +9415,10 @@
                       </div>
                     </div>
                     <p class="text-sm text-(--el-text-secondary)" id="run-help">
-                      Items you run on your own agent through Motir’s MCP or CLI
-                      use no credits here. Count only what Motir’s runner
-                      builds; 0 is fine.
+                      A range is fine — the low and high ends of a normal month.
+                      Items you run on your own agent — Claude Code, Codex —
+                      through Motir’s MCP or CLI use no credits here. Count only
+                      the items Motir’s runner builds; 0 is fine.
                     </p>
                   </fieldset>
                   <fieldset class="grid gap-2">
@@ -8706,8 +9427,9 @@
                     </legend>
                     <p class="text-sm text-(--el-text-secondary)">
                       Pick one to three. The run is split evenly across what you
-                      pick. Each category lists the models it serves as
-                      examples.
+                      pick: one takes 100%, two take 50% each, all three take
+                      33% each. You never choose a model — each category lists
+                      the models it serves as examples.
                     </p>
                     <div class="grid gap-0.5">
                       <button
@@ -8763,6 +9485,8 @@
                         ></button
                       ><span class="text-sm pl-6 text-(--el-text-secondary)"
                         >For example: claude-sonnet-5-5, gemini-3-pro</span
+                      ><span class="text-sm pl-6 text-(--el-text-secondary)"
+                        >100% of the run</span
                       >
                     </div>
                     <div class="grid gap-0.5">
@@ -8796,7 +9520,7 @@
                   </fieldset>
                   <div
                     role="group"
-                    aria-label="Price the estimate"
+                    aria-label="Billing cadence"
                     class="items-center gap-0.5 rounded-(--radius-btn) border border-(--el-border) bg-(--el-tabnav-track) p-0.5 inline-flex"
                   >
                     <button
@@ -8948,7 +9672,7 @@
                 </button></span
               >
             </header>
-            <main class="grid gap-10 px-8 py-8">
+            <main class="mx-auto grid w-full max-w-[1400px] gap-10 px-8 py-8">
               <section aria-labelledby="calc-h" class="grid grid-cols-2 gap-6">
                 <form class="grid content-start gap-4" novalidate="">
                   <div class="grid gap-1">
@@ -8960,8 +9684,9 @@
                     </h2>
                     <p class="text-(--el-text-secondary)">
                       What your organization finishes in a month, and which
-                      model categories it uses. The answer is an estimate from
-                      the same engine the billing page asks.
+                      model categories it uses. Motir estimates the credits and
+                      the plan that fits — the answer is an estimate, and
+                      nothing here changes your subscription.
                     </p>
                   </div>
                   <fieldset class="grid gap-1">
@@ -9006,6 +9731,12 @@
                         </div>
                       </div>
                     </div>
+                    <p
+                      class="text-sm text-(--el-text-secondary)"
+                      id="planned-help"
+                    >
+                      A range is fine — the low and high ends of a normal month.
+                    </p>
                   </fieldset>
                   <fieldset class="grid gap-1">
                     <legend class="text-sm font-medium text-(--el-text-strong)">
@@ -9050,9 +9781,10 @@
                       </div>
                     </div>
                     <p class="text-sm text-(--el-text-secondary)" id="run-help">
-                      Items you run on your own agent through Motir’s MCP or CLI
-                      use no credits here. Count only what Motir’s runner
-                      builds; 0 is fine.
+                      A range is fine — the low and high ends of a normal month.
+                      Items you run on your own agent — Claude Code, Codex —
+                      through Motir’s MCP or CLI use no credits here. Count only
+                      the items Motir’s runner builds; 0 is fine.
                     </p>
                   </fieldset>
                   <fieldset class="grid gap-2">
@@ -9061,8 +9793,9 @@
                     </legend>
                     <p class="text-sm text-(--el-text-secondary)">
                       Pick one to three. The run is split evenly across what you
-                      pick. Each category lists the models it serves as
-                      examples.
+                      pick: one takes 100%, two take 50% each, all three take
+                      33% each. You never choose a model — each category lists
+                      the models it serves as examples.
                     </p>
                     <div class="grid gap-0.5">
                       <button
@@ -9118,6 +9851,8 @@
                         ></button
                       ><span class="text-sm pl-6 text-(--el-text-secondary)"
                         >For example: claude-sonnet-5-5, gemini-3-pro</span
+                      ><span class="text-sm pl-6 text-(--el-text-secondary)"
+                        >100% of the run</span
                       >
                     </div>
                     <div class="grid gap-0.5">
@@ -9145,14 +9880,14 @@
                           >Fast</span
                         ></button
                       ><span class="text-sm pl-6 text-(--el-text-secondary)"
-                        >No model in Fast right now, so it can’t be
+                        >No model in this category right now, so it can’t be
                         picked.</span
                       >
                     </div>
                   </fieldset>
                   <div
                     role="group"
-                    aria-label="Price the estimate"
+                    aria-label="Billing cadence"
                     class="items-center gap-0.5 rounded-(--radius-btn) border border-(--el-border) bg-(--el-tabnav-track) p-0.5 inline-flex"
                   >
                     <button
@@ -9191,7 +9926,7 @@
                     <div>
                       <div class="grid gap-1">
                         <p class="text-(--el-text)">
-                          Nothing is estimated until you ask: enter the ranges,
+                          Nothing is estimated until you ask: enter the range,
                           pick one to three categories, then choose Estimate
                           credits.
                         </p>
@@ -9273,7 +10008,7 @@
                 </button></span
               >
             </header>
-            <main class="grid gap-10 px-8 py-8">
+            <main class="mx-auto grid w-full max-w-[1400px] gap-10 px-8 py-8">
               <section aria-labelledby="calc-h" class="grid grid-cols-2 gap-6">
                 <form class="grid content-start gap-4" novalidate="">
                   <div class="grid gap-1">
@@ -9285,8 +10020,9 @@
                     </h2>
                     <p class="text-(--el-text-secondary)">
                       What your organization finishes in a month, and which
-                      model categories it uses. The answer is an estimate from
-                      the same engine the billing page asks.
+                      model categories it uses. Motir estimates the credits and
+                      the plan that fits — the answer is an estimate, and
+                      nothing here changes your subscription.
                     </p>
                   </div>
                   <fieldset class="grid gap-1">
@@ -9331,6 +10067,12 @@
                         </div>
                       </div>
                     </div>
+                    <p
+                      class="text-sm text-(--el-text-secondary)"
+                      id="planned-help"
+                    >
+                      A range is fine — the low and high ends of a normal month.
+                    </p>
                   </fieldset>
                   <fieldset class="grid gap-1">
                     <legend class="text-sm font-medium text-(--el-text-strong)">
@@ -9375,9 +10117,10 @@
                       </div>
                     </div>
                     <p class="text-sm text-(--el-text-secondary)" id="run-help">
-                      Items you run on your own agent through Motir’s MCP or CLI
-                      use no credits here. Count only what Motir’s runner
-                      builds; 0 is fine.
+                      A range is fine — the low and high ends of a normal month.
+                      Items you run on your own agent — Claude Code, Codex —
+                      through Motir’s MCP or CLI use no credits here. Count only
+                      the items Motir’s runner builds; 0 is fine.
                     </p>
                   </fieldset>
                   <fieldset class="grid gap-2">
@@ -9386,8 +10129,9 @@
                     </legend>
                     <p class="text-sm text-(--el-text-secondary)">
                       Pick one to three. The run is split evenly across what you
-                      pick. Each category lists the models it serves as
-                      examples.
+                      pick: one takes 100%, two take 50% each, all three take
+                      33% each. You never choose a model — each category lists
+                      the models it serves as examples.
                     </p>
                     <div class="grid gap-0.5">
                       <button
@@ -9443,6 +10187,8 @@
                         ></button
                       ><span class="text-sm pl-6 text-(--el-text-secondary)"
                         >For example: claude-sonnet-5-5, gemini-3-pro</span
+                      ><span class="text-sm pl-6 text-(--el-text-secondary)"
+                        >100% of the run</span
                       >
                     </div>
                     <div class="grid gap-0.5">
@@ -9480,7 +10226,7 @@
                   </fieldset>
                   <div
                     role="group"
-                    aria-label="Price the estimate"
+                    aria-label="Billing cadence"
                     class="items-center gap-0.5 rounded-(--radius-btn) border border-(--el-border) bg-(--el-tabnav-track) p-0.5 inline-flex"
                   >
                     <button
@@ -9519,7 +10265,7 @@
                     <div>
                       <div class="grid gap-1">
                         <p class="text-(--el-text)">
-                          Nothing is estimated until you ask: enter the ranges,
+                          Nothing is estimated until you ask: enter the range,
                           pick one to three categories, then choose Estimate
                           credits.
                         </p>
@@ -9534,12 +10280,13 @@
       </section>
       <section
         class="flex flex-col gap-3"
-        aria-label="14 · Narrow viewport (390 px) — cards stack, header collapses to Menu"
+        aria-label="14 · Narrow viewport (390 px) — the card row scrolls sideways as in the app; header collapses to Menu"
       >
         <h2
           class="font-mono text-xs uppercase tracking-wide text-(--el-text-secondary)"
         >
-          14 · Narrow viewport (390 px) — cards stack, header collapses to Menu
+          14 · Narrow viewport (390 px) — the card row scrolls sideways as in
+          the app; header collapses to Menu
         </h2>
         <div
           class="rounded-(--radius-card) border border-(--el-border) bg-(--el-page-bg) p-(--spacing-card-padding)"
@@ -9574,109 +10321,511 @@
                 </button>
               </div>
               <div
-                class="rounded-(--radius-card) border border-(--el-border) p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-card) h-full"
-                data-tilt=""
-                data-surface="card"
-                data-plan="max_x2"
+                class="flex items-stretch gap-3 overflow-x-auto pb-1.5"
+                role="list"
               >
-                <div data-tilt-layer="front" class="mb-(--spacing-md)">
-                  <div class="flex items-center justify-between gap-2">
-                    <h3 class="text-lg font-semibold text-(--el-text-strong)">
-                      Max ×2
-                    </h3>
-                  </div>
-                </div>
-                <div>
-                  <div class="grid gap-2">
-                    <p>
-                      <span
-                        class="text-2xl font-semibold whitespace-nowrap text-(--el-text-strong)"
-                        >$300</span
-                      ><span
-                        class="text-sm ml-1 whitespace-nowrap text-(--el-text-secondary)"
-                        >/ month</span
-                      >
-                    </p>
-                    <p class="text-sm text-(--el-text)">
-                      60,000 credits a month
-                    </p>
-                    <p class="text-sm text-(--el-text-secondary)">
-                      ✓ One tracker seat included at no charge
-                    </p>
-                  </div>
-                </div>
-                <div
-                  data-tilt-layer="back"
-                  class="border-(--el-border) mt-(--spacing-md) border-t pt-(--spacing-md)"
-                >
-                  <button
-                    type="button"
-                    data-variant="secondary"
-                    class="inline-flex items-center justify-center gap-2 font-sans text-sm font-medium leading-none whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-md) px-(--spacing-btn-x) w-full"
+                <div role="listitem" class="w-[15rem] shrink-0">
+                  <div
+                    data-plan="standard"
+                    class="flex h-full flex-col gap-2 rounded-(--radius-card) border bg-(--el-surface) p-(--spacing-card-padding) shadow-(--shadow-card)"
+                    style="
+                      min-width: 10rem;
+                      border-color: var(--el-border-soft);
+                    "
                   >
-                    <span>Choose Max ×2</span>
-                  </button>
-                </div>
-              </div>
-              <div
-                class="rounded-(--radius-card) border p-(--spacing-card-padding) transition-shadow duration-(--transition-duration) bg-(--el-tint-lavender) border-transparent h-full"
-                data-tilt=""
-                data-plan="host"
-              >
-                <div data-tilt-layer="front" class="mb-(--spacing-md)">
-                  <div class="flex items-center justify-between gap-2">
-                    <h3 class="text-lg font-semibold text-(--el-text-strong)">
-                      Host
-                    </h3>
-                    <span
-                      class="inline-flex items-center gap-1 rounded-(--radius-badge) px-(--spacing-chip-x) py-(--spacing-chip-y) font-sans text-xs font-medium border bg-(--el-chip-bg) text-(--el-text-secondary) border-(--el-chip-border)"
-                      >Own capacity</span
-                    >
-                  </div>
-                </div>
-                <div>
-                  <div class="grid grid-cols-2 gap-x-6 gap-y-2">
-                    <p>
-                      <span
-                        class="text-2xl font-semibold whitespace-nowrap text-(--el-text-strong)"
-                        >$1,500</span
-                      ><span
-                        class="text-sm ml-1 whitespace-nowrap text-(--el-text-secondary)"
-                        >/ month</span
-                      >
-                    </p>
-                    <p class="text-sm text-(--el-text)">
-                      300,000 credits a month
-                    </p>
-                    <p class="text-sm text-(--el-text-secondary)">
-                      ✓ One tracker seat included at no charge
-                    </p>
+                    <div class="flex items-center justify-between gap-2">
+                      <h3 class="text-base font-semibold text-(--el-text)">
+                        Standard
+                      </h3>
+                    </div>
                     <p
-                      class="text-sm col-start-2 row-start-1 row-span-3 text-(--el-text)"
+                      class="min-h-[2.75rem] text-xs text-(--el-text-secondary)"
                     >
-                      Host runs on AWS capacity of its own: its own pools for
-                      CI, for agent runs, and for indexing and hosted agents
-                      together. Until that capacity is ready, it runs on the
-                      shared pools at Max’s limits.
+                      Plan your projects with the Motir AI planner.
                     </p>
+                    <div>
+                      <span
+                        class="font-serif text-2xl text-(--el-text) whitespace-nowrap"
+                        >$25 / mo</span
+                      >
+                      <p class="text-xs text-(--el-text-secondary)">
+                        $300 / yr · Save $100 with annual
+                      </p>
+                    </div>
+                    <p class="text-sm font-semibold text-(--el-text-strong)">
+                      5,000 credits / mo
+                    </p>
+                    <p class="text-[11.5px] text-(--el-text-secondary)">
+                      Same price per credit on every plan
+                    </p>
+                    <p class="text-xs text-(--el-text-secondary)">
+                      + 1 Motir seat · work items uncapped
+                    </p>
+                    <ul
+                      class="flex flex-col gap-1.5 text-xs text-(--el-text-secondary)"
+                    >
+                      <li class="flex items-start gap-1.5">
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          height="14"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="mt-0.5 shrink-0 text-(--el-success)"
+                        >
+                          <path d="M20 6 9 17l-5-5"></path></svg
+                        ><span>Plan the project, in detail</span>
+                      </li>
+                      <li class="flex items-start gap-1.5">
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          height="14"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="mt-0.5 shrink-0 text-(--el-success)"
+                        >
+                          <path d="M20 6 9 17l-5-5"></path></svg
+                        ><span>Credits refresh monthly · top up anytime</span>
+                      </li>
+                    </ul>
+                    <div class="mt-auto pt-1">
+                      <button
+                        type="button"
+                        data-variant="secondary"
+                        class="inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-sm) px-3 text-xs w-full"
+                      >
+                        <span>Choose Standard</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div
-                  data-tilt-layer="back"
-                  class="border-(--el-border) mt-(--spacing-md) border-t pt-(--spacing-md)"
-                >
-                  <button
-                    type="button"
-                    data-variant="primary"
-                    class="inline-flex items-center justify-center gap-2 font-sans text-sm font-medium leading-none whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-(--el-accent) text-(--el-accent-text) hover:opacity-90 h-(--height-btn-md) px-(--spacing-btn-x)"
+                <div role="listitem" class="w-[15rem] shrink-0">
+                  <div
+                    data-plan="pro"
+                    class="flex h-full flex-col gap-2 rounded-(--radius-card) border bg-(--el-surface) p-(--spacing-card-padding) shadow-(--shadow-card)"
+                    style="min-width: 10rem; border-color: var(--el-accent)"
                   >
-                    <span>Choose Host</span>
-                  </button>
+                    <div class="flex items-center justify-between gap-2">
+                      <h3 class="text-base font-semibold text-(--el-text)">
+                        Pro
+                      </h3>
+                      <span
+                        class="inline-flex items-center gap-1 rounded-(--radius-badge) px-(--spacing-chip-x) py-(--spacing-chip-y) font-sans text-xs font-medium border bg-(--el-tint-lavender) text-(--el-text-strong) border-transparent"
+                        >Recommended</span
+                      >
+                    </div>
+                    <p
+                      class="min-h-[2.75rem] text-xs text-(--el-text-secondary)"
+                    >
+                      Standard, plus stronger models for planning.
+                    </p>
+                    <div>
+                      <span
+                        class="font-serif text-2xl text-(--el-text) whitespace-nowrap"
+                        >$75 / mo</span
+                      >
+                      <p class="text-xs text-(--el-text-secondary)">
+                        $900 / yr · Save $300 with annual
+                      </p>
+                    </div>
+                    <p class="text-sm font-semibold text-(--el-text-strong)">
+                      15,000 credits / mo
+                    </p>
+                    <p class="text-[11.5px] text-(--el-text-secondary)">
+                      3× Standard’s credits · same price per credit
+                    </p>
+                    <p class="text-xs text-(--el-text-secondary)">
+                      + 1 Motir seat · work items uncapped
+                    </p>
+                    <ul
+                      class="flex flex-col gap-1.5 text-xs text-(--el-text-secondary)"
+                    >
+                      <li class="flex items-start gap-1.5 font-medium">
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          height="14"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="mt-0.5 shrink-0 text-(--el-success)"
+                        >
+                          <path d="M20 6 9 17l-5-5"></path></svg
+                        ><span>Everything in Standard, plus</span>
+                      </li>
+                      <li class="flex items-start gap-1.5">
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          height="14"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="mt-0.5 shrink-0 text-(--el-success)"
+                        >
+                          <path d="M20 6 9 17l-5-5"></path></svg
+                        ><span>Stronger models enabled for planning</span>
+                      </li>
+                      <li class="flex items-start gap-1.5">
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          height="14"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="mt-0.5 shrink-0 text-(--el-success)"
+                        >
+                          <path d="M20 6 9 17l-5-5"></path></svg
+                        ><span
+                          >Switch the planning model for each kind of work</span
+                        >
+                      </li>
+                    </ul>
+                    <div class="mt-auto pt-1">
+                      <button
+                        type="button"
+                        data-variant="primary"
+                        class="inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-(--el-accent) text-(--el-accent-text) hover:opacity-90 h-(--height-btn-sm) px-3 text-xs w-full"
+                      >
+                        <span>Upgrade to Pro</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div role="listitem" class="w-[15rem] shrink-0">
+                  <div
+                    data-plan="max"
+                    class="flex h-full flex-col gap-2 rounded-(--radius-card) border bg-(--el-surface) p-(--spacing-card-padding) shadow-(--shadow-card)"
+                    style="
+                      min-width: 10rem;
+                      border-color: var(--el-border-soft);
+                    "
+                  >
+                    <div class="flex items-center justify-between gap-2">
+                      <h3 class="text-base font-semibold text-(--el-text)">
+                        Max
+                      </h3>
+                    </div>
+                    <p
+                      class="min-h-[2.75rem] text-xs text-(--el-text-secondary)"
+                    >
+                      Pro, plus headroom to hand planned work to the agent.
+                    </p>
+                    <div>
+                      <span
+                        class="font-serif text-2xl text-(--el-text) whitespace-nowrap"
+                        >$150 / mo</span
+                      >
+                      <p class="text-xs text-(--el-text-secondary)">
+                        $1,800 / yr · Save $600 with annual
+                      </p>
+                    </div>
+                    <p class="text-sm font-semibold text-(--el-text-strong)">
+                      30,000 credits / mo
+                    </p>
+                    <p class="text-[11.5px] text-(--el-text-secondary)">
+                      2× Pro’s credits · same price per credit
+                    </p>
+                    <p class="text-xs text-(--el-text-secondary)">
+                      + 1 Motir seat · work items uncapped
+                    </p>
+                    <ul
+                      class="flex flex-col gap-1.5 text-xs text-(--el-text-secondary)"
+                    >
+                      <li class="flex items-start gap-1.5 font-medium">
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          height="14"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="mt-0.5 shrink-0 text-(--el-success)"
+                        >
+                          <path d="M20 6 9 17l-5-5"></path></svg
+                        ><span>Everything in Pro, plus</span>
+                      </li>
+                      <li class="flex items-start gap-1.5">
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          height="14"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="mt-0.5 shrink-0 text-(--el-success)"
+                        >
+                          <path d="M20 6 9 17l-5-5"></path></svg
+                        ><span
+                          >Plan more work, so your project moves faster</span
+                        >
+                      </li>
+                      <li class="flex items-start gap-1.5">
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          height="14"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="mt-0.5 shrink-0 text-(--el-success)"
+                        >
+                          <path d="M20 6 9 17l-5-5"></path></svg
+                        ><span
+                          >Headroom to dispatch some planned work to the agent
+                          automatically</span
+                        >
+                      </li>
+                    </ul>
+                    <div class="mt-auto pt-1">
+                      <button
+                        type="button"
+                        data-variant="secondary"
+                        class="inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-sm) px-3 text-xs w-full"
+                      >
+                        <span>Choose Max</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div role="listitem" class="w-[15rem] shrink-0">
+                  <div
+                    data-plan="max_x2"
+                    class="flex h-full flex-col gap-2 rounded-(--radius-card) border bg-(--el-surface) p-(--spacing-card-padding) shadow-(--shadow-card)"
+                    style="
+                      min-width: 10rem;
+                      border-color: var(--el-border-soft);
+                    "
+                  >
+                    <div class="flex items-center justify-between gap-2">
+                      <h3 class="text-base font-semibold text-(--el-text)">
+                        Max ×2
+                      </h3>
+                    </div>
+                    <p
+                      class="min-h-[2.75rem] text-xs text-(--el-text-secondary)"
+                    >
+                      Max, at twice the volume.
+                    </p>
+                    <div>
+                      <span
+                        class="font-serif text-2xl text-(--el-text) whitespace-nowrap"
+                        >$300 / mo</span
+                      >
+                      <p class="text-xs text-(--el-text-secondary)">
+                        $3,600 / yr · Save $1,200 with annual
+                      </p>
+                    </div>
+                    <p class="text-sm font-semibold text-(--el-text-strong)">
+                      60,000 credits / mo
+                    </p>
+                    <p class="text-[11.5px] text-(--el-text-secondary)">
+                      2× Max’s credits · same price per credit
+                    </p>
+                    <p class="text-xs text-(--el-text-secondary)">
+                      + 1 Motir seat · work items uncapped
+                    </p>
+                    <ul
+                      class="flex flex-col gap-1.5 text-xs text-(--el-text-secondary)"
+                    >
+                      <li class="flex items-start gap-1.5 font-medium">
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          height="14"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="mt-0.5 shrink-0 text-(--el-success)"
+                        >
+                          <path d="M20 6 9 17l-5-5"></path></svg
+                        ><span>Everything in Max, plus</span>
+                      </li>
+                      <li class="flex items-start gap-1.5">
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          height="14"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="mt-0.5 shrink-0 text-(--el-success)"
+                        >
+                          <path d="M20 6 9 17l-5-5"></path></svg
+                        ><span>Twice the Max monthly credit pool</span>
+                      </li>
+                      <li class="flex items-start gap-1.5">
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          height="14"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="mt-0.5 shrink-0 text-(--el-success)"
+                        >
+                          <path d="M20 6 9 17l-5-5"></path></svg
+                        ><span
+                          >Dispatch more planned work to the agent
+                          automatically</span
+                        >
+                      </li>
+                    </ul>
+                    <div class="mt-auto pt-1">
+                      <button
+                        type="button"
+                        data-variant="secondary"
+                        class="inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-sm) px-3 text-xs w-full"
+                      >
+                        <span>Choose Max ×2</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div role="listitem" class="w-[15rem] shrink-0">
+                  <div
+                    data-plan="host"
+                    class="flex h-full flex-col gap-2 rounded-(--radius-card) border bg-(--el-surface) p-(--spacing-card-padding) shadow-(--shadow-card)"
+                    style="
+                      min-width: 10rem;
+                      border-color: var(--el-border-soft);
+                    "
+                  >
+                    <div class="flex items-center justify-between gap-2">
+                      <h3 class="text-base font-semibold text-(--el-text)">
+                        Host
+                      </h3>
+                    </div>
+                    <p
+                      class="min-h-[2.75rem] text-xs text-(--el-text-secondary)"
+                    >
+                      Motir at fleet scale, on AWS accounts of your own.
+                    </p>
+                    <div>
+                      <span
+                        class="font-serif text-2xl text-(--el-text) whitespace-nowrap"
+                        >$1,500 / mo</span
+                      >
+                      <p class="text-xs text-(--el-text-secondary)">
+                        $18,000 / yr · Save $6,000 with annual
+                      </p>
+                    </div>
+                    <p class="text-sm font-semibold text-(--el-text-strong)">
+                      300,000 credits / mo
+                    </p>
+                    <p class="text-[11.5px] text-(--el-text-secondary)">
+                      5× Max ×2’s credits · same price per credit
+                    </p>
+                    <p class="text-xs text-(--el-text-secondary)">
+                      + 1 Motir seat · work items uncapped
+                    </p>
+                    <ul
+                      class="flex flex-col gap-1.5 text-xs text-(--el-text-secondary)"
+                    >
+                      <li class="flex items-start gap-1.5 font-medium">
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          height="14"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="mt-0.5 shrink-0 text-(--el-success)"
+                        >
+                          <path d="M20 6 9 17l-5-5"></path></svg
+                        ><span>Everything in Max ×2, plus</span>
+                      </li>
+                      <li class="flex items-start gap-1.5">
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          height="14"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="mt-0.5 shrink-0 text-(--el-success)"
+                        >
+                          <path d="M20 6 9 17l-5-5"></path></svg
+                        ><span>Motir runs your project autonomously</span>
+                      </li>
+                      <li class="flex items-start gap-1.5">
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          height="14"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="mt-0.5 shrink-0 text-(--el-success)"
+                        >
+                          <path d="M20 6 9 17l-5-5"></path></svg
+                        ><span
+                          >Dedicated pools for CI runners, agent runs, the
+                          indexer and hosted agents</span
+                        >
+                      </li>
+                    </ul>
+                    <div class="mt-auto pt-1">
+                      <button
+                        type="button"
+                        data-variant="secondary"
+                        class="inline-flex items-center justify-center gap-2 font-sans font-medium whitespace-nowrap rounded-(--radius-btn) transition-[transform,background-color,border-color,color] duration-(--transition-duration) active:scale-(--active-scale) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 bg-transparent text-(--el-text) border border-(--el-button-border) hover:bg-(--el-surface) h-(--height-btn-sm) px-3 text-xs w-full"
+                      >
+                        <span>Choose Host</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
               <p class="text-sm text-(--el-text-secondary) italic">
-                Standard, Pro and Max stack above in the same card; the
-                calculator follows below, inputs first, output after.
+                The row scrolls sideways, as the app’s plan row does; the
+                calculator follows, inputs first, output after.
               </p>
             </main>
           </div>

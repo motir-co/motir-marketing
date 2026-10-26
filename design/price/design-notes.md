@@ -34,36 +34,46 @@ source of plan prices, pools or thresholds. The build reads every figure from da
 
 ## Elements — each named once
 
-1. **Price card.** Five plan cards in ladder order: Standard, Pro, Max, Max ×2, Host. A
-   **Monthly / Annual toggle** (`Segmented`, labelled "Billing cadence") sits above them and
-   switches every card's price. Standard to Max ×2 sit in one row of four. Host follows as a
-   full-width card beneath them: it is the top of the ladder, and its capacity line needs the width.
+**Copy rule (Yue, 2026-10-26): every string on this page is app.motir.co's own.** The price card
+and the calculator say exactly what the signed-in billing screens say, taken word for word from
+motir-core `messages/en.json` (`billing.plans.*`, `billing.topup.*`, `billing.calculator.*`). The
+build imports those strings into the marketing catalog under the same wording; it does not
+paraphrase them. The few lines the app has no string for are marked **NEW** in the copy table.
+
+1. **Price card.** The app's plans view, redrawn for a signed-out visitor. In order:
+   - heading "Choose your plan" and the app's sub-line (`plans.chooseSub`)
+   - the **Monthly / Annual toggle** (`Segmented`, "Billing cadence"), with the mint "Save ~33%"
+     `Pill` beside it on Annual
+   - **five plan cards in ONE row**, Standard, Pro, Max, Max ×2, Host, equal width and equal
+     height, filling the page's 1400px content width. Below the row's natural width the row scrolls
+     sideways rather than wrapping, as the app's does. Host is a card like the others.
+
    The grid is DATA-DRIVEN. One plan card is drawn once and the five share it, so a plan added or
-   repriced in the catalog needs no redraw. A plan the catalog offers on only one cadence shows no
-   price on the other cadence; the build hides that card's price line rather than inventing one.
-   Max ×2 is a plan of its own with its own name and prices. No text says "two Max subscriptions" or
-   names a quantity.
-2. **Included-seat line.** "One tracker seat included at no charge", on every card, Host included.
-3. **Host card.** The same plan card as the other four, with the lavender tint, a neutral `Pill`
-   ("Own capacity") and the **own-capacity line**: Host runs on AWS capacity of its own, with its
-   own pools for CI, for agent runs, and for indexing and hosted agents together, and until that
-   capacity is ready it runs on the shared pools at Max's limits. The line carries **no figure**: no
-   vCPU, no account count, no parallel-run number. Host has a buy path ("Choose Host") like the
-   others.
-4. **Seat-fee block.** A mint-tinted `Card` titled "Seats": "$5 a month per user for seats beyond the
-   first." There is no annual seat figure. The amount is one parameter of one string (`{price}`).
-5. **Per-organisation lines.** Two separate plain lines beside the seat block:
-   - AI plans and top-ups belong to the organisation: one AI plan per organisation, its credits shared
-     by everyone, never priced per user.
-   - Every AI plan includes one tracker seat, and each further seat is priced per user.
+   repriced in the catalog needs no redraw.
 
-   No sentence on the page says the page as a whole has no per-user or per-seat price.
-
-6. **Invoice line.** One plain line: Stripe invoicing and a contact address. It is not a card and not
-   a form.
-   Under the ladder, one plain line gives the top-up rate ("Top up at {price} per {credits}
-   credits"), read from the catalog. A **Larger credit pools** card follows. It explains, with no
-   figure, that pools above Host are sized to an estimate and offered by the calculator.
+2. **Plan card.** The app's `PlanCard`, line for line, top to bottom:
+   - the plan name, and on the catalog's recommended plan (Pro) the lavender "Recommended" `Pill`
+     and an accent border
+   - the tier's use-case line (`plans.tiers.<key>.useCase`)
+   - the price: "${n} / mo" with "${yr} / yr · Save ${n} with annual" (Monthly), or the per-month
+     equivalent with "billed annually · ${yr} / yr" and a mint "Save ${n}/yr" `Pill` (Annual)
+   - "{n} credits / mo"
+   - the ladder line: "Same price per credit on every plan" on Standard, then "{multiple}× {plan}'s
+     credits · same price per credit", computed from the pools and shown only when whole
+   - "+ 1 Motir seat · work items uncapped" (the catalog's included-seat count)
+   - the feature list: "Everything in {prev}, plus" on every tier above Standard, then the tier's two
+     features
+   - the button: "Upgrade to Pro" (primary) on the recommended plan, "Choose {plan}" (secondary) on
+     the rest. Signed out, it goes to sign-up with the plan carried
+3. **Need more credits?** A `Card` under the row with the app's `plans.needMore` copy, naming Host
+   and its pool, and the "Open the Calculator" button, which scrolls to the calculator below.
+4. **Top up credits.** A `Card` with the app's top-up title, sub-line and rate line
+   ("${unit} per {credits} credits · one-time · tax at checkout. …").
+5. **Seats and per-organisation lines.** A mint `Card` beside it, in the app's words:
+   "Every AI plan includes 1 Motir seat at no charge.", "Further seats: $5 per user, per month." and
+   "One plan for the whole organization — its credits are shared by everyone."
+6. **Invoice line (NEW).** One plain line inside the seat card: Stripe invoicing and a contact
+   address. It is not a card and not a form.
 7. **Calculator.** Two labelled low–high ranges, each a `fieldset` with a `legend` and two `Input`s
    ("Low", "High"):
    - "Items planned in Motir a month"
@@ -72,20 +82,23 @@ source of plan prices, pools or thresholds. The build reads every figure from da
 
    ONE picker of model categories (a `fieldset` of `Checkbox`es, one to three), each listing the
    engine's example models ("For example: …"). Two picks are split evenly, and three picks are split
-   evenly. The picker's help says so. A **cadence control** (`Segmented`, labelled "Price the
-   estimate", Monthly / Annual, defaulting to the engine's `defaultCadence`) sits above the submit,
-   "Estimate credits".
+   evenly. The picker's help says so, in the app's words, and each picked category shows "{share} of
+   the run". A **cadence control** (`Segmented`, "Billing cadence", Monthly / Annual, defaulting to
+   the engine's `defaultCadence`) sits above the submit, "Estimate credits".
 
-8. **Estimate output.** A sky-tinted `Card` in a live region, beside the form. In order:
-   - what was priced (both ranges echoed)
-   - the credit range
-   - the recommended plan by the engine's name
-   - the top-up estimate
-   - for a larger pool, the **Larger-plan line**: the returned name, pool and price, plus "A larger
-     pool carries more machines per fleet, on AWS accounts of its own."
-   - the **See-Host line**, copy only with no number, on a lavender tint matching the Host card. It
-     is shown when the answer is Max ×2 with a top-up, or a larger pool plan.
-   - a link, "How the estimate is worked out", to the how-it-works page
+8. **Estimate output.** A sky-tinted `Card` in a live region, beside the form, in the app's
+   calculator words. In order:
+   - what was priced (`result.priced`, both ranges echoed)
+   - "Credits a month", the range, and the app's estimate caveat
+   - "The plan that fits", by the engine's name
+   - "Top-up we'd estimate"; above a regular plan's pool, the app's "Your estimate is above {plan}'s
+     {credits} credits a month, so the answer is {plan} with top-ups for the rest."
+   - for a larger pool, "Larger credit pool" with the returned name, pool and price, the app's
+     `result.largerPlan` line, its three-AWS-accounts line and its estimate note
+   - the **See-Host line (NEW)**, copy only with no number, on a lavender tint. It is shown when the
+     answer is Max ×2 with a top-up, or a larger pool plan.
+   - "One plan for the whole organization — its credits are shared by everyone." and the "Go to this
+     plan" button, which scrolls to that plan's card
 
    The calculator never recommends Host. Host reaches the visitor only through the See-Host line.
 
@@ -109,21 +122,21 @@ Copy keys: `nav.price` = "Price", `footer.price` = "Price".
 
 ## States — one panel each
 
-| #   | Panel                                                               | What it shows                                                                                                                                                                                                                                                   |
-| --- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2   | Price card, monthly                                                 | five cards at monthly prices, seat line on each, Host with its capacity line                                                                                                                                                                                    |
-| 3   | Price card, annual                                                  | the toggle on Annual, every price `/ year`                                                                                                                                                                                                                      |
-| 4   | Price card, plan prices unavailable                                 | the ladder read failed or answered an unknown version: an `ErrorState` with retry in place of the cards and toggle, NO figure. The seat block, per-organisation lines and invoice line still show                                                               |
-| 5   | Calculator, initial                                                 | blank ranges, nothing picked, categories listed; the output reads the idle line                                                                                                                                                                                 |
-| 6   | Calculator, loading                                                 | the submit carries `aria-busy` (drawn at full ink, not the faded disabled button), and the output says "Working out your credits…". The previous answer is not shown as current                                                                                 |
-| 7   | Estimate, ordinary plan                                             | Pro by name, top-up "None", no larger-plan or See-Host line                                                                                                                                                                                                     |
-| 8   | Estimate, Max ×2 with a top-up                                      | Max ×2 by name, top-up estimate, the See-Host line                                                                                                                                                                                                              |
-| 9   | Estimate, larger pool plan                                          | returned name, pool and price, the more-machines line, the See-Host line                                                                                                                                                                                        |
-| 10  | Invalid or empty range                                              | the message beside the offending `Input` (`error` → `aria-invalid` + `aria-describedby`), and the output asks for the fix. No number                                                                                                                            |
-| 11  | Engine or category list unavailable, or an unknown response version | `ErrorState` "We can't estimate right now…" with retry, no number. The price card is unaffected                                                                                                                                                                 |
-| 12  | Category with no listed model                                       | that `Checkbox` unpicked and its line naming it ("No model in Fast right now…"), no number. The build makes it unpickable with `aria-disabled` and keeps its label on `--el-text-secondary`, not the faded disabled ink, because the message must stay readable |
-| 13  | Model retired from the list                                         | gone from the picker; a stale pick is dropped and a `role="status"` line says which                                                                                                                                                                             |
-| 14  | Narrow viewport (390 px)                                            | header collapsed to Menu, cards stacked one per row, calculator inputs first and output after                                                                                                                                                                   |
+| #   | Panel                                                               | What it shows                                                                                                                                                                                                                                                                               |
+| --- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2   | Price card, monthly                                                 | five cards in one row at monthly prices, Pro recommended, then Need more credits, top-up and seats                                                                                                                                                                                          |
+| 3   | Price card, annual                                                  | the toggle on Annual with Save ~33%, every card on its per-month equivalent and Save ${n}/yr                                                                                                                                                                                                |
+| 4   | Price card, plan prices unavailable                                 | the ladder read failed or answered an unknown version: an `ErrorState` with retry in place of the cards and toggle, NO figure. The seat block, per-organisation lines and invoice line still show                                                                                           |
+| 5   | Calculator, initial                                                 | blank ranges, nothing picked, categories listed; the output reads the idle line                                                                                                                                                                                                             |
+| 6   | Calculator, loading                                                 | the submit carries `aria-busy` (drawn at full ink, not the faded disabled button), and the output says "Working out your credits…". The previous answer is not shown as current                                                                                                             |
+| 7   | Estimate, ordinary plan                                             | Pro by name, top-up "None", no larger-plan or See-Host line                                                                                                                                                                                                                                 |
+| 8   | Estimate, Max ×2 with a top-up                                      | Max ×2 by name, top-up estimate, the See-Host line                                                                                                                                                                                                                                          |
+| 9   | Estimate, larger pool plan                                          | returned name, pool and price, the app's larger-pool and own-accounts lines, the See-Host line                                                                                                                                                                                              |
+| 10  | Invalid or empty range                                              | the message beside the offending `Input` (`error` → `aria-invalid` + `aria-describedby`), and the output asks for the fix. No number                                                                                                                                                        |
+| 11  | Engine or category list unavailable, or an unknown response version | `ErrorState` "We can't estimate right now…" with retry, no number. The price card is unaffected                                                                                                                                                                                             |
+| 12  | Category with no listed model                                       | that `Checkbox` unpicked and the app's line ("No model in this category right now, so it can't be picked."), no number. The build makes it unpickable with `aria-disabled` and keeps its label on `--el-text-secondary`, not the faded disabled ink, because the message must stay readable |
+| 13  | Model retired from the list                                         | gone from the picker; a stale pick is dropped and a `role="status"` line says which                                                                                                                                                                                                         |
+| 14  | Narrow viewport (390 px)                                            | header collapsed to Menu, the plan row scrolling sideways as the app's does, calculator after                                                                                                                                                                                               |
 
 Validation messages follow the engine's `problem+json` refusals, mapped to the billing Calculator
 tab's copy. Examples: "The low end has to be at or below the high end." and "Enter at least one item
@@ -131,9 +144,9 @@ a month — with both ranges at 0 there is nothing to price."
 
 ## Accessibility
 
-- **Focus order:** header → cadence toggle → each plan card's button, in ladder order → seat and
-  invoice lines (not focusable) → planned Low, High → run Low, High → each category checkbox → cadence control → submit
-  → the output's how-it-works link.
+- **Focus order:** header → cadence toggle → each plan card's button, in ladder order → Open the
+  Calculator → seat and invoice lines (not focusable) → planned Low, High → run Low, High → each category checkbox → cadence control → submit
+  → the output's Go to this plan button.
 - **Labels:** each range is a `fieldset` whose `legend` names it, and its two `Input`s carry visible
   "Low" / "High" labels. The toggle is a labelled `Segmented` ("Billing cadence"). Category checkboxes
   carry their category name as the label.
@@ -149,7 +162,7 @@ a month — with both ranges at 0 there is nothing to price."
 
 Colour is `--el-*` only: `--el-page-bg`, `--el-surface`, `--el-text`, `--el-text-strong`,
 `--el-text-secondary`, `--el-link`, `--el-border`, `--el-border-soft`, `--el-danger-on-surface`, and
-the tints `--el-tint-lavender` (Host, See-Host, current nav entry), `--el-tint-mint` (seats) and
+`--el-accent` (the recommended card's border), `--el-success` (feature ticks), `--shadow-card`, and the tints `--el-tint-lavender` (Recommended pill, See-Host, current nav entry), `--el-tint-mint` (Save pills, seats) and
 `--el-tint-sky` (estimate). Shape comes from the parts' own tokens, plus `--radius-control`,
 `--radius-card`, `--spacing-control-x-8`, `--spacing-control-y-4`, `--spacing-control-y-8` and
 `--spacing-card-padding-12`.
@@ -158,26 +171,21 @@ the tints `--el-tint-lavender` (Host, See-Host, current nav entry), `--el-tint-m
 
 English only. There is one string per line, and amounts and names are parameters.
 
-| key                                            | English                                                                                                                                                                                                                                                                                                 |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `price.title`                                  | Plans and prices                                                                                                                                                                                                                                                                                        |
-| `price.lede`                                   | One AI plan per organization, shared by everyone in it. Every figure below comes from the live catalog.                                                                                                                                                                                                 |
-| `price.cadence.label` / `.monthly` / `.annual` | Billing cadence / Monthly / Annual                                                                                                                                                                                                                                                                      |
-| `price.card.perMonth` / `.perYear`             | / month · / year                                                                                                                                                                                                                                                                                        |
-| `price.card.credits`                           | {credits} credits a month                                                                                                                                                                                                                                                                               |
-| `price.card.seatIncluded`                      | One tracker seat included at no charge                                                                                                                                                                                                                                                                  |
-| `price.card.choose`                            | Choose {plan}                                                                                                                                                                                                                                                                                           |
-| `price.card.hostBadge`                         | Own capacity                                                                                                                                                                                                                                                                                            |
-| `price.card.hostCapacity`                      | Host runs on AWS capacity of its own: its own pools for CI, for agent runs, and for indexing and hosted agents together. Until that capacity is ready, it runs on the shared pools at Max's limits.                                                                                                     |
-| `price.topUp`                                  | Need more in a month? Top up at {price} per {credits} credits.                                                                                                                                                                                                                                          |
-| `price.seats.heading` / `.fee`                 | Seats / ${price} a month per user for seats beyond the first.                                                                                                                                                                                                                                           |
-| `price.org.plan`                               | AI plans and top-ups belong to the organization: one AI plan per organization, its credits shared by everyone, never priced per user.                                                                                                                                                                   |
-| `price.org.seat`                               | Every AI plan includes one tracker seat; each further seat is priced per user.                                                                                                                                                                                                                          |
-| `price.invoice`                                | Need an invoice? We bill through Stripe invoicing — write to {email}.                                                                                                                                                                                                                                   |
-| `price.larger.heading` / `.body`               | Larger credit pools / Above Host, larger pools are sized to an estimate. The calculator below offers one when your range needs it.                                                                                                                                                                      |
-| `price.plansUnavailable`                       | Plan prices can't be shown right now. Try again in a moment.                                                                                                                                                                                                                                            |
-| `price.calc.*`                                 | the calculator strings drawn in panels 5–13 (title, lede, the two range labels, run help, Low/High, category label/help/examples, submit, idle, loading, priced, credits/plan/top-up/larger labels, larger-machines line, See-Host line, how-it-works link, unavailable, empty category, retired model) |
-| `nav.price`, `footer.price`                    | Price                                                                                                                                                                                                                                                                                                   |
+| marketing key                    | app string it copies (motir-core `messages/en.json`)                                                                                                                                                                                                                                                  |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `price.plans.*`                  | `billing.plans.chooseTitle`, `chooseSub`, `cadenceLabel`, `monthly`, `annual`, `saveBadge`, `recommended`, `perMoEquiv`, `annualSub`, `annualSave`, `monthlySub`, `creditsAllotment`, `ladder.*`, `seatIncluded`, `everythingIn`, `ctaChoose`, `ctaUpgrade`, `tiers.*`                                |
+| `price.needMore.*`               | `billing.plans.needMore.title`, `body`, `action`                                                                                                                                                                                                                                                      |
+| `price.topup.*`                  | `billing.topup.title`, `subtitle`, `rate`                                                                                                                                                                                                                                                             |
+| `price.seats.*`                  | `billing.calculator.seat.included`, `feePerUserMonthly`; `billing.calculator.result.perOrg`                                                                                                                                                                                                           |
+| `price.calc.*`                   | `billing.calculator.title`, `subtitle`, `inputs.*`, `categories.empty`, `result.*` (idle, priced, loading, creditsLabel, estimateCaveat, planLabel, topupLabel, regularWithTopUps, largerPoolLabel, largerPlan, largerPlanEstimate, goToPlan, perOrg), `errors.*`; `billing.plans.larger.ownAccounts` |
+| `price.invoice` **NEW**          | Need an invoice? We bill through Stripe invoicing — write to {email}.                                                                                                                                                                                                                                 |
+| `price.seeHost` **NEW**          | Running at this size every month? Host may suit you better — see the Host plan above.                                                                                                                                                                                                                 |
+| `price.retired` **NEW**          | A model you picked is no longer offered, so {category} was removed from your picks.                                                                                                                                                                                                                   |
+| `price.plansUnavailable` **NEW** | Plan prices can't be shown right now. Try again in a moment.                                                                                                                                                                                                                                          |
+| `nav.price`, `footer.price`      | Price                                                                                                                                                                                                                                                                                                 |
+
+The marketing catalog holds its own copy of each app string (the two apps ship separately). A
+change to the app's wording is a change to these keys too.
 
 ## Specs this was drawn from
 
