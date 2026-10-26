@@ -109,6 +109,12 @@ export const SITE_ROOT = '/'
 export const DESIGN = '/design'
 
 /**
+ * The price page (MOTIR-8382): the plan ladder, read live from motir-ai's public
+ * plan list, and the credit calculator.
+ */
+export const PRICE = '/price'
+
+/**
  * EVERY same-origin path this site's shared chrome can emit.
  *
  * ⚠️ IT IS A SET SO THAT A GUARD CAN QUANTIFY OVER IT. The defect MOTIR-4372
@@ -185,6 +191,7 @@ export const SITE_PATHS = [
   SITE_ROOT,
   HOW_IT_WORKS,
   HOW_TO_USE,
+  PRICE,
   EXPLORE,
   DOCS,
   DESIGN,

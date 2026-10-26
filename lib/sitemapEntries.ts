@@ -197,6 +197,7 @@ export function siteSitemapEntries(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.8,
     }),
+    ...everyLanguage('/price', { changeFrequency: 'weekly', priority: 0.8 }),
     ...everyLanguage('/design', { changeFrequency: 'monthly', priority: 0.8 }),
     // The square (MOTIR-4045). Its per-topic landing pages are dynamic (read
     // from the public API) and are reached through the square's own crawlable

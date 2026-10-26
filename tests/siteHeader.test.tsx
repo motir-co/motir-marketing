@@ -151,6 +151,8 @@ describe('the sitemap', () => {
       siteUrl('/how-it-works'),
       // 2026-10 — "How to use Motir".
       siteUrl('/how-to-use'),
+      // MOTIR-8382 — the price page.
+      siteUrl('/price'),
       siteUrl('/design'),
       siteUrl('/explore'),
       siteUrl('/docs'),

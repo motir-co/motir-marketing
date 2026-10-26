@@ -126,6 +126,7 @@
     "menu": "Menu",
     "howItWorks": "How Motir works",
     "howToUse": "How to use",
+    "price": "Price",
     "explore": "Build in public",
     "ideas": "Ideas to build",
     "buildsItself": "Motir builds itself",
@@ -652,7 +653,8 @@
     "howItWorks": "How Motir works",
     "ideas": "Ideas to build",
     "buildsItself": "Motir builds itself",
-    "howToUse": "How to use Motir"
+    "howToUse": "How to use Motir",
+    "price": "Price"
   },
   "legal": {
     "metaTitle": "Legal",
@@ -2571,5 +2573,13 @@
       "outputs": "Code · Design · Docs · Video",
       "mcp": "MCP"
     }
+  },
+  "pricePage": {
+    "metaTitle": "Motir AI — plans & subscription",
+    "metaDescription": "An org-level monthly credit pool, billed separately from seats. Any org can buy it — a paid Motir seat plan is not required. Pro is the recommended anchor.",
+    "heading": "Choose your plan",
+    "subline": "An org-level monthly credit pool, billed separately from seats. Any org can buy it — a paid Motir seat plan is not required. Pro is the recommended anchor.",
+    "plansLabel": "Plans",
+    "calculatorLabel": "Estimate your usage"
   }
 }

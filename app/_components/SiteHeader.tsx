@@ -17,6 +17,7 @@ import {
   EXPLORE,
   HOW_IT_WORKS,
   HOW_TO_USE,
+  PRICE,
   IDEAS,
   MOTIR_BUILDS_ITSELF,
   FREE_DOOR,
@@ -93,6 +94,7 @@ const navItemsFor = (copy: Copy) =>
     // built in public on Motir (2026-10-18); /explore itself is unchanged.
     { path: HOW_IT_WORKS, label: copy.nav.howItWorks },
     { path: HOW_TO_USE, label: copy.nav.howToUse },
+    { path: PRICE, label: copy.nav.price },
     { path: MOTIR_BUILDS_ITSELF, label: copy.nav.buildsItself, feature: true },
     { path: IDEAS, label: copy.nav.ideas },
     { path: DOCS, label: copy.nav.docs },
