@@ -54,6 +54,13 @@ export const FREE_DOOR = `${APP_ORIGIN}/sign-up?intent=tracker`
 /** Door 1's fallback exit, drawn in the submit-failed state. */
 export const SIGN_UP = `${APP_ORIGIN}/sign-up`
 
+/**
+ * The price card's plan buttons (MOTIR-9684): sign up, then land on the app's
+ * plans view, where the plan is bought. The app's billing page reads no plan
+ * from its address, so none is carried.
+ */
+export const PLANS_SIGN_UP = `${SIGN_UP}?next=${encodeURIComponent('/settings/organization/billing')}`
+
 export const SIGN_IN = `${APP_ORIGIN}/sign-in`
 
 /**

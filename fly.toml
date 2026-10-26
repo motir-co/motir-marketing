@@ -45,6 +45,13 @@ primary_region = "iad"               # beside motir-core and motir-ai.
     # (`fly certs list -a motir-marketing`, MOTIR-4208).
     NEXT_PUBLIC_MOTIR_TENANT_DOMAIN = "motir.site"
 
+    # motir-ai's public origin (MOTIR-8382): /price reads the plan ladder
+    # (`GET /v1/public/plans`) and the calculator from it. Same build-arg
+    # reasoning as the app origin, and not a secret — the public routes take no
+    # credential. `lib/aiOrigin.ts` reads it; unset, /price shows its
+    # plans-unavailable state rather than failing the build.
+    NEXT_PUBLIC_MOTIR_AI_ORIGIN = "https://motir-ai.fly.dev"
+
 # No [deploy] release_command: this app has no database and nothing to migrate.
 # No [processes]: one web process, so Fly runs the image's CMD and routes HTTP to
 # every machine — which is what `http_service` below then means.

@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "plans": [
+    {
+      "key": "standard",
+      "name": "Standard",
+      "monthlyCredits": 5000,
+      "priceUsdByCadence": {
+        "annual": 200,
+        "monthly": 25
+      },
+      "cadences": ["annual", "monthly"]
+    },
+    {
+      "key": "pro",
+      "name": "Pro",
+      "monthlyCredits": 15000,
+      "priceUsdByCadence": {
+        "annual": 600,
+        "monthly": 75
+      },
+      "cadences": ["annual", "monthly"]
+    },
+    {
+      "key": "max",
+      "name": "Max",
+      "monthlyCredits": 30000,
+      "priceUsdByCadence": {
+        "annual": 1200,
+        "monthly": 150
+      },
+      "cadences": ["annual", "monthly"]
+    },
+    {
+      "key": "max_x2",
+      "name": "Max ×2",
+      "monthlyCredits": 60000,
+      "priceUsdByCadence": {
+        "annual": 2400,
+        "monthly": 300
+      },
+      "cadences": ["annual", "monthly"]
+    },
+    {
+      "key": "host",
+      "name": "Host",
+      "monthlyCredits": 300000,
+      "priceUsdByCadence": {
+        "annual": 12000,
+        "monthly": 1500
+      },
+      "cadences": ["annual", "monthly"]
+    }
+  ],
+  "largerPlans": [
+    {
+      "key": "pool_600k",
+      "name": "Pool 600,000",
+      "monthlyCredits": 600000,
+      "priceUsdByCadence": {
+        "monthly": 3000
+      },
+      "cadences": ["monthly"]
+    },
+    {
+      "key": "pool_900k",
+      "name": "Pool 900,000",
+      "monthlyCredits": 900000,
+      "priceUsdByCadence": {
+        "monthly": 4500
+      },
+      "cadences": ["monthly"]
+    }
+  ],
+  "topUp": {
+    "unitCredits": 1000,
+    "unitAmountUsd": 5
+  }
+}

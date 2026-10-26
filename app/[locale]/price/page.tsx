@@ -2,7 +2,9 @@ import type { Metadata } from 'next'
 import { localePageMetadata } from '@/lib/localeMetadata'
 import { PRICE } from '@/lib/destinations'
 import { SITE_HOST } from '@/lib/publicHost'
+import { readPlanLadder } from '@/lib/priceLadder'
 import { PricePage } from '../../_components/PricePage'
+import { PriceCard } from '../../_components/price/PriceCard'
 import { SiteShell } from '../../_components/SiteShell'
 import { enterLocale, type LocalePageProps } from '@/i18n/locale'
 
@@ -26,9 +28,10 @@ export function generateMetadata({
 
 export default async function PriceRoute({ params }: LocalePageProps) {
   await enterLocale(params)
+  const ladder = await readPlanLadder()
   return (
     <SiteShell host={SITE_HOST}>
-      <PricePage />
+      <PricePage plans={<PriceCard ladder={ladder} />} />
     </SiteShell>
   )
 }
