@@ -157,6 +157,14 @@ export default defineConfig({
         'app/?locale?/legal/page.tsx',
         'app/?locale?/legal/?slug?/page.tsx',
         'lib/legal/englishAddress.ts',
+        // MOTIR-8382 — the /price page's modules, added WITH their tests
+        // (`tests/priceCard.test.tsx`, `tests/price/`).
+        'app/_components/PricePage.tsx',
+        'app/_components/price/*.ts',
+        'app/_components/price/*.tsx',
+        'lib/priceLadder.ts',
+        'lib/aiOrigin.ts',
+        'lib/seatFee.ts',
       ],
       /*
        * ⚠️ EVERY EXCLUSION HAS A REASON, and the reasons are different — a list
@@ -325,6 +333,20 @@ export default defineConfig({
           branches: 90,
         },
         'scripts/i18n/*.ts': { lines: 90, functions: 90, branches: 90 },
+        // MOTIR-8382 — measured first under `tests/priceCard.test.tsx` and
+        // `tests/price/`, then pinned at the floor.
+        'app/_components/price/*.ts': {
+          lines: 90,
+          functions: 90,
+          branches: 80,
+        },
+        'app/_components/price/*.tsx': {
+          lines: 90,
+          functions: 90,
+          branches: 80,
+        },
+        'lib/priceLadder.ts': { lines: 90, functions: 90, branches: 85 },
+        'lib/aiOrigin.ts': { lines: 90, functions: 90, branches: 85 },
       },
     },
   },
