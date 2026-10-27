@@ -231,9 +231,17 @@ const LOCAL_HOSTS: ReadonlySet<string> = new Set([
   '[::1]',
 ])
 
+/**
+ * The deployment's own `*.vercel.app` address (`VERCEL_URL`, set on every
+ * Vercel function) is the site too, so a release can be read before — and
+ * apart from — the DNS that sends motir.co to it. The canonical URLs a page
+ * prints still name `SITE_ORIGIN`.
+ */
 function isSiteHost(host: string): boolean {
   return (
-    host === normaliseHost(new URL(SITE_ORIGIN).host) || LOCAL_HOSTS.has(host)
+    host === normaliseHost(new URL(SITE_ORIGIN).host) ||
+    LOCAL_HOSTS.has(host) ||
+    (!!process.env.VERCEL_URL && host === normaliseHost(process.env.VERCEL_URL))
   )
 }
 

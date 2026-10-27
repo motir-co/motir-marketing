@@ -357,3 +357,16 @@ describe('the request log line', () => {
     log.mockRestore()
   })
 })
+
+describe('the deployment’s own address', () => {
+  it('is served as the site on Vercel', async () => {
+    vi.stubEnv('VERCEL_URL', 'motir-marketing-abc123-team.vercel.app')
+    const res = await proxy(
+      new NextRequest('https://motir-marketing-abc123-team.vercel.app/ideas', {
+        headers: { host: 'motir-marketing-abc123-team.vercel.app' },
+      }),
+    )
+    expect(res.headers.get('x-middleware-rewrite')).toContain('/en/ideas')
+    vi.unstubAllEnvs()
+  })
+})
