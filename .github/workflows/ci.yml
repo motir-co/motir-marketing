@@ -330,6 +330,6 @@ jobs:
         run: |
           set -euo pipefail
           code=$(curl -sS -o /dev/null -w '%{http_code}' --retry 6 --retry-delay 5 \
-            --retry-all-errors --insecure --resolve motir.co:443:76.76.21.21 https://motir.co/)
-          echo "GET https://motir.co/ via 76.76.21.21 (${{ steps.release.outputs.url }}) -> $code"
+            --retry-all-errors --insecure --resolve motir.co:443:216.198.79.1 https://motir.co/)
+          echo "GET https://motir.co/ via 216.198.79.1 (${{ steps.release.outputs.url }}) -> $code"
           [ "$code" = "200" ]

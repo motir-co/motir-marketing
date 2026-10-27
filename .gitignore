@@ -21,3 +21,4 @@ next-env.d.ts
 # them, an agent fills them, `pnpm i18n:merge` reads them back; only the merged
 # catalogue and its source record are committed.
 /.i18n-work/
+.vercel
