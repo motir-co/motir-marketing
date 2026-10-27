@@ -16,15 +16,15 @@ import {
  * no phrase list fails — it cannot pass by having nothing to look for.
  *
  * Numbers: a translated value may carry 0–3 (zero runs, one included seat,
- * Host's three accounts, the range's 1× and 2×) and the split's 50/50 and
- * 33/33/33 in its own key. Anything else is a figure that should have been a
+ * Host's three accounts, the range's 1× and 2×) and the split's even starts,
+ * 50/50 and 34/33/33, in its own key. Anything else is a figure that should have been a
  * placeholder.
  */
 
 const CURRENCY = /[$€£¥￥₩]|\bUSD\b|\bEUR\b/
 const ENTERPRISE = /enterprise/i
 const SPLIT_KEY = 's2.split'
-const SPLIT_SHARES = new Set(['33', '50'])
+const SPLIT_SHARES = new Set(['33', '34', '50'])
 
 const english = explainerValues(englishCopy.explainer)
 

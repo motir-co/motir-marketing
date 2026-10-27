@@ -2690,8 +2690,11 @@
       "lowLabel": "Mínimo",
       "highLabel": "Máximo",
       "categoriesLabel": "Modelos que o runner usa",
-      "categoriesHelp": "Escolha de uma a três. A execução é dividida igualmente entre as que você escolher: uma fica com 100%, duas com 50% cada, as três com 33% cada. Você nunca escolhe um modelo — cada categoria mostra, como exemplo, os modelos que oferece.",
+      "categoriesHelp": "Escolha de uma a três. Com duas ou três, arraste abaixo a parte da execução de cada uma — elas começam iguais. Você nunca escolhe um modelo — cada categoria lista como exemplo os modelos que atende.",
       "categoryShare": "{share} da execução",
+      "sharesLabel": "A parte da execução de cada categoria",
+      "sharesHelp": "Arraste uma parte e as outras cedem ou recebem a diferença por igual, então o total é sempre 100%. Adicionar ou remover uma categoria as iguala de novo.",
+      "shareValue": "{category}: {share}% da execução",
       "categoryExamples": "Por exemplo: {models}",
       "picked": "Selecionada",
       "notPicked": "Não selecionada",
@@ -2699,7 +2702,7 @@
       "categoriesFailed": "Não foi possível carregar as categorias de modelos.",
       "categoryEmpty": "Esta categoria não tem nenhum modelo no momento, então não pode ser escolhida.",
       "splitOne": "Uma categoria só, então toda a execução fica em {category}.",
-      "splitEven": "A execução é dividida igualmente entre {categories} — {shares} cada.",
+      "splitShares": "A execução está dividida assim: {shares}.",
       "idle": "Nada é estimado até você pedir: informe o intervalo, escolha de uma a três categorias e depois selecione «Estimar créditos».",
       "priced": "Calculado para {plannedLow}–{plannedHigh} itens planejados no Motir e {runLow}–{runHigh} executados no runner do Motir por mês.",
       "loading": "Calculando seus créditos…",
@@ -2758,7 +2761,7 @@
       "body": "O planejamento e a execução usam cada um uma categoria, não um modelo específico. Os modelos de exemplo vêm da lista de modelos atualizada da Motir, então nenhum modelo citado aqui é uma promessa.",
       "categoriesLabel": "Categorias",
       "categoriesFigureFree": "Os nomes das categorias vêm da lista de modelos atualizada da Motir.",
-      "split": "Duas categorias selecionadas dividem a estimativa 50/50; três a dividem 33/33/33."
+      "split": "Duas ou três categorias selecionadas dividem a estimativa como você as define na calculadora, começando iguais: 50/50 com duas, 34/33/33 com três."
     },
     "s3": {
       "title": "Créditos por item de trabalho",

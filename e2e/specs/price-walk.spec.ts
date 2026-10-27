@@ -184,10 +184,14 @@ test('a prospect reads the plans, toggles annual and estimates their usage, as M
   await expect(output(page).getByTestId('calculator-see-host')).toHaveCount(0)
   await beat(page)
 
-  chapter('Two, then three categories — the answer follows the engine')
+  chapter(
+    'Two, then three categories — their shares, and the answer follows the engine',
+  )
   await calc(page)
     .getByRole('checkbox', { name: /^Economy,/ })
     .click()
+  const shareValues = calc(page).getByTestId('calculator-share-value')
+  await expect(shareValues).toHaveText(['50%', '50%'])
   await calc(page)
     .getByRole('button', { name: t('en', 'pricePage.calculator.submit') })
     .click()
@@ -197,6 +201,11 @@ test('a prospect reads the plans, toggles annual and estimates their usage, as M
   await calc(page)
     .getByRole('checkbox', { name: /^Frontier,/ })
     .click()
+  await expect(shareValues).toHaveText(['34%', '33%', '33%'])
+  await calc(page).getByRole('slider', { name: 'Balanced' }).focus()
+  await page.keyboard.press('ArrowRight')
+  await page.keyboard.press('ArrowRight')
+  await expect(shareValues).toHaveText(['33%', '35%', '32%'])
   await calc(page)
     .getByRole('button', { name: t('en', 'pricePage.calculator.submit') })
     .click()
@@ -242,13 +251,25 @@ test('a prospect reads the plans, toggles annual and estimates their usage, as M
   ).json()
   expect(log.plansHits).toBeGreaterThan(0)
   for (const body of log.estimateBodies) {
-    expect(Object.keys(body).sort()).toEqual([
-      'cadence',
-      'categories',
-      'plannedPerMonth',
-      'runPerMonth',
-    ])
+    const several = body.categories.length > 1
+    expect(Object.keys(body).sort()).toEqual(
+      [
+        'cadence',
+        'categories',
+        'plannedPerMonth',
+        'runPerMonth',
+        ...(several ? ['shares'] : []),
+      ].sort(),
+    )
   }
+  expect(
+    log.estimateBodies.map((body: { shares?: object }) => body.shares),
+  ).toEqual(
+    expect.arrayContaining([
+      { economy: 50, balanced: 50 },
+      { economy: 33, balanced: 35, frontier: 32 },
+    ]),
+  )
 })
 
 test('the server markup holds both cadence prices, and the browser never reads the ladder', async ({

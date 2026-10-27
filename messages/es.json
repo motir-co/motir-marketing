@@ -2697,8 +2697,11 @@
       "lowLabel": "Mínimo",
       "highLabel": "Máximo",
       "categoriesLabel": "Modelos que usa el runner",
-      "categoriesHelp": "Elige de una a tres. La ejecución se reparte a partes iguales entre las que elijas: una lleva el 100 %, dos el 50 % cada una y las tres el 33 % cada una. Nunca eliges un modelo: cada categoría muestra como ejemplo los modelos que ofrece.",
+      "categoriesHelp": "Elige de una a tres. Con dos o tres, arrastra abajo la parte de la ejecución de cada una; empiezan repartidas por igual. Nunca eliges un modelo: cada categoría muestra como ejemplo los modelos que atiende.",
       "categoryShare": "{share} de la ejecución",
+      "sharesLabel": "La parte de la ejecución de cada categoría",
+      "sharesHelp": "Arrastra una parte y las demás ceden o toman la diferencia a partes iguales, así que siempre suman 100 %. Al añadir o quitar una categoría vuelven a repartirse por igual.",
+      "shareValue": "{category}: {share} % de la ejecución",
       "categoryExamples": "Por ejemplo: {models}",
       "picked": "Seleccionada",
       "notPicked": "Sin seleccionar",
@@ -2706,7 +2709,7 @@
       "categoriesFailed": "No pudimos cargar las categorías de modelos.",
       "categoryEmpty": "Esta categoría no tiene ningún modelo ahora mismo, así que no se puede elegir.",
       "splitOne": "Una sola categoría, así que toda la ejecución recae en {category}.",
-      "splitEven": "La ejecución se reparte a partes iguales entre {categories}: {shares} cada una.",
+      "splitShares": "La ejecución se reparte así: {shares}.",
       "idle": "No se estima nada hasta que lo pidas: introduce el rango, elige de una a tres categorías y selecciona «Estimar créditos».",
       "priced": "Calculado para {plannedLow}–{plannedHigh} elementos planificados en Motir y {runLow}–{runHigh} ejecutados en el runner de Motir al mes.",
       "loading": "Calculando tus créditos…",
@@ -2765,7 +2768,7 @@
       "body": "La planificación y la ejecución toman cada una una categoría, no un modelo concreto. Los modelos de ejemplo salen de la lista de modelos en directo de Motir, así que ningún modelo de aquí es una promesa.",
       "categoriesLabel": "Categorías",
       "categoriesFigureFree": "Los nombres de las categorías salen de la lista de modelos en directo de Motir.",
-      "split": "Dos categorías seleccionadas se reparten la estimación 50/50; tres se la reparten 33/33/33."
+      "split": "Dos o tres categorías seleccionadas se reparten la estimación como las ajustes en la calculadora; empiezan por igual: 50/50 con dos, 34/33/33 con tres."
     },
     "s3": {
       "title": "Créditos por elemento de trabajo",

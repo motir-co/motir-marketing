@@ -23,6 +23,13 @@ import {
   type Range as Parsed,
 } from './calculatorApi'
 import { CalculatorOutput, categoryLabel } from './calculatorOutput'
+import {
+  dragShare,
+  evenShares,
+  maxShare,
+  MIN_SHARE,
+  SHARES_TOTAL,
+} from './calculatorShares'
 
 /*
  * THE CALCULATOR ISLAND (MOTIR-8382 · MOTIR-9685; design/price/price.mock.html
@@ -34,8 +41,9 @@ import { CalculatorOutput, categoryLabel } from './calculatorOutput'
  * Words are app.motir.co's billing Calculator copy (`pricePage.calculator.*`);
  * the behaviour mirrors motir-core's `CalculatorView`: two ranges where the run
  * range follows the planned one until it is typed into, one picker of one to
- * three categories, and a sequence stamp so an older answer never lands under
- * newer inputs.
+ * three categories, a share slider per category once two or more are picked
+ * (MOTIR-9834, design/price/price--calculator-shares.mock.html), and a sequence
+ * stamp so an older answer never lands under newer inputs.
  */
 
 type RangeIssue = 'rangeEmpty' | 'rangeInvalid' | 'rangeOrder'
@@ -67,6 +75,19 @@ function parseCount(text: string): number | 'empty' | 'invalid' {
   return Number.isSafeInteger(n) ? n : 'invalid'
 }
 
+function sharesFor(
+  picked: string[],
+  chosen: Record<string, number>,
+): Record<string, number> {
+  const covers =
+    Object.keys(chosen).length === picked.length &&
+    picked.reduce((sum, key) => sum + (chosen[key] ?? Number.NaN), 0) ===
+      SHARES_TOTAL
+  if (covers) return chosen
+  const even = evenShares(picked.length)
+  return Object.fromEntries(picked.map((key, i) => [key, even[i]!]))
+}
+
 function parseRange(range: RangeText): Parsed | RangeIssue {
   const lo = parseCount(range.low)
   const hi = parseCount(range.high)
@@ -86,6 +107,7 @@ export function Calculator() {
   const [run, setRun] = useState<RangeText>({ low: '', high: '' })
   const runTouched = useRef(false)
   const [picked, setPicked] = useState<string[]>([])
+  const [chosenShares, setShares] = useState<Record<string, number>>({})
   const [cadence, setCadence] = useState<Cadence | null>(null)
   const [issues, setIssues] = useState<Partial<Record<Lane, FormIssue>>>({})
   const [categoryIssue, setCategoryIssue] = useState<CategoryIssue | null>(null)
@@ -94,6 +116,9 @@ export function Calculator() {
   const seq = useRef(0)
   const readSeq = useRef(0)
   const inFlight = useRef<AbortController | null>(null)
+  // The shares as sent and drawn: the chosen ones while they still cover exactly
+  // the picks, else even — a pick the engine or the list took away starts them over.
+  const shares = sharesFor(picked, chosenShares)
 
   // The read, stamped so an older answer never lands; null when it was overtaken.
   const readCategories = useCallback(async () => {
@@ -179,6 +204,7 @@ export function Calculator() {
         plannedPerMonth: p,
         runPerMonth: r,
         categories: picked,
+        ...(picked.length > 1 ? { shares } : {}),
         cadence: cadence ?? 'annual',
       },
       { signal: controller.signal },
@@ -227,8 +253,9 @@ export function Calculator() {
       case 'unavailable':
         return setResult({ kind: 'unavailable' })
     }
-  }, [planned, run, picked, cadence, loadCategories, dropStale])
+  }, [planned, run, picked, shares, cadence, loadCategories, dropStale])
 
+  const ready = categories.kind === 'ready' ? categories.value : null
   const editPlanned = (field: keyof RangeText, value: string) => {
     clear()
     setPlanned((current) => ({ ...current, [field]: value }))
@@ -240,24 +267,35 @@ export function Calculator() {
     runTouched.current = true
     setRun((current) => ({ ...current, [field]: value }))
   }
+  // The picks keep the list's order, and any change of them starts the shares even.
   const togglePicked = (key: string) => {
     clear()
     setRetired([])
-    setPicked((current) =>
-      current.includes(key)
-        ? current.filter((k) => k !== key)
-        : [...current, key],
+    const order = ready ? ready.categories.map((c) => c.key) : []
+    const next = (
+      picked.includes(key) ? picked.filter((k) => k !== key) : [...picked, key]
+    ).sort((a, b) => order.indexOf(a) - order.indexOf(b))
+    setPicked(next)
+    setShares(sharesFor(next, {}))
+  }
+  const dragTo = (key: string, to: number) => {
+    clear()
+    const moved = dragShare(
+      picked.map((k) => shares[k] ?? MIN_SHARE),
+      picked.indexOf(key),
+      to,
     )
+    setShares(Object.fromEntries(picked.map((k, i) => [k, moved[i]!])))
   }
 
   const asking = result.kind === 'loading'
   const bothZero = issues.planned === 'rangeBothZero'
-  const ready = categories.kind === 'ready' ? categories.value : null
   const percent = new Intl.NumberFormat(locale, {
     style: 'percent',
     maximumFractionDigits: 0,
   })
-  const share = picked.length > 0 ? percent.format(1 / picked.length) : null
+  // One pick carries the whole run; with more, the sliders say each share.
+  const share = picked.length === 1 ? percent.format(1) : null
 
   return (
     <div className="grid items-start gap-6 lg:grid-cols-2">
@@ -390,6 +428,15 @@ export function Calculator() {
           ) : null}
         </fieldset>
 
+        {picked.length > 1 ? (
+          <SharesField
+            picked={picked}
+            shares={shares}
+            onDrag={dragTo}
+            words={words}
+          />
+        ) : null}
+
         {ready && cadence ? (
           <Segmented
             label={page.plans.cadenceLabel}
@@ -457,6 +504,98 @@ export function Calculator() {
         )}
       </div>
     </div>
+  )
+}
+
+// The split bar's segments, one tint per picked category in the list's order.
+const SHARE_TINTS = [
+  'var(--el-tint-sky)',
+  'var(--el-tint-mint)',
+  'var(--el-tint-lavender)',
+]
+
+function SharesField({
+  picked,
+  shares,
+  onDrag,
+  words,
+}: {
+  picked: string[]
+  shares: Record<string, number>
+  onDrag: (key: string, to: number) => void
+  words: ReturnType<typeof useCopy>['pricePage']['calculator']
+}) {
+  const id = useId()
+  const max = maxShare(picked.length)
+  return (
+    <fieldset
+      className="m-0 grid gap-3 border-0 p-0"
+      aria-describedby={`${id}-help`}
+      data-testid="calculator-shares"
+    >
+      <legend className="mb-1 p-0 text-sm font-medium text-(--el-text-strong)">
+        {words.sharesLabel}
+      </legend>
+      {picked.map((key) => {
+        const label = categoryLabel(key)
+        const value = shares[key] ?? MIN_SHARE
+        return (
+          <div
+            key={key}
+            className="grid grid-cols-[6rem_1fr_3rem] items-center gap-3"
+          >
+            <label
+              htmlFor={`${id}-${key}`}
+              className="text-sm text-(--el-text)"
+            >
+              {label}
+            </label>
+            <input
+              id={`${id}-${key}`}
+              type="range"
+              min={MIN_SHARE}
+              max={max}
+              step={1}
+              value={value}
+              aria-valuetext={format(words.shareValue, {
+                category: label,
+                share: String(value),
+              })}
+              onChange={(event) => onDrag(key, Number(event.target.value))}
+              className="h-6 w-full cursor-grab focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring-color)"
+              style={{ accentColor: 'var(--el-accent)' }}
+            />
+            <span
+              data-testid="calculator-share-value"
+              className="text-right text-sm font-medium text-(--el-text-strong) tabular-nums"
+            >
+              {value}%
+            </span>
+          </div>
+        )
+      })}
+      <div
+        className="flex h-2 w-full overflow-hidden rounded-full bg-(--el-muted)"
+        aria-hidden
+      >
+        {picked.map((key, i) => (
+          <span
+            key={key}
+            style={{
+              width: `${shares[key] ?? MIN_SHARE}%`,
+              backgroundColor: SHARE_TINTS[i % SHARE_TINTS.length],
+              borderRight:
+                i < picked.length - 1
+                  ? '2px solid var(--el-page-bg)'
+                  : undefined,
+            }}
+          />
+        ))}
+      </div>
+      <p id={`${id}-help`} className="m-0 text-sm text-(--el-text-secondary)">
+        {words.sharesHelp}
+      </p>
+    </fieldset>
   )
 }
 

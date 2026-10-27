@@ -2607,8 +2607,11 @@
       "lowLabel": "下限",
       "highLabel": "上限",
       "categoriesLabel": "运行器使用的模型",
-      "categoriesHelp": "选择一到三类。运行部分在你选中的类别之间平均分摊：选一类占 100%，两类各占 50%，三类各占 33%。无需选择模型 —— 每个类别下列出的是它所服务的示例模型。",
+      "categoriesHelp": "选一到三类。选两类或三类时，在下方拖动每一类在运行中的占比——初始为平均分配。你从不选择具体模型——每个类别都会列出它支持的模型作为示例。",
       "categoryShare": "运行部分的 {share}",
+      "sharesLabel": "每个类别在运行中的占比",
+      "sharesHelp": "拖动一个占比，其余类别会平均让出或接收差额，因此总和始终为 100%。添加或移除类别后会重新平均分配。",
+      "shareValue": "{category}：运行的 {share}%",
       "categoryExamples": "例如：{models}",
       "picked": "已选",
       "notPicked": "未选",
@@ -2616,7 +2619,7 @@
       "categoriesFailed": "无法加载模型类别。",
       "categoryEmpty": "该类目前没有可用模型，无法选择。",
       "splitOne": "只选了一类，全部运行都落在 {category} 上。",
-      "splitEven": "运行部分在 {categories} 之间平均分摊 —— 各占 {shares}。",
+      "splitShares": "运行的分配为 {shares}。",
       "idle": "在你发起估算之前不会计算任何内容：填写区间、选择一到三个类别，然后选择「估算积分」。",
       "priced": "按每月在 Motir 中规划 {plannedLow}–{plannedHigh} 个、在 Motir 运行器上运行 {runLow}–{runHigh} 个工作项计算。",
       "loading": "正在计算积分…",
@@ -2675,7 +2678,7 @@
       "body": "规划和运行各选一个类别，而不是具体模型。示例模型来自 Motir 的实时模型列表，因此这里列出的模型并非承诺。",
       "categoriesLabel": "类别",
       "categoriesFigureFree": "类别名称来自 Motir 的实时模型列表。",
-      "split": "选择两个类别时估算按 50/50 分摊；选择三个时按 33/33/33 分摊。"
+      "split": "选择两个或三个类别时，估算按你在计算器中设定的占比分摊，初始为平均分配：两个为 50/50，三个为 34/33/33。"
     },
     "s3": {
       "title": "每个工作项的积分",

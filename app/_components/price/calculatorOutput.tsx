@@ -71,16 +71,13 @@ export function CalculatorOutput({
     style: 'percent',
     maximumFractionDigits: 0,
   })
-  const list = new Intl.ListFormat(locale, {
-    style: 'long',
-    type: 'conjunction',
-  })
   const arm = armOf(answer)
   const { recommendation, topUp, split } = answer
   const names = split.categories.map((c) => categoryLabel(c.key))
-  const shares = [
-    ...new Set(split.categories.map((c) => percent.format(c.weight))),
-  ]
+  // Each category's share as the engine priced it, never as the sliders read.
+  const shares = split.categories
+    .map((c) => `${categoryLabel(c.key)} ${percent.format(c.weight)}`)
+    .join(' · ')
   const pool = arm === 'larger' || arm === 'largest'
   const planName = recommendation.planName ?? ''
   const line = 'grid gap-0.5 border-b border-(--el-border-soft) py-2'
@@ -101,10 +98,7 @@ export function CalculatorOutput({
       <p className={body}>
         {split.categories.length === 1
           ? format(words.splitOne, { category: names[0] ?? '' })
-          : format(words.splitEven, {
-              categories: list.format(names),
-              shares: list.format(shares),
-            })}
+          : format(words.splitShares, { shares })}
       </p>
 
       <div className={line}>
