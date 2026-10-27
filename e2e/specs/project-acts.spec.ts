@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { HEADER_LADDER } from '../../i18n/routing'
 
 /*
  * The ACT AFFORDANCES (MOTIR-4119) — `public-surface-hosts.md` AMENDMENT 4 §D,
@@ -91,6 +92,10 @@ test('row 7 — there is NO overview editor anywhere on this host', async ({
 test('row 1 — the chrome offers a plain Sign in and NO account menu', async ({
   page,
 }) => {
+  // Wide enough for the whole bar: below rung B the Sign in link folds into the
+  // Menu panel, and Price in the nav (MOTIR-8382) put English rung B above the
+  // default 1280px viewport.
+  await page.setViewportSize({ width: HEADER_LADDER.en.b, height: 800 })
   await page.goto('/p/MOTIR')
 
   const banner = page.getByRole('banner')
