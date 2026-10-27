@@ -7,7 +7,7 @@
  * Unlike `APP_ORIGIN`, an unset or malformed value does NOT fail the build: the
  * price page is one page of many, and with no origin its two sections show
  * their calm unavailable states, which is what they show when motir-ai is down.
- * `fly.toml`'s `[build.args]` sets it on a release.
+ * the CI workflow's `env` sets it on a release (`vercel build` runs there).
  */
 export function parseAiOrigin(raw: string | undefined): string | null {
   const value = (raw ?? '').trim()

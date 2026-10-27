@@ -5,7 +5,7 @@ import {
 } from '../../lib/skillsRelease.ts'
 
 // Prints the `motir-skills` release tag this build installs, and nothing else on
-// stdout — `pnpm build` and the Dockerfile capture it into SKILLS_RELEASE_TAG,
+// stdout — `pnpm build` and the CI deploy job capture it into SKILLS_RELEASE_TAG,
 // which `next.config.ts` inlines (MOTIR-8802).
 //
 // Never fails the build: no network, a rate limit or a malformed answer falls

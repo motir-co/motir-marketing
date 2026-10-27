@@ -331,6 +331,22 @@ describe('the request log line', () => {
     vi.unstubAllEnvs()
   })
 
+  it('reads the Vercel edge from x-vercel-id', () => {
+    const vercel = new NextRequest('https://motir.co/', {
+      headers: {
+        'x-vercel-id': 'fra1::iad1::abc12-1730000000000-0123456789ab',
+      },
+    })
+    expect(requestLogLine(vercel, 'motir.co', false).edge).toBe('fra1')
+  })
+
+  it('is written on Vercel too', () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    logRequest(request, 'motir.co', false, { VERCEL: '1' })
+    expect(log).toHaveBeenCalledTimes(1)
+    log.mockRestore()
+  })
+
   it('is written on Fly only', () => {
     const log = vi.spyOn(console, 'log').mockImplementation(() => {})
     logRequest(request, 'motir.co', false, {})
