@@ -126,6 +126,7 @@
     "menu": "Menu",
     "howItWorks": "How Motir works",
     "howToUse": "How to use",
+    "price": "Price",
     "explore": "Build in public",
     "ideas": "Ideas to build",
     "buildsItself": "Motir builds itself",
@@ -652,7 +653,8 @@
     "howItWorks": "How Motir works",
     "ideas": "Ideas to build",
     "buildsItself": "Motir builds itself",
-    "howToUse": "How to use Motir"
+    "howToUse": "How to use Motir",
+    "price": "Price"
   },
   "legal": {
     "metaTitle": "Legal",
@@ -2570,6 +2572,133 @@
       "approve": "Approve the plan",
       "outputs": "Code · Design · Docs · Video",
       "mcp": "MCP"
+    }
+  },
+  "pricePage": {
+    "metaTitle": "Motir AI — plans & subscription",
+    "metaDescription": "An org-level monthly credit pool, billed separately from seats. Any org can buy it — a paid Motir seat plan is not required. Pro is the recommended anchor.",
+    "heading": "Choose your plan",
+    "subline": "An org-level monthly credit pool, billed separately from seats. Any org can buy it — a paid Motir seat plan is not required. Pro is the recommended anchor.",
+    "plansLabel": "Plans",
+    "calculatorLabel": "Estimate your usage",
+    "plans": {
+      "cadenceLabel": "Billing cadence",
+      "monthly": "Monthly",
+      "annual": "Annual",
+      "saveBadge": "Save ~33%",
+      "recommended": "Recommended",
+      "perMoEquiv": "${n} / mo",
+      "annualSub": "billed annually · ${yr} / yr",
+      "annualSave": "Save ${n}/yr",
+      "monthlySub": "${yr} / yr · Save ${n} with annual",
+      "creditsAllotment": "{n} credits / mo",
+      "ladderFirst": "Same price per credit on every plan",
+      "ladderMultiple": "{multiple}× {plan}’s credits · same price per credit",
+      "seatIncluded": "+ {count, plural, one {# Motir seat} other {# Motir seats}} · work items uncapped",
+      "everythingIn": "Everything in {prev}, plus",
+      "ctaChoose": "Choose {plan}",
+      "ctaUpgrade": "Upgrade to {plan}",
+      "tiers": {
+        "standard": {
+          "useCase": "Plan your projects with the Motir AI planner.",
+          "features": [
+            "Plan the project, in detail",
+            "Credits refresh monthly · top up anytime"
+          ]
+        },
+        "pro": {
+          "useCase": "Standard, plus stronger models for planning.",
+          "features": [
+            "Stronger models enabled for planning",
+            "Switch the planning model for each kind of work"
+          ]
+        },
+        "max": {
+          "useCase": "Pro, plus headroom to hand planned work to the agent.",
+          "features": [
+            "Plan more work, so your project moves faster",
+            "Headroom to dispatch some planned work to the agent automatically"
+          ]
+        },
+        "max_x2": {
+          "useCase": "Max, at twice the volume.",
+          "features": [
+            "Twice the Max monthly credit pool",
+            "Dispatch more planned work to the agent automatically"
+          ]
+        },
+        "host": {
+          "useCase": "Motir at fleet scale, on AWS accounts of your own.",
+          "features": [
+            "Motir runs your project autonomously",
+            "Dedicated pools for CI runners, agent runs, the indexer and hosted agents"
+          ]
+        }
+      },
+      "needMoreTitle": "Need more credits?",
+      "needMoreBody": "If your organization uses more than {plan}'s {credits} credits a month, estimate your usage and the Calculator offers a larger credit pool sized to it, with AWS accounts of your own.",
+      "needMoreAction": "Open the Calculator",
+      "topupTitle": "Top up credits",
+      "topupSubtitle": "A one-time purchase on top of your plan — added to your balance right away, used after your monthly allotment.",
+      "topupRate": "${unit} per {credits} credits · one-time · tax at checkout. Credits are an allotment, not currency — this is the price you pay Stripe.",
+      "seatsIncluded": "{count, plural, one {Every AI plan includes # Motir seat at no charge.} other {Every AI plan includes # Motir seats at no charge.}}",
+      "seatFee": "Further seats: ${price} per user, per month.",
+      "perOrg": "One plan for the whole organization — its credits are shared by everyone.",
+      "invoice": "Need an invoice? We bill through Stripe invoicing — write to billing@motir.co.",
+      "unavailableTitle": "Plan prices can’t be shown right now. Try again in a moment.",
+      "retry": "Try again"
+    },
+    "calculator": {
+      "title": "Estimate your usage",
+      "subtitle": "What your organization finishes in a month, and which model categories it uses. Motir estimates the credits and the plan that fits — the answer is an estimate, and nothing here changes your subscription.",
+      "plannedLabel": "Items planned in Motir a month",
+      "runLabel": "Items run on Motir's runner a month",
+      "runHelp": "Items you run on your own agent — Claude Code, Codex — through Motir's MCP or CLI use no credits here. Count only the items Motir's runner builds; 0 is fine.",
+      "rangeHelp": "A range is fine — the low and high ends of a normal month.",
+      "lowLabel": "Low",
+      "highLabel": "High",
+      "categoriesLabel": "Models the runner uses",
+      "categoriesHelp": "Pick one to three. The run is split evenly across what you pick: one takes 100%, two take 50% each, all three take 33% each. You never choose a model — each category lists the models it serves as examples.",
+      "categoryShare": "{share} of the run",
+      "categoryExamples": "For example: {models}",
+      "picked": "Picked",
+      "notPicked": "Not picked",
+      "submit": "Estimate credits",
+      "categoriesFailed": "We couldn't load the model categories.",
+      "categoryEmpty": "No model in this category right now, so it can't be picked.",
+      "splitOne": "One category, so the whole run sits on {category}.",
+      "splitEven": "The run is split evenly across {categories} — {shares} each.",
+      "idle": "Nothing is estimated until you ask: enter the range, pick one to three categories, then choose Estimate credits.",
+      "priced": "Priced for {plannedLow}–{plannedHigh} planned in Motir and {runLow}–{runHigh} run on Motir's runner a month.",
+      "loading": "Working out your credits…",
+      "creditsLabel": "Credits a month",
+      "estimateCaveat": "This is an estimate for the range you entered: the credits come back as a range, never one exact figure.",
+      "planLabel": "The plan that fits",
+      "topupLabel": "Top-up we'd estimate",
+      "bundleCredits": "{n} credits",
+      "topupOnly": "A top-up covers this range, so no plan change is needed.",
+      "largerPoolLabel": "Larger credit pool",
+      "largerPlan": "Your estimate is above our largest regular plan, so the answer is a larger credit pool sized to it: {plan}.",
+      "largerPlanEstimate": "The pool and its price are worked out from your estimate, so both are an estimate — the exact amounts are confirmed before anything is charged.",
+      "largestPoolLabel": "Largest credit pool",
+      "largestPool": "Your estimate is above our largest pool, so the answer is that pool — {plan} — with top-ups for the rest.",
+      "largestPoolTopUp": "The other {excess} credits or so a month are covered by top-ups: {units} × {unitCredits} credits, about ${price} a month.",
+      "regularWithTopUps": "Your estimate is above {plan}'s {credits} credits a month, so the answer is {plan} with top-ups for the rest.",
+      "ownAccounts": "Three AWS accounts of your organization's own: one for CI runners, one for agent runs, and one shared by the indexer and the hosted agents, each sized for this pool",
+      "seeHost": "Running at this size every month? Host may suit you better — see the Host plan above.",
+      "retired": "A model you picked is no longer offered, so {category} was removed from your picks.",
+      "goToPlan": "Go to this plan",
+      "retry": "Try again",
+      "errors": {
+        "rangeEmpty": "Enter how many work items your organization finishes a month.",
+        "rangeInvalid": "Enter whole numbers of items — decimals and negative numbers aren't accepted.",
+        "rangeOrder": "The low end has to be at or below the high end.",
+        "rangeBothZero": "Enter at least one item a month — with both ranges at 0 there is nothing to price.",
+        "categoryMissing": "Pick at least one model category.",
+        "tooManyCategories": "Pick no more than three model categories.",
+        "unavailable": "We can't estimate right now. Nothing was calculated — try again.",
+        "failed": "The estimate didn't come back. Nothing changed — try again."
+      }
     }
   }
 }

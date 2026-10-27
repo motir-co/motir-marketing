@@ -126,6 +126,7 @@
     "menu": "메뉴",
     "howItWorks": "Motir 작동 방식",
     "howToUse": "사용 방법",
+    "price": "가격",
     "explore": "공개 개발",
     "ideas": "아이디어",
     "buildsItself": "Motir는 Motir로 만듭니다",
@@ -645,7 +646,8 @@
     "howItWorks": "Motir 작동 방식",
     "ideas": "만들 만한 아이디어",
     "buildsItself": "Motir는 Motir로 만듭니다",
-    "howToUse": "Motir 사용 방법"
+    "howToUse": "Motir 사용 방법",
+    "price": "가격"
   },
   "legal": {
     "metaTitle": "법률",
@@ -2537,6 +2539,133 @@
       "approve": "계획 승인",
       "outputs": "코드 · 디자인 · 문서 · 영상",
       "mcp": "MCP"
+    }
+  },
+  "pricePage": {
+    "metaTitle": "Motir AI — 요금제 및 구독",
+    "metaDescription": "좌석과 별도로 청구되는 조직 단위 월간 크레딧 풀입니다. 모든 조직이 구매할 수 있으며 유료 Motir 좌석 요금제가 필요하지 않습니다. Pro를 기준 요금제로 권장합니다.",
+    "heading": "요금제 선택",
+    "subline": "좌석과 별도로 청구되는 조직 단위 월간 크레딧 풀입니다. 모든 조직이 구매할 수 있으며 유료 Motir 좌석 요금제가 필요하지 않습니다. Pro를 기준 요금제로 권장합니다.",
+    "plansLabel": "요금제",
+    "calculatorLabel": "사용량 예상하기",
+    "plans": {
+      "cadenceLabel": "결제 주기",
+      "monthly": "월간",
+      "annual": "연간",
+      "saveBadge": "약 33% 절약",
+      "recommended": "권장",
+      "perMoEquiv": "월 ${n}",
+      "annualSub": "연간 청구 · 연 ${yr}",
+      "annualSave": "연 ${n} 절약",
+      "monthlySub": "연 ${yr} · 연간 결제 시 ${n} 절약",
+      "creditsAllotment": "월 {n} 크레딧",
+      "ladderFirst": "모든 플랜의 크레딧당 가격은 동일",
+      "ladderMultiple": "{plan} 크레딧의 {multiple}배 · 크레딧당 가격 동일",
+      "seatIncluded": "+ Motir 좌석 {count, plural, other {#개}} · 작업 항목 무제한",
+      "everythingIn": "{prev}의 모든 기능에 더해",
+      "ctaChoose": "{plan} 선택",
+      "ctaUpgrade": "{plan}(으)로 업그레이드",
+      "tiers": {
+        "standard": {
+          "useCase": "Motir AI 플래너로 프로젝트를 계획하세요.",
+          "features": [
+            "프로젝트를 상세하게 계획",
+            "크레딧 매월 갱신 · 언제든 충전"
+          ]
+        },
+        "pro": {
+          "useCase": "Standard에 더해, 계획용 더 강력한 모델.",
+          "features": [
+            "계획에 더 강력한 모델 사용",
+            "작업 유형별로 계획 모델 전환"
+          ]
+        },
+        "max": {
+          "useCase": "Pro에 더해, 계획된 작업을 에이전트에 넘길 여유.",
+          "features": [
+            "더 많은 작업을 계획해 프로젝트를 더 빠르게 진행",
+            "계획된 작업 일부를 에이전트에 자동으로 배정할 여유"
+          ]
+        },
+        "max_x2": {
+          "useCase": "Max의 두 배 용량.",
+          "features": [
+            "Max의 두 배인 월간 크레딧 풀",
+            "더 많은 계획된 작업을 에이전트에 자동으로 배정"
+          ]
+        },
+        "host": {
+          "useCase": "자체 AWS 계정에서 플릿 규모로 운영하는 Motir.",
+          "features": [
+            "Motir가 프로젝트를 자율적으로 진행",
+            "CI 러너, 에이전트 실행, 인덱서, 호스팅 에이전트별 전용 풀"
+          ]
+        }
+      },
+      "needMoreTitle": "크레딧이 더 필요하신가요?",
+      "needMoreBody": "조직이 {plan}의 월 {credits} 크레딧보다 더 많이 사용한다면 사용량을 예상해 보세요. 계산기가 예상치에 맞춘, 조직 전용 AWS 계정이 포함된 더 큰 크레딧 풀을 안내해 드립니다.",
+      "needMoreAction": "계산기 열기",
+      "topupTitle": "크레딧 충전",
+      "topupSubtitle": "요금제에 추가하는 1회성 구매입니다. 즉시 잔액에 추가되며 월간 할당량을 다 쓴 후에 사용됩니다.",
+      "topupRate": "{credits} 크레딧당 ${unit} · 1회성 · 세금은 결제 시 부과. 크레딧은 화폐가 아닌 할당량이며, 이 금액은 Stripe에 지불하는 가격입니다.",
+      "seatsIncluded": "{count, plural, other {모든 AI 요금제에는 Motir 좌석 #개가 추가 요금 없이 포함됩니다.}}",
+      "seatFee": "추가 좌석: 사용자당 월 ${price}.",
+      "perOrg": "조직 전체에 요금제 하나가 적용되며, 크레딧은 모두가 함께 사용합니다.",
+      "invoice": "인보이스가 필요하신가요? Stripe 인보이스로 청구합니다. billing@motir.co로 연락해 주세요.",
+      "unavailableTitle": "지금은 요금제 가격을 표시할 수 없습니다. 잠시 후 다시 시도해 주세요.",
+      "retry": "다시 시도"
+    },
+    "calculator": {
+      "title": "사용량 예상하기",
+      "subtitle": "조직이 한 달에 완료하는 작업 항목 수와 사용하는 모델 카테고리를 입력해 주세요. Motir가 필요한 크레딧과 알맞은 요금제를 예상해 드립니다. 결과는 예상치일 뿐이며, 여기서는 구독이 변경되지 않습니다.",
+      "plannedLabel": "Motir에서 계획하는 월간 작업 항목",
+      "runLabel": "Motir 러너에서 실행하는 월간 작업 항목",
+      "runHelp": "직접 운영하는 에이전트(Claude Code, Codex 등)로 Motir의 MCP나 CLI를 통해 실행하는 작업 항목은 여기서 크레딧을 쓰지 않습니다. Motir 러너가 빌드하는 항목만 세세요. 0도 괜찮습니다.",
+      "rangeHelp": "범위로 입력해도 괜찮아요. 평소 한 달의 최소와 최대를 입력하세요.",
+      "lowLabel": "최소",
+      "highLabel": "최대",
+      "categoriesLabel": "러너가 사용하는 모델",
+      "categoriesHelp": "한 개에서 세 개까지 선택하세요. 실행분은 선택한 카테고리에 똑같이 나뉩니다. 하나면 100%, 둘이면 각각 50%, 셋이면 각각 33%입니다. 모델은 직접 고르지 않습니다. 각 카테고리에는 해당 카테고리가 제공하는 모델이 예시로 표시됩니다.",
+      "categoryShare": "실행분의 {share}",
+      "categoryExamples": "예: {models}",
+      "picked": "선택됨",
+      "notPicked": "선택 안 됨",
+      "submit": "크레딧 예상하기",
+      "categoriesFailed": "모델 카테고리를 불러오지 못했습니다.",
+      "categoryEmpty": "이 카테고리에는 지금 사용할 수 있는 모델이 없어 선택할 수 없습니다.",
+      "splitOne": "카테고리가 하나이므로 실행분 전체가 {category}에 적용됩니다.",
+      "splitEven": "실행분을 {categories}에 똑같이 나눴습니다. 각각 {shares}입니다.",
+      "idle": "요청하기 전에는 아무것도 예상하지 않습니다. 범위를 입력하고 카테고리를 한 개에서 세 개 선택한 다음 '크레딧 예상하기'를 선택하세요.",
+      "priced": "Motir에서 계획하는 {plannedLow}–{plannedHigh}개와 Motir 러너에서 실행하는 {runLow}–{runHigh}개(월간) 기준으로 계산했습니다.",
+      "loading": "크레딧을 계산하는 중…",
+      "creditsLabel": "월 크레딧",
+      "estimateCaveat": "입력한 범위를 기준으로 한 예상치입니다. 크레딧은 정확한 숫자 하나가 아니라 범위로 표시됩니다.",
+      "planLabel": "알맞은 요금제",
+      "topupLabel": "예상 충전량",
+      "bundleCredits": "{n} 크레딧",
+      "topupOnly": "충전으로 이 범위를 충당할 수 있어 요금제를 바꿀 필요가 없습니다.",
+      "largerPoolLabel": "더 큰 크레딧 풀",
+      "largerPlan": "예상치가 가장 큰 일반 요금제를 넘어서므로, 예상치에 맞춘 더 큰 크레딧 풀({plan})을 안내해 드립니다.",
+      "largerPlanEstimate": "풀과 가격은 예상치로 계산되므로 둘 다 예상 금액입니다. 정확한 금액은 결제 전에 확인됩니다.",
+      "largestPoolLabel": "가장 큰 크레딧 풀",
+      "largestPool": "예상치가 가장 큰 풀을 넘어서므로, 그 풀({plan})에 나머지는 충전으로 채우는 방식을 안내해 드립니다.",
+      "largestPoolTopUp": "나머지 월 약 {excess} 크레딧은 충전으로 채웁니다: {unitCredits} 크레딧 × {units}, 월 약 ${price}입니다.",
+      "regularWithTopUps": "예상치가 {plan}의 월 {credits} 크레딧을 넘어서므로, {plan}에 나머지는 충전으로 채우는 방식을 안내해 드립니다.",
+      "ownAccounts": "조직 전용 AWS 계정 3개: CI 러너용, 에이전트 실행용, 인덱서와 호스팅 에이전트 공용이며, 각각 이 풀에 맞춘 규모",
+      "seeHost": "매달 이 규모로 운영하시나요? Host가 더 잘 맞을 수 있습니다. 위의 Host 요금제를 확인해 보세요.",
+      "retired": "선택한 모델이 더 이상 제공되지 않아 {category}이(가) 선택에서 제외되었습니다.",
+      "goToPlan": "이 요금제로 이동",
+      "retry": "다시 시도",
+      "errors": {
+        "rangeEmpty": "조직이 한 달에 완료하는 작업 항목 수를 입력하세요.",
+        "rangeInvalid": "작업 항목 수는 정수로 입력하세요. 소수나 음수는 사용할 수 없습니다.",
+        "rangeOrder": "최소값은 최대값보다 클 수 없습니다.",
+        "rangeBothZero": "월간 작업 항목을 하나 이상 입력하세요. 두 범위가 모두 0이면 계산할 것이 없습니다.",
+        "categoryMissing": "모델 카테고리를 한 개 이상 선택하세요.",
+        "tooManyCategories": "모델 카테고리는 세 개까지 선택할 수 있습니다.",
+        "unavailable": "지금은 예상할 수 없습니다. 아무것도 계산되지 않았으니 다시 시도하세요.",
+        "failed": "예상 결과를 받지 못했습니다. 변경된 내용은 없으니 다시 시도하세요."
+      }
     }
   }
 }

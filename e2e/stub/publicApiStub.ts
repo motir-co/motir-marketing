@@ -353,8 +353,195 @@ function fixture(name: string): string {
   return readFileSync(join(FIXTURE_DIR, name), 'utf8')
 }
 
+/**
+ * THE PRICE PAGE'S ENGINE (MOTIR-8382 · MOTIR-9688) — motir-ai's public routes
+ * the /price page reads: `GET /v1/public/plans` SERVER-SIDE, and
+ * `GET /v1/public/calculator/categories` and `POST /v1/public/calculator/estimate`
+ * from the BROWSER (so they answer CORS, as motir-ai's public channel does).
+ *
+ * The answers are the integration gate's recordings, REUSED from
+ * `tests/fixtures/price/` and `tests/fixtures/calculator/`. A spec picks them
+ * through `POST /__stub/price?plans=…&estimate=…&categories=…` (`reset=1` puts
+ * every mode back), may HOLD the next estimate (`hold=1`) until
+ * `POST /__stub/price/release`, and reads what the stub saw from
+ * `GET /__stub/price/log` — the plan-ladder hits and every estimate body.
+ * `estimate=auto` answers by the number of picked categories.
+ */
+const PRICE_FIXTURES = join(
+  fileURLToPath(new URL('.', import.meta.url)),
+  '..',
+  '..',
+  'tests',
+  'fixtures',
+)
+
+const PLANS_SCENARIOS: Record<string, [number, string]> = {
+  recorded: [200, 'price/plans.json'],
+  changed: [200, 'price/plans-b.json'],
+  'unknown-version': [200, 'price/plans-unknown-version.json'],
+  unavailable: [500, 'calculator/problem-unavailable.json'],
+}
+const ESTIMATE_SCENARIOS: Record<string, [number, string]> = {
+  pro: [200, 'calculator/estimate-pro.json'],
+  'pro-two': [200, 'calculator/estimate-pro-two.json'],
+  'pro-three': [200, 'calculator/estimate-pro-three.json'],
+  'max-x2': [200, 'calculator/estimate-maxx2-topup.json'],
+  larger: [200, 'calculator/estimate-larger.json'],
+  'empty-category': [200, 'calculator/estimate-empty-category.json'],
+  'range-order': [400, 'calculator/problem-range-order.json'],
+  'stale-category': [400, 'calculator/problem-stale-category.json'],
+  unavailable: [500, 'calculator/problem-unavailable.json'],
+}
+const CATEGORIES_SCENARIOS: Record<string, [number, string]> = {
+  recorded: [200, 'calculator/categories.json'],
+  'empty-frontier': [200, 'calculator/categories-empty-frontier.json'],
+}
+
+const price = {
+  plans: 'recorded',
+  estimate: 'auto',
+  categories: 'recorded',
+  hold: false,
+  held: [] as (() => void)[],
+  plansHits: 0,
+  estimateBodies: [] as unknown[],
+}
+
+function priceFixture(name: string, unknownVersion = false): string {
+  const text = readFileSync(join(PRICE_FIXTURES, name), 'utf8')
+  return unknownVersion
+    ? JSON.stringify({ ...JSON.parse(text), version: 99 })
+    : text
+}
+
+function priceCors(req: IncomingMessage, res: ServerResponse): void {
+  const origin = req.headers.origin
+  if (origin) {
+    res.setHeader('access-control-allow-origin', origin)
+    res.setHeader('vary', 'Origin')
+  }
+}
+
+function handlePrice(
+  url: URL,
+  req: IncomingMessage,
+  res: ServerResponse,
+): boolean {
+  if (url.pathname === '/__stub/price' && req.method === 'POST') {
+    const q = url.searchParams
+    if (q.get('reset') === '1') {
+      Object.assign(price, {
+        plans: 'recorded',
+        estimate: 'auto',
+        categories: 'recorded',
+        hold: false,
+        plansHits: 0,
+        estimateBodies: [],
+      })
+    }
+    for (const key of ['plans', 'estimate', 'categories'] as const) {
+      const value = q.get(key)
+      if (value !== null) price[key] = value
+    }
+    if (q.get('hold') === '1') price.hold = true
+    res.writeHead(204)
+    res.end()
+    return true
+  }
+  if (url.pathname === '/__stub/price/release' && req.method === 'POST') {
+    const held = price.held.splice(0)
+    for (const answer of held) answer()
+    res.writeHead(204)
+    res.end()
+    return true
+  }
+  if (url.pathname === '/__stub/price/log') {
+    res.writeHead(200, { 'content-type': 'application/json' })
+    res.end(
+      JSON.stringify({
+        plansHits: price.plansHits,
+        estimateBodies: price.estimateBodies,
+      }),
+    )
+    return true
+  }
+  if (url.pathname === '/v1/public/plans') {
+    price.plansHits += 1
+    const [status, file] =
+      PLANS_SCENARIOS[price.plans] ?? PLANS_SCENARIOS['recorded']!
+    res.writeHead(status, {
+      'content-type':
+        status === 200 ? 'application/json' : 'application/problem+json',
+    })
+    res.end(priceFixture(file))
+    return true
+  }
+  if (url.pathname.startsWith('/v1/public/calculator/')) {
+    priceCors(req, res)
+    if (req.method === 'OPTIONS') {
+      res.setHeader('access-control-allow-methods', 'GET, POST, OPTIONS')
+      res.setHeader('access-control-allow-headers', 'Content-Type')
+      res.writeHead(204)
+      res.end()
+      return true
+    }
+    if (url.pathname === '/v1/public/calculator/categories') {
+      const [status, file] =
+        CATEGORIES_SCENARIOS[price.categories] ??
+        CATEGORIES_SCENARIOS['recorded']!
+      res.writeHead(status, {
+        'content-type': 'application/json',
+        'cache-control': 'no-store',
+      })
+      res.end(priceFixture(file))
+      return true
+    }
+    if (
+      url.pathname === '/v1/public/calculator/estimate' &&
+      req.method === 'POST'
+    ) {
+      let raw = ''
+      req.on('data', (chunk) => (raw += chunk))
+      req.on('end', () => {
+        let body: { categories?: unknown[] } = {}
+        try {
+          body = JSON.parse(raw)
+        } catch {
+          /* recorded as-is below */
+        }
+        price.estimateBodies.push(body)
+        const unknown = price.estimate === 'unknown-version'
+        const name =
+          price.estimate === 'auto' || unknown
+            ? (['pro', 'pro-two', 'pro-three'][
+                (body.categories?.length ?? 1) - 1
+              ] ?? 'pro')
+            : price.estimate
+        const [status, file] =
+          ESTIMATE_SCENARIOS[name] ?? ESTIMATE_SCENARIOS['pro']!
+        const answer = () => {
+          res.writeHead(status, {
+            'content-type':
+              status === 200 ? 'application/json' : 'application/problem+json',
+            'cache-control': 'no-store',
+          })
+          res.end(priceFixture(file, unknown))
+        }
+        if (price.hold) {
+          price.hold = false
+          price.held.push(answer)
+        } else answer()
+      })
+      return true
+    }
+  }
+  return false
+}
+
 function handle(req: IncomingMessage, res: ServerResponse): void {
   const url = new URL(req.url ?? '/', 'http://stub.invalid')
+
+  if (handlePrice(url, req, res)) return
 
   // ⚠️ THE APP'S STAND-IN (MOTIR-6749). In this lane the stub IS the app's
   // origin, so a reader who follows a read link off motir.co lands HERE. It

@@ -1,0 +1,40 @@
+{
+  "version": 2,
+  "categoryRuleVersion": "2026-10-14.1",
+  "modelsReadAt": "2026-10-14T20:00:00.000Z",
+  "cadences": ["annual", "monthly"],
+  "defaultCadence": "annual",
+  "categories": [
+    {
+      "key": "economy",
+      "models": [
+        {
+          "id": "example-small-1",
+          "provider": "example"
+        },
+        {
+          "id": "example-small-2",
+          "provider": "example"
+        }
+      ]
+    },
+    {
+      "key": "balanced",
+      "models": [
+        {
+          "id": "example-mid-1",
+          "provider": "example"
+        }
+      ]
+    },
+    {
+      "key": "frontier",
+      "models": [
+        {
+          "id": "example-large-1",
+          "provider": "example"
+        }
+      ]
+    }
+  ]
+}

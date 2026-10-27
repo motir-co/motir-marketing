@@ -103,27 +103,27 @@ export const LOCALE_ENDONYMS: Record<Locale, string> = {
  * locale rather than set by shared breakpoints, which overflowed the English
  * bar between 768px and ~1100px. Each is the bar's own width in that locale's
  * catalogue, with the nav labels on one line, plus 16px to spare (re-measured
- * 2026-10-18, when "How Motir works" and "How to use" joined the nav). Change a nav label and
+ * 2026-10-18, when "How Motir works" and "How to use" joined the nav, and
+ * 2026-10-27, when "Price" did — MOTIR-8382). Change a nav label and
  * measure again: a bar narrower than its width wraps its labels.
  *
  * `app/_components/headerLadder.ts` turns these into the static class strings
  * Tailwind can see, and `tests/headerLadder.test.ts` holds the two together.
  */
 export const HEADER_LADDER: Record<Locale, { a: number; b: number }> = {
-  en: { a: 1483, b: 1266 },
-  zh: { a: 1373, b: 1192 },
-  // zh's widths, not yet measured with the zh-tw catalogue and LXGW WenKai TC:
-  // the twelve-language E2E card (MOTIR-9253) measures the bar and replaces them.
-  'zh-tw': { a: 1373, b: 1192 },
-  ja: { a: 1589, b: 1288 },
-  ko: { a: 1368, b: 1173 },
-  de: { a: 1652, b: 1358 },
-  fr: { a: 1744, b: 1422 },
-  es: { a: 1691, b: 1383 },
-  it: { a: 1618, b: 1302 },
-  nl: { a: 1562, b: 1294 },
-  pl: { a: 1634, b: 1341 },
-  pt: { a: 1656, b: 1353 },
+  en: { a: 1541, b: 1324 },
+  zh: { a: 1428, b: 1247 },
+  // Measured with the zh-tw catalogue on 2026-10-27; it matches zh's to the pixel.
+  'zh-tw': { a: 1428, b: 1247 },
+  ja: { a: 1643, b: 1342 },
+  ko: { a: 1420, b: 1226 },
+  de: { a: 1721, b: 1428 },
+  fr: { a: 1799, b: 1477 },
+  es: { a: 1761, b: 1454 },
+  it: { a: 1677, b: 1361 },
+  nl: { a: 1637, b: 1370 },
+  pl: { a: 1699, b: 1406 },
+  pt: { a: 1721, b: 1418 },
 }
 
 /**

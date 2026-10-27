@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { SITE_ORIGIN, TENANT_ORIGIN } from '../stub/origin'
 import { t } from '../support/catalogue'
+import { HEADER_LADDER } from '../../i18n/routing'
 
 /*
  * A FRENCH READER STAYS FRENCH (MOTIR-7971), in a real browser.
@@ -23,7 +24,10 @@ test('a link on a French page goes straight to the French page', async ({
 }) => {
   // Wide enough for the French bar's nav (the header's give-way ladder,
   // `HEADER_LADDER` — below it the nav folds into the Menu panel).
-  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.setViewportSize({
+    width: Math.max(1440, HEADER_LADDER.fr.b),
+    height: 900,
+  })
   await page.goto(`${SITE_ORIGIN}/fr/explore`)
   const docs = page.locator('header a[href="/fr/docs"]').first()
   await expect(docs).toBeVisible()

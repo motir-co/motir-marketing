@@ -126,6 +126,7 @@
     "menu": "Menú",
     "howItWorks": "Cómo funciona Motir",
     "howToUse": "Cómo usarlo",
+    "price": "Precios",
     "explore": "Construir en público",
     "ideas": "Ideas",
     "buildsItself": "Motir se construye solo",
@@ -661,7 +662,8 @@
     "howItWorks": "Cómo funciona Motir",
     "ideas": "Ideas para construir",
     "buildsItself": "Motir se construye a sí mismo",
-    "howToUse": "Cómo usar Motir"
+    "howToUse": "Cómo usar Motir",
+    "price": "Precios"
   },
   "legal": {
     "metaTitle": "Legal",
@@ -2611,6 +2613,133 @@
       "approve": "Aprobar el plan",
       "outputs": "Código · Diseño · Docs · Vídeo",
       "mcp": "MCP"
+    }
+  },
+  "pricePage": {
+    "metaTitle": "Motir AI: planes y suscripción",
+    "metaDescription": "Un fondo mensual de créditos a nivel de organización, facturado aparte de los puestos. Cualquier organización puede comprarlo: no hace falta un plan de puestos de Motir de pago. Pro es la opción de referencia recomendada.",
+    "heading": "Elige tu plan",
+    "subline": "Un fondo mensual de créditos a nivel de organización, facturado aparte de los puestos. Cualquier organización puede comprarlo: no hace falta un plan de puestos de Motir de pago. Pro es la opción de referencia recomendada.",
+    "plansLabel": "Planes",
+    "calculatorLabel": "Calcula tu uso",
+    "plans": {
+      "cadenceLabel": "Frecuencia de facturación",
+      "monthly": "Mensual",
+      "annual": "Anual",
+      "saveBadge": "Ahorra ~33 %",
+      "recommended": "Recomendado",
+      "perMoEquiv": "${n} / mes",
+      "annualSub": "facturado anualmente · ${yr} / año",
+      "annualSave": "Ahorra ${n}/año",
+      "monthlySub": "${yr} / año · Ahorra ${n} con el plan anual",
+      "creditsAllotment": "{n} créditos / mes",
+      "ladderFirst": "Mismo precio por crédito en todos los planes",
+      "ladderMultiple": "{multiple}× los créditos de {plan} · mismo precio por crédito",
+      "seatIncluded": "+ {count, plural, one {# puesto de Motir} other {# puestos de Motir}} · elementos de trabajo sin límite",
+      "everythingIn": "Todo lo de {prev}, más",
+      "ctaChoose": "Elegir {plan}",
+      "ctaUpgrade": "Mejorar a {plan}",
+      "tiers": {
+        "standard": {
+          "useCase": "Planifica tus proyectos con el planificador de Motir AI.",
+          "features": [
+            "Planifica el proyecto, en detalle",
+            "Los créditos se renuevan cada mes · recarga cuando quieras"
+          ]
+        },
+        "pro": {
+          "useCase": "Standard, más modelos más potentes para planificar.",
+          "features": [
+            "Modelos más potentes habilitados para planificar",
+            "Cambia el modelo de planificación según el tipo de trabajo"
+          ]
+        },
+        "max": {
+          "useCase": "Pro, más margen para pasar el trabajo planificado al agente.",
+          "features": [
+            "Planifica más trabajo para que tu proyecto avance más rápido",
+            "Margen para enviar automáticamente parte del trabajo planificado al agente"
+          ]
+        },
+        "max_x2": {
+          "useCase": "Max, con el doble de volumen.",
+          "features": [
+            "El doble del fondo mensual de créditos de Max",
+            "Envía automáticamente más trabajo planificado al agente"
+          ]
+        },
+        "host": {
+          "useCase": "Motir a escala de flota, en cuentas de AWS propias.",
+          "features": [
+            "Motir hace avanzar tu proyecto de forma autónoma",
+            "Pools dedicados para runners de CI, ejecuciones de agentes, el indexador y los agentes alojados"
+          ]
+        }
+      },
+      "needMoreTitle": "¿Necesitas más créditos?",
+      "needMoreBody": "Si tu organización usa más de los {credits} créditos al mes de {plan}, calcula tu uso y la calculadora te ofrecerá una reserva de créditos mayor, dimensionada a tu medida, con cuentas de AWS propias.",
+      "needMoreAction": "Abrir la calculadora",
+      "topupTitle": "Recargar créditos",
+      "topupSubtitle": "Una compra única además de tu plan: se añade a tu saldo de inmediato y se usa después de tu asignación mensual.",
+      "topupRate": "${unit} por {credits} créditos · pago único · impuestos al pagar. Los créditos son una asignación, no una moneda: este es el precio que pagas a Stripe.",
+      "seatsIncluded": "{count, plural, one {Todos los planes de IA incluyen # puesto de Motir sin coste.} other {Todos los planes de IA incluyen # puestos de Motir sin coste.}}",
+      "seatFee": "Puestos adicionales: ${price} por usuario al mes.",
+      "perOrg": "Un plan para toda la organización: sus créditos los comparte todo el mundo.",
+      "invoice": "¿Necesitas una factura? Facturamos con Stripe Invoicing: escribe a billing@motir.co.",
+      "unavailableTitle": "Ahora mismo no se pueden mostrar los precios de los planes. Vuelve a intentarlo en un momento.",
+      "retry": "Reintentar"
+    },
+    "calculator": {
+      "title": "Calcula tu uso",
+      "subtitle": "Cuántos elementos de trabajo termina tu organización al mes y qué categorías de modelos usa. Motir estima los créditos y el plan que mejor encaja: el resultado es una estimación y nada de aquí cambia tu suscripción.",
+      "plannedLabel": "Elementos de trabajo planificados en Motir al mes",
+      "runLabel": "Elementos de trabajo ejecutados en el runner de Motir al mes",
+      "runHelp": "Los elementos de trabajo que ejecutas con tu propio agente —Claude Code, Codex— a través del MCP o la CLI de Motir no gastan créditos aquí. Cuenta solo lo que construye el runner de Motir; 0 es válido.",
+      "rangeHelp": "Un rango basta: el mínimo y el máximo de un mes normal.",
+      "lowLabel": "Mínimo",
+      "highLabel": "Máximo",
+      "categoriesLabel": "Modelos que usa el runner",
+      "categoriesHelp": "Elige de una a tres. La ejecución se reparte a partes iguales entre las que elijas: una lleva el 100 %, dos el 50 % cada una y las tres el 33 % cada una. Nunca eliges un modelo: cada categoría muestra como ejemplo los modelos que ofrece.",
+      "categoryShare": "{share} de la ejecución",
+      "categoryExamples": "Por ejemplo: {models}",
+      "picked": "Seleccionada",
+      "notPicked": "Sin seleccionar",
+      "submit": "Estimar créditos",
+      "categoriesFailed": "No pudimos cargar las categorías de modelos.",
+      "categoryEmpty": "Esta categoría no tiene ningún modelo ahora mismo, así que no se puede elegir.",
+      "splitOne": "Una sola categoría, así que toda la ejecución recae en {category}.",
+      "splitEven": "La ejecución se reparte a partes iguales entre {categories}: {shares} cada una.",
+      "idle": "No se estima nada hasta que lo pidas: introduce el rango, elige de una a tres categorías y selecciona «Estimar créditos».",
+      "priced": "Calculado para {plannedLow}–{plannedHigh} elementos planificados en Motir y {runLow}–{runHigh} ejecutados en el runner de Motir al mes.",
+      "loading": "Calculando tus créditos…",
+      "creditsLabel": "Créditos al mes",
+      "estimateCaveat": "Es una estimación para el rango que introdujiste: los créditos se devuelven como un rango, nunca como una cifra exacta.",
+      "planLabel": "El plan que encaja",
+      "topupLabel": "Recarga estimada",
+      "bundleCredits": "{n} créditos",
+      "topupOnly": "Una recarga cubre este rango, así que no hace falta cambiar de plan.",
+      "largerPoolLabel": "Reserva de créditos mayor",
+      "largerPlan": "Tu estimación supera nuestro mayor plan habitual, así que la respuesta es una reserva de créditos mayor, dimensionada a tu medida: {plan}.",
+      "largerPlanEstimate": "La reserva y su precio se calculan a partir de tu estimación, así que ambos son una estimación: los importes exactos se confirman antes de cobrar nada.",
+      "largestPoolLabel": "Mayor reserva de créditos",
+      "largestPool": "Tu estimación supera nuestra mayor reserva, así que la respuesta es esa reserva —{plan}— con recargas para el resto.",
+      "largestPoolTopUp": "Los otros {excess} créditos aproximados al mes se cubren con recargas: {units} × {unitCredits} créditos, unos {price} $ al mes.",
+      "regularWithTopUps": "Tu estimación supera los {credits} créditos al mes de {plan}, así que la respuesta es {plan} con recargas para el resto.",
+      "ownAccounts": "Tres cuentas de AWS propias de tu organización: una para los runners de CI, otra para las ejecuciones de agentes y otra compartida por el indexador y los agentes alojados, cada una dimensionada para este pool",
+      "seeHost": "¿Trabajas a esta escala todos los meses? Puede que Host te encaje mejor: consulta el plan Host más arriba.",
+      "retired": "Un modelo que elegiste ya no se ofrece, así que {category} se ha quitado de tu selección.",
+      "goToPlan": "Ir a este plan",
+      "retry": "Reintentar",
+      "errors": {
+        "rangeEmpty": "Introduce cuántos elementos de trabajo termina tu organización al mes.",
+        "rangeInvalid": "Introduce números enteros: no se aceptan decimales ni números negativos.",
+        "rangeOrder": "El mínimo tiene que ser menor o igual que el máximo.",
+        "rangeBothZero": "Introduce al menos un elemento de trabajo al mes: con los dos rangos en 0 no hay nada que calcular.",
+        "categoryMissing": "Elige al menos una categoría de modelos.",
+        "tooManyCategories": "Elige como máximo tres categorías de modelos.",
+        "unavailable": "Ahora mismo no podemos estimar. No se calculó nada: inténtalo de nuevo.",
+        "failed": "La estimación no llegó. No cambió nada: inténtalo de nuevo."
+      }
     }
   }
 }

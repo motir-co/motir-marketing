@@ -159,6 +159,8 @@ export const CLIENT_COPY_NAMESPACES = [
   'howItWorks',
   // MOTIR-7954 — `SubscribeForm` is the public-project tree's one client module.
   'publicProject',
+  // MOTIR-9684 — the price card's cadence toggle and its retry.
+  'pricePage',
 ] as const satisfies readonly (keyof Copy)[]
 
 /** The part of a catalogue the browser receives: `CLIENT_COPY_NAMESPACES`. */

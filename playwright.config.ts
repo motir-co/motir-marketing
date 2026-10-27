@@ -144,6 +144,11 @@ export default defineConfig({
         // (`acme.localhost`) belongs to. Same rule, same reason, as the origin
         // above; `e2e/stub/origin.ts` carries the full note.
         NEXT_PUBLIC_MOTIR_TENANT_DOMAIN: 'localhost',
+        // /price reads motir-ai's public routes (MOTIR-8382): the stub here,
+        // never the live engine — and every read fresh, so a spec can switch
+        // the stub's answer between page loads.
+        NEXT_PUBLIC_MOTIR_AI_ORIGIN: STUB_ORIGIN,
+        MOTIR_PLAN_LADDER_REVALIDATE_S: '0',
         NEXT_TELEMETRY_DISABLED: '1',
         // The docs install commands name the committed floor in this lane
         // (MOTIR-8802): `scripts/skills/resolve-release.ts` honours a value

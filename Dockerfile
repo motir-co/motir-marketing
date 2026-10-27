@@ -46,6 +46,11 @@ ENV NEXT_PUBLIC_MOTIR_APP_ORIGIN=${NEXT_PUBLIC_MOTIR_APP_ORIGIN}
 ARG NEXT_PUBLIC_MOTIR_TENANT_DOMAIN
 ENV NEXT_PUBLIC_MOTIR_TENANT_DOMAIN=${NEXT_PUBLIC_MOTIR_TENANT_DOMAIN}
 
+# motir-ai's public origin, for /price (MOTIR-8382). Inlined by `next build` for
+# the calculator island; its value travels in `fly.toml`'s `[build.args]`.
+ARG NEXT_PUBLIC_MOTIR_AI_ORIGIN
+ENV NEXT_PUBLIC_MOTIR_AI_ORIGIN=${NEXT_PUBLIC_MOTIR_AI_ORIGIN}
+
 # The `motir-skills` release the docs install commands name (MOTIR-8802): the
 # latest GitHub release, resolved here so a rebuild is all a release needs. A
 # network failure falls back to the committed floor rather than failing the image.

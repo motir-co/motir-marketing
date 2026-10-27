@@ -8,6 +8,7 @@ import {
   MOTIR_BUILDS_ITSELF,
   HOW_IT_WORKS,
   HOW_TO_USE,
+  PRICE,
   FREE_DOOR,
   LEGAL_INDEX,
   LEGAL_PRIVACY,
@@ -56,6 +57,7 @@ const columnsFor = (copy: Copy) =>
       items: [
         { href: HOW_IT_WORKS, label: copy.footer.howItWorks, site: true },
         { href: HOW_TO_USE, label: copy.footer.howToUse, site: true },
+        { href: PRICE, label: copy.footer.price, site: true },
         { href: FREE_DOOR, label: copy.footer.startFree },
         { href: SIGN_IN, label: copy.footer.signIn },
       ],

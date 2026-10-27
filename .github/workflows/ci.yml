@@ -81,6 +81,11 @@ env:
   # domain none of its hosts belong to.
   NEXT_PUBLIC_MOTIR_TENANT_DOMAIN: 'motir.site'
 
+  # motir-ai's public origin (MOTIR-8382), for /price — the same
+  # two-sites-one-meaning warning: the RELEASE reads `fly.toml`'s
+  # `[build.args]`. The browser lane points it at the stub instead.
+  NEXT_PUBLIC_MOTIR_AI_ORIGIN: 'https://motir-ai.fly.dev'
+
 jobs:
   lint:
     name: Lint
