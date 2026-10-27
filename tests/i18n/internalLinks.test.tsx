@@ -68,6 +68,12 @@ const PAGES: { label: string; module: string; params?: object }[] = [
     module: '@/app/[locale]/products/project-management/page',
   },
   { label: 'how it works', module: '@/app/[locale]/how-it-works/page' },
+  // MOTIR-8383 — rendered with the contract stub below, which answers the
+  // plan catalog with a 404, so this is the figure-free page.
+  {
+    label: 'how the calculation works',
+    module: '@/app/[locale]/how-the-calculation-works/page',
+  },
   {
     label: 'Motir builds itself',
     module: '@/app/[locale]/motir-builds-itself/page',

@@ -165,6 +165,13 @@ export default defineConfig({
         'lib/priceLadder.ts',
         'lib/aiOrigin.ts',
         'lib/seatFee.ts',
+        // MOTIR-8383 — "How the calculation works": its figure and category
+        // readers and the page, route included, added WITH their tests
+        // (`tests/explainer/`). The route is measured, unlike `/p/**`'s, because
+        // the explainer's tests await it in both render states.
+        'lib/explainer/*.ts',
+        'app/?locale?/how-the-calculation-works/**/*.ts',
+        'app/?locale?/how-the-calculation-works/**/*.tsx',
       ],
       /*
        * ⚠️ EVERY EXCLUSION HAS A REASON, and the reasons are different — a list
@@ -347,6 +354,19 @@ export default defineConfig({
         },
         'lib/priceLadder.ts': { lines: 90, functions: 90, branches: 85 },
         'lib/aiOrigin.ts': { lines: 90, functions: 90, branches: 85 },
+        // MOTIR-8383 — measured first under `tests/explainer/` (100 across,
+        // the route's two render states included), then pinned at the floor.
+        'lib/explainer/*.ts': { lines: 90, functions: 90, branches: 90 },
+        'app/?locale?/how-the-calculation-works/**/*.ts': {
+          lines: 90,
+          functions: 90,
+          branches: 90,
+        },
+        'app/?locale?/how-the-calculation-works/**/*.tsx': {
+          lines: 90,
+          functions: 90,
+          branches: 90,
+        },
       },
     },
   },

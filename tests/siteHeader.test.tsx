@@ -153,6 +153,8 @@ describe('the sitemap', () => {
       siteUrl('/how-to-use'),
       // MOTIR-8382 — the price page.
       siteUrl('/price'),
+      // MOTIR-8383 — how the calculation works.
+      siteUrl('/how-the-calculation-works'),
       siteUrl('/design'),
       siteUrl('/explore'),
       siteUrl('/docs'),

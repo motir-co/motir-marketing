@@ -2747,5 +2747,103 @@
         "failed": "L'estimation n'est pas revenue. Rien n'a changé — réessayez."
       }
     }
+  },
+  "explainer": {
+    "metaTitle": "Comment le calcul fonctionne — Motir AI",
+    "metaDescription": "D'où viennent l'estimation de crédits de Motir AI et le forfait qu'elle recommande : ce que vous saisissez, les catégories de modèles, les crédits par élément de travail, la fourchette, l'échelle des forfaits jusqu'à Host et les forfaits à plus grande réserve, et qui paie quoi.",
+    "eyebrow": "Tarifs Motir AI",
+    "headline": "Comment le calcul fonctionne",
+    "lede": "D'où viennent l'estimation de crédits et le forfait qu'elle recommande — les mêmes valeurs que celles de la page des tarifs et du calculateur.",
+    "contentsLabel": "Sur cette page",
+    "figuresUnavailableNote": "Les valeurs en direct ne sont pas disponibles pour le moment ; cette page explique donc chaque étape en mots. La page des tarifs présente chaque forfait avec son prix.",
+    "entryLink": "Vous voulez savoir d'où viennent ces chiffres ? <link>Comment le calcul fonctionne</link>",
+    "plan": {
+      "credits": "{credits} crédits par mois",
+      "monthly": "{price} par mois",
+      "annual": "{price} par an",
+      "figureFree": "Un forfait à part entière"
+    },
+    "s1": {
+      "title": "Ce que vous saisissez",
+      "ranges": "Deux fourchettes par mois : les éléments de travail que vous planifiez dans Motir, et ceux que vous exécutez sur le runner de Motir.",
+      "ownAgent": "Un élément de travail exécuté sur votre propre agent — Claude Code, Codex — via le MCP ou la CLI de Motir ne consomme aucun crédit d'exécution. Si vous exécutez tout vous-même, saisissez zéro exécution : le devis ne porte alors que sur la planification."
+    },
+    "s2": {
+      "title": "Catégories de modèles",
+      "body": "La planification et l'exécution prennent chacune une catégorie, pas un modèle précis. Les modèles d'exemple proviennent de la liste de modèles en direct de Motir ; aucun modèle cité ici n'est donc une promesse.",
+      "categoriesLabel": "Catégories",
+      "categoriesFigureFree": "Les noms des catégories proviennent de la liste de modèles en direct de Motir.",
+      "split": "Deux catégories sélectionnées se partagent l'estimation 50/50 ; trois se la partagent 33/33/33."
+    },
+    "s3": {
+      "title": "Crédits par élément de travail",
+      "body": "Une quantité de travail de référence par élément, multipliée par le prix en direct du modèle choisi, puis par un facteur de voie pour la planification et pour l'exécution. La référence est le travail typique qu'exige un élément ; ce n'est pas un prix.",
+      "laneFactors": "La planification et l'exécution ont chacune leur propre facteur de voie."
+    },
+    "s4": {
+      "title": "La fourchette",
+      "body": "La consommation réelle de jetons varie : le bas de la fourchette est compté à 1× et le haut à 2×.",
+      "low": "bas · 1×",
+      "high": "haut · 2×",
+      "caption": "Toujours une fourchette, jamais un chiffre unique."
+    },
+    "s5": {
+      "title": "La recommandation",
+      "body": "Le calculateur recommande le moins cher de ces forfaits qui couvre le haut de votre fourchette. Chacun est un forfait à part entière.",
+      "maxX2FigureFree": "Un forfait à part entière, avec deux fois les crédits de Max",
+      "topUp": "Un léger manque est couvert par une recharge estimée à {price} pour {credits} crédits.",
+      "topUpFigureFree": "Un léger manque est couvert par une recharge estimée au tarif de recharge du catalogue.",
+      "largerTitle": "Forfait à plus grande réserve",
+      "largerBadge": "Estimation",
+      "largerBody": "Quand le haut de votre fourchette dépasse Max ×2 et une recharge raisonnable, le calculateur propose un forfait à plus grande réserve dimensionné selon votre propre estimation, sur la même base par crédit que l'échelle, et vous l'achetez vous-même.",
+      "largerFrom": "Les forfaits plus grands commencent à {credits} crédits par mois.",
+      "largerFromFigureFree": "Les forfaits plus grands commencent bien au-delà des crédits de Host."
+    },
+    "s6": {
+      "title": "Host, et ce qu'un forfait inclut au-delà des crédits",
+      "hostBody": "Un forfait ordinaire au-dessus de Max ×2. Vous l'achetez sur la page des tarifs ; le calculateur ne le recommande jamais, car il n'achète pas seulement des crédits. Une organisation Host dispose de trois comptes AWS qui lui sont propres :",
+      "accounts": [
+        {
+          "name": "Compte 1",
+          "use": "Runners CI"
+        },
+        {
+          "name": "Compte 2",
+          "use": "Exécutions d'agents"
+        },
+        {
+          "name": "Compte 3",
+          "use": "Partagé par l'indexation et les agents hébergés"
+        }
+      ],
+      "sharedFloor": "Tant qu'AWS n'a pas accordé la capacité de ces comptes, une organisation Host fonctionne sur la capacité partagée de Motir avec les limites de Max, et son administrateur voit l'état de chaque compte.",
+      "largerPlans": "Les forfaits à plus grande réserve commencent bien au-dessus de Host et disposent eux aussi de leurs propres comptes AWS.",
+      "otherPlans": "Tous les autres forfaits fonctionnent sur la capacité partagée de Motir ; le nombre d'exécutions d'agents et d'agents hébergés simultanés est fixé par le forfait."
+    },
+    "s7": {
+      "title": "Qui paie quoi",
+      "organization": "Chaque forfait IA — Standard, Pro, Max, Max ×2, Host et les forfaits à plus grande réserve — et chaque recharge appartiennent à l'organisation. Ses crédits sont partagés par toute l'organisation ; un forfait IA n'est pas tarifé selon le nombre de personnes qui l'utilisent et n'a pas de quantité.",
+      "includedSeat": "Chaque forfait IA inclut un siège Motir sans frais.",
+      "furtherSeats": "Les sièges au-delà du premier sont facturés par utilisateur : chaque personne supplémentaire qui utilise Motir occupe un siège au tarif du siège Motir.",
+      "noAiPlanSeats": "Une organisation sans forfait IA paie chaque siège."
+    },
+    "s8": {
+      "title": "Changer de forfait en cours de période",
+      "upTitle": "Passer à un forfait supérieur",
+      "upBody": "Vous payez la différence de prix pour les jours restants de la période, et non un nouveau prix complet, et recevez les crédits supplémentaires et l'allocation d'index du graphe de code correspondant à ces jours.",
+      "upRenewal": "Chaque renouvellement suivant accorde la réserve complète du nouveau forfait. Un passage à un forfait supérieur annule aussi une rétrogradation programmée plus tôt.",
+      "downTitle": "Passer à un forfait inférieur",
+      "downBody": "Prend effet à la fin de la période en cours, sans remboursement et sans changement des crédits ou de l'allocation que vous détenez déjà. Vous gardez votre forfait actuel jusque-là.",
+      "downClear": "Repasser à un forfait supérieur avant cette date annule la rétrogradation programmée.",
+      "billingNote": "Le montant exact d'un passage à un forfait supérieur est affiché au propriétaire sur la page de facturation avant qu'il ne confirme."
+    },
+    "s9": {
+      "title": "Ce qui change la réponse",
+      "body": "Un changement de prix de la passerelle ou un modèle retiré modifie l'estimation, sans nouvelle version de Motir."
+    },
+    "s10": {
+      "title": "Factures, sécurité et SSO",
+      "body": "Facturation Stripe standard. Pour toute question sur la sécurité ou le SSO, <link>contactez-nous</link>."
+    }
   }
 }

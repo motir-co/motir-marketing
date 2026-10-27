@@ -2741,5 +2741,103 @@
         "failed": "La estimación no llegó. No cambió nada: inténtalo de nuevo."
       }
     }
+  },
+  "explainer": {
+    "metaTitle": "Cómo funciona el cálculo — Motir AI",
+    "metaDescription": "De dónde salen la estimación de créditos de Motir AI y el plan que recomienda: lo que introduces, las categorías de modelos, los créditos por elemento de trabajo, el rango, la escala de planes hasta Host y los planes de reserva mayor, y quién paga qué.",
+    "eyebrow": "Precios de Motir AI",
+    "headline": "Cómo funciona el cálculo",
+    "lede": "De dónde salen la estimación de créditos y el plan que recomienda: las mismas cifras que usan la página de precios y la calculadora.",
+    "contentsLabel": "En esta página",
+    "figuresUnavailableNote": "Ahora mismo no hay cifras en directo, así que esta página explica cada paso con palabras. La página de precios muestra cada plan con su precio.",
+    "entryLink": "¿Quieres saber de dónde salen estas cifras? <link>Cómo funciona el cálculo</link>",
+    "plan": {
+      "credits": "{credits} créditos al mes",
+      "monthly": "{price} al mes",
+      "annual": "{price} al año",
+      "figureFree": "Un plan independiente"
+    },
+    "s1": {
+      "title": "Lo que introduces",
+      "ranges": "Dos rangos al mes: los elementos de trabajo que planificas en Motir y los que ejecutas en el runner de Motir.",
+      "ownAgent": "Un elemento de trabajo que ejecutas en tu propio agente —Claude Code, Codex— a través del MCP o la CLI de Motir no consume créditos de ejecución. Si lo ejecutas todo tú, introduce cero ejecuciones y el presupuesto incluirá solo la planificación."
+    },
+    "s2": {
+      "title": "Categorías de modelos",
+      "body": "La planificación y la ejecución toman cada una una categoría, no un modelo concreto. Los modelos de ejemplo salen de la lista de modelos en directo de Motir, así que ningún modelo de aquí es una promesa.",
+      "categoriesLabel": "Categorías",
+      "categoriesFigureFree": "Los nombres de las categorías salen de la lista de modelos en directo de Motir.",
+      "split": "Dos categorías seleccionadas se reparten la estimación 50/50; tres se la reparten 33/33/33."
+    },
+    "s3": {
+      "title": "Créditos por elemento de trabajo",
+      "body": "Una cantidad de trabajo de referencia por elemento, multiplicada por el precio en directo del modelo elegido y por un factor de carril para la planificación y para la ejecución. La referencia es el trabajo típico que requiere un elemento; no es un precio.",
+      "laneFactors": "La planificación y la ejecución tienen cada una su propio factor de carril."
+    },
+    "s4": {
+      "title": "El rango",
+      "body": "El uso real de tokens varía, así que el extremo bajo se cuenta a 1× y el alto a 2×.",
+      "low": "bajo · 1×",
+      "high": "alto · 2×",
+      "caption": "Siempre un rango, nunca una sola cifra."
+    },
+    "s5": {
+      "title": "La recomendación",
+      "body": "La calculadora recomienda el más barato de estos planes que cubra tu extremo alto. Cada uno es un plan independiente.",
+      "maxX2FigureFree": "Un plan independiente, con el doble de créditos que Max",
+      "topUp": "Un pequeño déficit se cubre con una recarga estimada a {price} por {credits} créditos.",
+      "topUpFigureFree": "Un pequeño déficit se cubre con una recarga estimada a la tarifa de recarga del catálogo.",
+      "largerTitle": "Plan de reserva mayor",
+      "largerBadge": "Estimación",
+      "largerBody": "Cuando tu extremo alto supera Max ×2 y una recarga razonable, la calculadora ofrece un plan de reserva mayor dimensionado según tu propia estimación, con la misma base por crédito que la escala, y lo compras tú mismo.",
+      "largerFrom": "Los planes mayores empiezan en {credits} créditos al mes.",
+      "largerFromFigureFree": "Los planes mayores empiezan muy por encima de los créditos de Host."
+    },
+    "s6": {
+      "title": "Host, y lo que incluye un plan además de créditos",
+      "hostBody": "Un plan normal por encima de Max ×2. Lo compras en la página de precios; la calculadora nunca lo recomienda, porque lo que compra no son solo créditos. Una organización Host recibe tres cuentas de AWS propias:",
+      "accounts": [
+        {
+          "name": "Cuenta 1",
+          "use": "Runners de CI"
+        },
+        {
+          "name": "Cuenta 2",
+          "use": "Ejecuciones de agentes"
+        },
+        {
+          "name": "Cuenta 3",
+          "use": "Compartida por la indexación y los agentes alojados"
+        }
+      ],
+      "sharedFloor": "Hasta que AWS conceda la capacidad de esas cuentas, una organización Host funciona en la capacidad compartida de Motir con los límites de Max, y su administrador ve el estado de cada cuenta.",
+      "largerPlans": "Los planes de reserva mayor empiezan muy por encima de Host y también tienen cuentas de AWS propias.",
+      "otherPlans": "Todos los demás planes funcionan en la capacidad compartida de Motir, y cuántas ejecuciones de agentes y agentes alojados pueden tener a la vez lo fija su plan."
+    },
+    "s7": {
+      "title": "Quién paga qué",
+      "organization": "Cada plan de IA —Standard, Pro, Max, Max ×2, Host y los planes de reserva mayor— y cada recarga pertenecen a la organización. Sus créditos los comparte toda la organización; un plan de IA no tiene precio según cuántas personas lo usan y no tiene cantidad.",
+      "includedSeat": "Todos los planes de IA incluyen un puesto de Motir sin coste.",
+      "furtherSeats": "Los puestos a partir del primero se cobran por usuario: cada persona adicional que usa Motir ocupa un puesto con la tarifa de puesto de Motir.",
+      "noAiPlanSeats": "Una organización sin plan de IA paga cada puesto."
+    },
+    "s8": {
+      "title": "Cambiar de plan a mitad de periodo",
+      "upTitle": "Subir de plan",
+      "upBody": "Pagas la diferencia de precio por los días que quedan del periodo, no un precio nuevo completo, y recibes los créditos extra y la asignación de índice del grafo de código correspondientes a esos días.",
+      "upRenewal": "Cada renovación posterior concede la reserva completa del nuevo plan. Subir de plan también anula una bajada que hubieras programado antes.",
+      "downTitle": "Bajar de plan",
+      "downBody": "Se aplica al final del periodo actual, sin reembolso y sin cambios en los créditos o la asignación que ya tienes. Mantienes tu plan actual hasta entonces.",
+      "downClear": "Volver a subir de plan antes de esa fecha anula la bajada programada.",
+      "billingNote": "El importe exacto de una subida de plan se muestra al propietario en la página de facturación antes de que la confirme."
+    },
+    "s9": {
+      "title": "Qué cambia la respuesta",
+      "body": "Un cambio de precio en la pasarela o un modelo retirado cambia la estimación, sin que Motir publique una nueva versión."
+    },
+    "s10": {
+      "title": "Facturas, seguridad y SSO",
+      "body": "Facturación estándar con Stripe. Para preguntas sobre seguridad o SSO, <link>contáctanos</link>."
+    }
   }
 }

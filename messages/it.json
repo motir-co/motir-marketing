@@ -2719,5 +2719,103 @@
         "failed": "La stima non è arrivata. Non è cambiato nulla: riprova."
       }
     }
+  },
+  "explainer": {
+    "metaTitle": "Come funziona il calcolo — Motir AI",
+    "metaDescription": "Da dove vengono la stima dei crediti di Motir AI e il piano che consiglia: cosa inserisci, le categorie di modelli, i crediti per elemento di lavoro, l'intervallo, la scala dei piani fino a Host e i piani con pool più grande, e chi paga cosa.",
+    "eyebrow": "Prezzi di Motir AI",
+    "headline": "Come funziona il calcolo",
+    "lede": "Da dove vengono la stima dei crediti e il piano che consiglia: gli stessi valori usati dalla pagina dei prezzi e dal calcolatore.",
+    "contentsLabel": "In questa pagina",
+    "figuresUnavailableNote": "I valori aggiornati non sono disponibili in questo momento, quindi questa pagina spiega ogni passaggio a parole. La pagina dei prezzi mostra ogni piano con il suo prezzo.",
+    "entryLink": "Vuoi sapere da dove vengono questi numeri? <link>Come funziona il calcolo</link>",
+    "plan": {
+      "credits": "{credits} crediti al mese",
+      "monthly": "{price} al mese",
+      "annual": "{price} all'anno",
+      "figureFree": "Un piano a sé"
+    },
+    "s1": {
+      "title": "Cosa inserisci",
+      "ranges": "Due intervalli al mese: gli elementi di lavoro che pianifichi in Motir e quelli che esegui sul runner di Motir.",
+      "ownAgent": "Un elemento di lavoro eseguito sul tuo agente — Claude Code, Codex — tramite l'MCP o la CLI di Motir non consuma crediti di esecuzione. Se esegui tutto da solo, inserisci zero esecuzioni e il preventivo copre solo la pianificazione."
+    },
+    "s2": {
+      "title": "Categorie di modelli",
+      "body": "Pianificazione ed esecuzione scelgono ciascuna una categoria, non un modello specifico. I modelli di esempio provengono dall'elenco dei modelli aggiornato di Motir, quindi nessun modello citato qui è una promessa.",
+      "categoriesLabel": "Categorie",
+      "categoriesFigureFree": "I nomi delle categorie provengono dall'elenco dei modelli aggiornato di Motir.",
+      "split": "Due categorie selezionate si dividono la stima 50/50; tre se la dividono 33/33/33."
+    },
+    "s3": {
+      "title": "Crediti per elemento di lavoro",
+      "body": "Una quantità di lavoro di riferimento per elemento, moltiplicata per il prezzo aggiornato del modello scelto e per un fattore di corsia per la pianificazione e per l'esecuzione. Il riferimento è il lavoro tipico richiesto da un elemento; non è un prezzo.",
+      "laneFactors": "Pianificazione ed esecuzione hanno ciascuna il proprio fattore di corsia."
+    },
+    "s4": {
+      "title": "L'intervallo",
+      "body": "L'uso reale dei token varia, quindi l'estremo basso si conta a 1× e quello alto a 2×.",
+      "low": "basso · 1×",
+      "high": "alto · 2×",
+      "caption": "Sempre un intervallo, mai un solo numero."
+    },
+    "s5": {
+      "title": "La raccomandazione",
+      "body": "Il calcolatore consiglia il più economico di questi piani che copre il tuo estremo alto. Ognuno è un piano a sé.",
+      "maxX2FigureFree": "Un piano a sé, con il doppio dei crediti di Max",
+      "topUp": "Una piccola carenza è coperta da una ricarica stimata a {price} per {credits} crediti.",
+      "topUpFigureFree": "Una piccola carenza è coperta da una ricarica stimata alla tariffa di ricarica del catalogo.",
+      "largerTitle": "Piano con pool più grande",
+      "largerBadge": "Stima",
+      "largerBody": "Quando il tuo estremo alto supera Max ×2 e una ricarica ragionevole, il calcolatore offre un piano con pool più grande dimensionato sulla tua stima, con la stessa base per credito della scala, e lo acquisti da solo.",
+      "largerFrom": "I piani più grandi partono da {credits} crediti al mese.",
+      "largerFromFigureFree": "I piani più grandi partono ben oltre i crediti di Host."
+    },
+    "s6": {
+      "title": "Host, e cosa include un piano oltre ai crediti",
+      "hostBody": "Un piano normale sopra Max ×2. Lo acquisti dalla pagina dei prezzi; il calcolatore non lo consiglia mai, perché quello che acquista non sono solo crediti. Un'organizzazione Host riceve tre account AWS tutti suoi:",
+      "accounts": [
+        {
+          "name": "Account 1",
+          "use": "Runner CI"
+        },
+        {
+          "name": "Account 2",
+          "use": "Esecuzioni degli agenti"
+        },
+        {
+          "name": "Account 3",
+          "use": "Condiviso da indicizzazione e agenti ospitati"
+        }
+      ],
+      "sharedFloor": "Finché AWS non concede la capacità di questi account, un'organizzazione Host gira sulla capacità condivisa di Motir con i limiti di Max, e il suo amministratore vede lo stato di ogni account.",
+      "largerPlans": "I piani con pool più grande partono ben sopra Host e hanno anch'essi account AWS propri.",
+      "otherPlans": "Tutti gli altri piani girano sulla capacità condivisa di Motir, e quante esecuzioni di agenti e agenti ospitati possono avere contemporaneamente lo stabilisce il piano."
+    },
+    "s7": {
+      "title": "Chi paga cosa",
+      "organization": "Ogni piano IA — Standard, Pro, Max, Max ×2, Host e i piani con pool più grande — e ogni ricarica appartengono all'organizzazione. I suoi crediti sono condivisi da tutta l'organizzazione; un piano IA non ha un prezzo basato su quante persone lo usano e non ha una quantità.",
+      "includedSeat": "Ogni piano IA include una postazione Motir senza costi aggiuntivi.",
+      "furtherSeats": "Le postazioni oltre la prima si pagano per utente: ogni persona in più che usa Motir occupa una postazione alla tariffa della postazione Motir.",
+      "noAiPlanSeats": "Un'organizzazione senza piano IA paga ogni postazione."
+    },
+    "s8": {
+      "title": "Cambiare piano a metà periodo",
+      "upTitle": "Passare a un piano superiore",
+      "upBody": "Paghi la differenza di prezzo per i giorni rimanenti del periodo, non un nuovo prezzo pieno, e ricevi i crediti extra e la quota di indice del grafo del codice corrispondenti a quei giorni.",
+      "upRenewal": "Ogni rinnovo successivo assegna il pool completo del nuovo piano. Un passaggio a un piano superiore annulla anche un passaggio a un piano inferiore programmato in precedenza.",
+      "downTitle": "Passare a un piano inferiore",
+      "downBody": "Ha effetto alla fine del periodo corrente, senza rimborso e senza modifiche ai crediti o alla quota che hai già. Fino ad allora mantieni il piano attuale.",
+      "downClear": "Tornare a un piano superiore prima di allora annulla il passaggio programmato.",
+      "billingNote": "L'importo esatto di un passaggio a un piano superiore viene mostrato al proprietario nella pagina di fatturazione prima che confermi."
+    },
+    "s9": {
+      "title": "Cosa cambia la risposta",
+      "body": "Una variazione di prezzo del gateway o un modello ritirato cambia la stima, senza un nuovo rilascio di Motir."
+    },
+    "s10": {
+      "title": "Fatture, sicurezza e SSO",
+      "body": "Fatturazione standard con Stripe. Per domande su sicurezza o SSO, <link>contattaci</link>."
+    }
   }
 }

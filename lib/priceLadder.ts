@@ -43,6 +43,8 @@ export interface LadderPlan {
 export interface PlanLadder {
   kind: 'ladder'
   plans: LadderPlan[]
+  /** The larger pool plans, ascending by pool (§4e `largerPlans`). Never in `plans`. */
+  largerPlans: LadderPlan[]
   topUp: { unitCredits: number; unitAmountUsd: number }
 }
 
@@ -64,17 +66,30 @@ export async function readPlanLadder(
   fetcher: typeof fetch = fetch,
   origin: string | null = AI_ORIGIN,
 ): Promise<PlanLadderRead> {
-  if (origin === null) return UNAVAILABLE
+  return parsePlanLadder(await fetchPlanLadderBody(fetcher, origin))
+}
+
+/**
+ * The ladder response's body as sent, or `null` when there is none to read: no
+ * origin, a network error, a non-OK answer or a body that is not JSON. The one
+ * request the price card makes, shared by the explainer page (MOTIR-9690), which
+ * tells an unknown `version` apart from an unreadable answer before parsing.
+ */
+export async function fetchPlanLadderBody(
+  fetcher: typeof fetch = fetch,
+  origin: string | null = AI_ORIGIN,
+): Promise<unknown> {
+  if (origin === null) return null
   try {
     const res = await fetcher(`${origin}${PLAN_LADDER_PATH}`, {
       headers: { accept: 'application/json' },
       next: { revalidate: planLadderRevalidate() },
     } as RequestInit)
     const type = res.headers.get('content-type') ?? ''
-    if (!res.ok || !type.includes('application/json')) return UNAVAILABLE
-    return parsePlanLadder(await res.json())
+    if (!res.ok || !type.includes('application/json')) return null
+    return await res.json()
   } catch {
-    return UNAVAILABLE
+    return null
   }
 }
 
@@ -98,9 +113,14 @@ export function parsePlanLadder(body: unknown): PlanLadderRead {
   }
   const parsed = plans.map(parsePlan)
   if (parsed.some((p) => p === null)) return UNAVAILABLE
+  const larger = body.largerPlans ?? []
+  if (!Array.isArray(larger)) return UNAVAILABLE
+  const largerPlans = larger.map(parsePlan)
+  if (largerPlans.some((p) => p === null)) return UNAVAILABLE
   return {
     kind: 'ladder',
     plans: parsed as LadderPlan[],
+    largerPlans: largerPlans as LadderPlan[],
     topUp: {
       unitCredits: topUp.unitCredits,
       unitAmountUsd: topUp.unitAmountUsd,

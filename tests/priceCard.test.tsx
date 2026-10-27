@@ -68,8 +68,26 @@ describe('parsePlanLadder', () => {
       { code: 'internal_error', detail: 'calculator_unavailable: catalog' },
     ],
     ['null', null],
+    ['larger plans that are not a list', { ...recorded, largerPlans: {} }],
+    [
+      'a larger plan with no price',
+      {
+        ...recorded,
+        largerPlans: [{ ...recorded.largerPlans[0], priceUsdByCadence: {} }],
+      },
+    ],
   ])('answers unavailable for %s — never a partial ladder', (_, body) => {
     expect(parsePlanLadder(body)).toEqual({ kind: 'unavailable' })
+  })
+})
+
+describe('parsePlanLadder — the larger pool plans', () => {
+  it('reads them apart from the ladder, and an answer without them as none', () => {
+    expect(ladder.largerPlans.map((p) => p.key)).toEqual(
+      recorded.largerPlans.map((p) => p.key),
+    )
+    const without = parsePlanLadder({ ...recorded, largerPlans: undefined })
+    expect(without).toMatchObject({ kind: 'ladder', largerPlans: [] })
   })
 })
 
