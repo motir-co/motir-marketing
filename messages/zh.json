@@ -126,6 +126,7 @@
     "menu": "菜单",
     "howItWorks": "Motir 的工作方式",
     "howToUse": "如何使用 Motir",
+    "price": "价格",
     "explore": "公开构建",
     "ideas": "值得构建的想法",
     "buildsItself": "Motir 构建自身",
@@ -642,7 +643,8 @@
     "howItWorks": "Motir 的工作方式",
     "ideas": "值得构建的想法",
     "buildsItself": "Motir 构建自身",
-    "howToUse": "如何使用 Motir"
+    "howToUse": "如何使用 Motir",
+    "price": "价格"
   },
   "legal": {
     "metaTitle": "法律",
@@ -2527,6 +2529,127 @@
       "approve": "批准计划",
       "outputs": "代码 · 设计 · 文档 · 视频",
       "mcp": "MCP"
+    }
+  },
+  "pricePage": {
+    "metaTitle": "Motir AI —— 套餐与订阅",
+    "metaDescription": "按组织的每月额度池，与席位分开计费。任何组织都可购买 —— 无需付费的 Motir 席位套餐。Pro 是推荐的锚定套餐。",
+    "heading": "选择你的套餐",
+    "subline": "按组织的每月额度池，与席位分开计费。任何组织都可购买 —— 无需付费的 Motir 席位套餐。Pro 是推荐的锚定套餐。",
+    "plansLabel": "套餐",
+    "calculatorLabel": "估算用量",
+    "plans": {
+      "cadenceLabel": "计费周期",
+      "monthly": "按月",
+      "annual": "按年",
+      "saveBadge": "约省 33%",
+      "recommended": "推荐",
+      "perMoEquiv": "${n} / 月",
+      "annualSub": "按年计费 · ${yr} / 年",
+      "annualSave": "每年省 ${n}",
+      "monthlySub": "${yr} / 年 · 改按年再省 ${n}",
+      "creditsAllotment": "{n} 额度 / 月",
+      "ladderFirst": "每个套餐的额度单价相同",
+      "ladderMultiple": "{plan} 的 {multiple} 倍额度 · 额度单价相同",
+      "seatIncluded": "+ {count, plural, other {# 个 Motir 席位}} · 工作项不受上限",
+      "everythingIn": "包含 {prev} 的全部，另加",
+      "ctaChoose": "选择 {plan}",
+      "ctaUpgrade": "升级到 {plan}",
+      "tiers": {
+        "standard": {
+          "useCase": "用 Motir AI 规划器规划你的项目。",
+          "features": ["详细规划项目", "额度每月刷新 · 随时加购"]
+        },
+        "pro": {
+          "useCase": "Standard 的全部，外加更强的规划模型。",
+          "features": ["启用更强的规划模型", "按工作类型切换规划模型"]
+        },
+        "max": {
+          "useCase": "Pro 的全部，外加把规划好的工作交给智能体的余量。",
+          "features": [
+            "规划更多工作，让项目推进得更快",
+            "留有余量，自动把部分规划好的工作派给智能体"
+          ]
+        },
+        "max_x2": {
+          "useCase": "Max 的两倍用量。",
+          "features": [
+            "两倍于 Max 的每月额度池",
+            "自动把更多规划好的工作派给智能体"
+          ]
+        },
+        "host": {
+          "useCase": "在你自己的 AWS 账户上，以集群规模运行 Motir。",
+          "features": [
+            "Motir 自主推进你的项目",
+            "CI 运行器、智能体运行、索引器和托管智能体各有专属资源池"
+          ]
+        }
+      },
+      "needMoreTitle": "需要更多积分？",
+      "needMoreBody": "如果你的组织每月用量超过 {plan} 的 {credits} 积分，请估算用量，计算器会给出按估算定制、配有你自有 AWS 账户的更大积分池。",
+      "needMoreAction": "打开计算器",
+      "topupTitle": "加购额度",
+      "topupSubtitle": "在套餐之外的一次性购买 —— 立即计入余额，在每月配额用尽后使用。",
+      "topupRate": "每 {credits} 额度 ${unit} · 一次性 · 结账时计税。额度是配额而非货币 —— 这是你向 Stripe 支付的价格。",
+      "seatsIncluded": "{count, plural, other {每个 AI 套餐都包含 # 个 Motir 席位，不额外收费。}}",
+      "seatFee": "更多席位：每位用户每月 ${price}。",
+      "perOrg": "整个组织共用一个套餐 —— 积分由全员共享。",
+      "invoice": "需要发票？我们通过 Stripe 开具发票——请写信至 billing@motir.co。",
+      "unavailableTitle": "暂时无法显示套餐价格。请稍后再试。",
+      "retry": "重试"
+    },
+    "calculator": {
+      "title": "估算用量",
+      "subtitle": "你的组织每月完成多少工作项，以及使用哪几类模型。Motir 估算所需的积分和合适的套餐 —— 结果只是估算，这里也不会更改你的订阅。",
+      "plannedLabel": "每月在 Motir 中规划的工作项",
+      "runLabel": "每月在 Motir 运行器上运行的工作项",
+      "runHelp": "通过 Motir 的 MCP 或 CLI、用你自己的智能体（Claude Code、Codex）运行的工作项，在这里不消耗积分。只计算 Motir 运行器构建的工作项；填 0 也可以。",
+      "rangeHelp": "填一个区间即可 —— 平常月份的下限与上限。",
+      "lowLabel": "下限",
+      "highLabel": "上限",
+      "categoriesLabel": "运行器使用的模型",
+      "categoriesHelp": "选择一到三类。运行部分在你选中的类别之间平均分摊：选一类占 100%，两类各占 50%，三类各占 33%。无需选择模型 —— 每个类别下列出的是它所服务的示例模型。",
+      "categoryShare": "运行部分的 {share}",
+      "categoryExamples": "例如：{models}",
+      "picked": "已选",
+      "notPicked": "未选",
+      "submit": "估算积分",
+      "categoriesFailed": "无法加载模型类别。",
+      "categoryEmpty": "该类目前没有可用模型，无法选择。",
+      "splitOne": "只选了一类，全部运行都落在 {category} 上。",
+      "splitEven": "运行部分在 {categories} 之间平均分摊 —— 各占 {shares}。",
+      "idle": "在你发起估算之前不会计算任何内容：填写区间、选择一到三个类别，然后选择「估算积分」。",
+      "priced": "按每月在 Motir 中规划 {plannedLow}–{plannedHigh} 个、在 Motir 运行器上运行 {runLow}–{runHigh} 个工作项计算。",
+      "loading": "正在计算积分…",
+      "creditsLabel": "每月积分",
+      "estimateCaveat": "这是按你填写的区间得出的估算：积分以区间给出，而不是一个精确数字。",
+      "planLabel": "适合的套餐",
+      "topupLabel": "预计需要的加购额度",
+      "bundleCredits": "{n} 额度",
+      "topupOnly": "这个区间用加购额度即可覆盖，无需更换套餐。",
+      "largerPoolLabel": "更大的积分池",
+      "largerPlan": "你的估算超过了最大的常规套餐，因此给出的方案是按估算定制的更大积分池：{plan}。",
+      "largerPlanEstimate": "积分池和价格都由你的估算算出，因此两者都是估算 —— 具体金额在扣费前会再次确认。",
+      "largestPoolLabel": "最大的积分池",
+      "largestPool": "你的估算超过了我们最大的积分池，因此给出的方案是这个积分池 ——{plan}—— 其余部分用加购额度补足。",
+      "largestPoolTopUp": "每月其余约 {excess} 积分由加购额度补足：{units} × {unitCredits} 积分，每月约 ${price}。",
+      "regularWithTopUps": "你的估算超过了 {plan} 每月 {credits} 积分，因此给出的方案是 {plan}，其余部分用加购额度补足。",
+      "ownAccounts": "你的组织自有的三个 AWS 账户：一个用于 CI 运行器，一个用于智能体运行，一个由索引器和托管智能体共用，每个都按此积分池配置",
+      "seeHost": "每个月都在这个规模上运行？Host 可能更适合你——请查看上方的 Host 套餐。",
+      "retired": "你选择的某个模型已不再提供，因此 {category} 已从你的选择中移除。",
+      "goToPlan": "前往该套餐",
+      "retry": "重试",
+      "errors": {
+        "rangeEmpty": "请填写你的组织每月完成的工作项数量。",
+        "rangeInvalid": "请填写整数的工作项数量 —— 不接受小数或负数。",
+        "rangeOrder": "下限不能高于上限。",
+        "rangeBothZero": "请至少填写每月一个工作项 —— 两个范围都为 0 时没有可计价的内容。",
+        "categoryMissing": "请至少选择一类模型。",
+        "tooManyCategories": "最多选择三类模型。",
+        "unavailable": "目前无法估算。没有产生任何结果 —— 请重试。",
+        "failed": "没有收到估算结果。没有任何改动 —— 请重试。"
+      }
     }
   }
 }

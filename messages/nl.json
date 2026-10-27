@@ -126,6 +126,7 @@
     "menu": "Menu",
     "howItWorks": "Hoe Motir werkt",
     "howToUse": "Gebruik",
+    "price": "Prijzen",
     "explore": "Openbaar bouwen",
     "ideas": "Ideeën",
     "buildsItself": "Motir bouwt zichzelf",
@@ -652,7 +653,8 @@
     "howItWorks": "Hoe Motir werkt",
     "ideas": "Ideeën om te bouwen",
     "buildsItself": "Motir bouwt zichzelf",
-    "howToUse": "Zo gebruik je Motir"
+    "howToUse": "Zo gebruik je Motir",
+    "price": "Prijzen"
   },
   "legal": {
     "metaTitle": "Juridisch",
@@ -2586,6 +2588,133 @@
       "approve": "Plan goedkeuren",
       "outputs": "Code · Design · Docs · Video",
       "mcp": "MCP"
+    }
+  },
+  "pricePage": {
+    "metaTitle": "Motir AI — abonnementen",
+    "metaDescription": "Een maandelijkse tegoedpool op organisatieniveau, los van plekken gefactureerd. Elke organisatie kan het kopen — een betaald Motir-plekkenabonnement is niet vereist. Pro is het aanbevolen uitgangspunt.",
+    "heading": "Kies je abonnement",
+    "subline": "Een maandelijkse tegoedpool op organisatieniveau, los van plekken gefactureerd. Elke organisatie kan het kopen — een betaald Motir-plekkenabonnement is niet vereist. Pro is het aanbevolen uitgangspunt.",
+    "plansLabel": "Abonnementen",
+    "calculatorLabel": "Schat je gebruik",
+    "plans": {
+      "cadenceLabel": "Factuurfrequentie",
+      "monthly": "Maandelijks",
+      "annual": "Jaarlijks",
+      "saveBadge": "Bespaar ~33%",
+      "recommended": "Aanbevolen",
+      "perMoEquiv": "${n} per maand",
+      "annualSub": "jaarlijks gefactureerd · ${yr} per jaar",
+      "annualSave": "Bespaar ${n} per jaar",
+      "monthlySub": "${yr} per jaar · Bespaar ${n} met jaarlijks",
+      "creditsAllotment": "{n} credits per maand",
+      "ladderFirst": "Dezelfde prijs per credit in elk abonnement",
+      "ladderMultiple": "{multiple}× de credits van {plan} · dezelfde prijs per credit",
+      "seatIncluded": "+ {count, plural, one {# Motir-plek} other {# Motir-plekken}} · werkitems onbeperkt",
+      "everythingIn": "Alles uit {prev}, plus",
+      "ctaChoose": "{plan} kiezen",
+      "ctaUpgrade": "Upgraden naar {plan}",
+      "tiers": {
+        "standard": {
+          "useCase": "Plan je projecten met de Motir AI Planner.",
+          "features": [
+            "Het project in detail plannen",
+            "Credits worden maandelijks vernieuwd · altijd bij te kopen"
+          ]
+        },
+        "pro": {
+          "useCase": "Standard, plus sterkere modellen voor planning.",
+          "features": [
+            "Sterkere modellen ingeschakeld voor planning",
+            "Wissel per soort werk van planningsmodel"
+          ]
+        },
+        "max": {
+          "useCase": "Pro, plus ruimte om gepland werk aan de agent over te dragen.",
+          "features": [
+            "Plan meer werk, zodat je project sneller vordert",
+            "Ruimte om een deel van het geplande werk automatisch aan de agent toe te wijzen"
+          ]
+        },
+        "max_x2": {
+          "useCase": "Max, met twee keer het volume.",
+          "features": [
+            "Twee keer de maandelijkse creditpool van Max",
+            "Meer gepland werk automatisch aan de agent toewijzen"
+          ]
+        },
+        "host": {
+          "useCase": "Motir op vlootschaal, op AWS-accounts van jezelf.",
+          "features": [
+            "Motir brengt je project zelfstandig verder",
+            "Eigen pools voor CI-runners, agentruns, de indexer en gehoste agents"
+          ]
+        }
+      },
+      "needMoreTitle": "Meer credits nodig?",
+      "needMoreBody": "Gebruikt je organisatie meer dan de {credits} credits per maand van {plan}? Schat je gebruik en de rekenhulp biedt je een grotere creditpool op maat aan, met AWS-accounts van jezelf.",
+      "needMoreAction": "Rekenhulp openen",
+      "topupTitle": "Credits bijkopen",
+      "topupSubtitle": "Een eenmalige aankoop bovenop je abonnement — direct aan je saldo toegevoegd en gebruikt na je maandelijkse tegoed.",
+      "topupRate": "${unit} per {credits} credits · eenmalig · btw bij het afrekenen. Credits zijn een toewijzing, geen valuta — dit is de prijs die je aan Stripe betaalt.",
+      "seatsIncluded": "{count, plural, one {Elk AI-abonnement bevat # Motir-plek zonder extra kosten.} other {Elk AI-abonnement bevat # Motir-plekken zonder extra kosten.}}",
+      "seatFee": "Extra plekken: ${price} per gebruiker per maand.",
+      "perOrg": "Eén abonnement voor de hele organisatie — de credits worden door iedereen gedeeld.",
+      "invoice": "Een factuur nodig? We factureren via Stripe Invoicing — mail naar billing@motir.co.",
+      "unavailableTitle": "De abonnementsprijzen kunnen nu niet worden getoond. Probeer het zo opnieuw.",
+      "retry": "Opnieuw proberen"
+    },
+    "calculator": {
+      "title": "Schat je gebruik",
+      "subtitle": "Hoeveel werkitems je organisatie per maand afrondt en welke modelcategorieën ze gebruikt. Motir schat de credits en het abonnement dat past — het antwoord is een schatting en niets hier wijzigt je abonnement.",
+      "plannedLabel": "Werkitems die je per maand in Motir plant",
+      "runLabel": "Werkitems die je per maand op de runner van Motir uitvoert",
+      "runHelp": "Werkitems die je met je eigen agent — Claude Code, Codex — via de MCP of CLI van Motir uitvoert, kosten hier geen credits. Tel alleen wat de runner van Motir bouwt; 0 mag.",
+      "rangeHelp": "Een bereik is prima — de onder- en bovengrens van een normale maand.",
+      "lowLabel": "Laag",
+      "highLabel": "Hoog",
+      "categoriesLabel": "Modellen die de runner gebruikt",
+      "categoriesHelp": "Kies er één tot drie. De uitvoering wordt gelijk verdeeld over wat je kiest: één krijgt 100%, twee elk 50%, alle drie elk 33%. Je kiest nooit een model — elke categorie toont de modellen die erbij horen als voorbeeld.",
+      "categoryShare": "{share} van de uitvoering",
+      "categoryExamples": "Bijvoorbeeld: {models}",
+      "picked": "Gekozen",
+      "notPicked": "Niet gekozen",
+      "submit": "Credits schatten",
+      "categoriesFailed": "We konden de modelcategorieën niet laden.",
+      "categoryEmpty": "Op dit moment is er geen model in deze categorie, dus je kunt hem niet kiezen.",
+      "splitOne": "Eén categorie, dus de hele uitvoering valt op {category}.",
+      "splitEven": "De uitvoering is gelijk verdeeld over {categories} — {shares} per categorie.",
+      "idle": "Er wordt niets geschat totdat je erom vraagt: vul het bereik in, kies één tot drie categorieën en kies dan Credits schatten.",
+      "priced": "Berekend voor {plannedLow}–{plannedHigh} werkitems gepland in Motir en {runLow}–{runHigh} uitgevoerd op de runner van Motir per maand.",
+      "loading": "Je credits worden berekend…",
+      "creditsLabel": "Credits per maand",
+      "estimateCaveat": "Dit is een schatting voor het bereik dat je invulde: de credits komen terug als bereik, nooit als één exact getal.",
+      "planLabel": "Het abonnement dat past",
+      "topupLabel": "Geschatte bijkoop",
+      "bundleCredits": "{n} credits",
+      "topupOnly": "Met een bijkoop dek je dit bereik, dus je hoeft niet van abonnement te wisselen.",
+      "largerPoolLabel": "Grotere creditpool",
+      "largerPlan": "Je schatting ligt boven ons grootste gewone abonnement, dus het antwoord is een grotere creditpool op maat: {plan}.",
+      "largerPlanEstimate": "De pool en de prijs worden berekend uit je schatting, dus beide zijn een schatting — de exacte bedragen worden bevestigd voordat er iets in rekening wordt gebracht.",
+      "largestPoolLabel": "Grootste creditpool",
+      "largestPool": "Je schatting ligt boven onze grootste pool, dus het antwoord is die pool — {plan} — met bijkopen voor de rest.",
+      "largestPoolTopUp": "De overige ongeveer {excess} credits per maand dek je met bijkopen: {units} × {unitCredits} credits, ongeveer ${price} per maand.",
+      "regularWithTopUps": "Je schatting ligt boven de {credits} credits per maand van {plan}, dus het antwoord is {plan} met bijkopen voor de rest.",
+      "ownAccounts": "Drie AWS-accounts van je organisatie zelf: één voor CI-runners, één voor agentruns en één die de indexer en de gehoste agents delen, elk afgestemd op deze pool",
+      "seeHost": "Draai je elke maand op deze schaal? Dan past Host misschien beter — bekijk het Host-abonnement hierboven.",
+      "retired": "Een model dat je koos wordt niet meer aangeboden, dus {category} is uit je keuze gehaald.",
+      "goToPlan": "Naar dit abonnement",
+      "retry": "Opnieuw proberen",
+      "errors": {
+        "rangeEmpty": "Vul in hoeveel werkitems je organisatie per maand afrondt.",
+        "rangeInvalid": "Vul hele getallen in — decimalen en negatieve getallen worden niet geaccepteerd.",
+        "rangeOrder": "De ondergrens moet gelijk zijn aan of lager zijn dan de bovengrens.",
+        "rangeBothZero": "Vul minstens één werkitem per maand in — met beide bereiken op 0 valt er niets te berekenen.",
+        "categoryMissing": "Kies minstens één modelcategorie.",
+        "tooManyCategories": "Kies maximaal drie modelcategorieën.",
+        "unavailable": "We kunnen nu niets schatten. Er is niets berekend — probeer het opnieuw.",
+        "failed": "De schatting kwam niet terug. Er is niets gewijzigd — probeer het opnieuw."
+      }
     }
   }
 }
