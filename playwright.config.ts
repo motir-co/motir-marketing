@@ -120,12 +120,11 @@ export default defineConfig({
       // can be green while the image is broken, which is the one failure this
       // job exists to prevent.
       //
-      // The two `cp`s are the Dockerfile's, in the same order and for the same
-      // reason: the standalone bundle carries its own minimal `node_modules` and
-      // NOT `.next/static` or `public`, so a server started without them answers
-      // documents whose every asset 404s. Keeping this command in step with
-      // `Dockerfile`'s final stage is the maintenance cost, and it is the cost
-      // of testing what ships.
+      // The two `cp`s are there because the standalone bundle carries its own
+      // minimal `node_modules` and NOT `.next/static` or `public`, so a server
+      // started without them answers documents whose every asset 404s. The
+      // release runs on Vercel from the same `next build`; this lane runs that
+      // build as one Node server.
       command: [
         'pnpm build',
         'cp -r .next/static .next/standalone/.next/static',

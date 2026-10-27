@@ -95,7 +95,7 @@ describe('currentHost / currentOrigin', () => {
   it('are the tenant’s, over https, when it did not', () => {
     // https is not an assumption: a tenant address serves only once its
     // certificate is ISSUED — `motir-core`'s `resolveHost` refuses every other
-    // status — and `fly.toml` sets `force_https`.
+    // status — and the host redirects http to https.
     expect(currentHost(WORKSPACE)).toBe('acme.motir.site')
     expect(currentOrigin(CUSTOM)).toBe('https://roadmap.acme.com')
   })

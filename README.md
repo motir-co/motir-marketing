@@ -9,13 +9,16 @@ the marketing site only; it holds no application code and reaches no database.
 
 ## Where it runs
 
-A Fly.io app, `motir-marketing`, in org `moooon`, primary region `iad` — beside
-`motir-core` and `motir-ai`. The decision, its rejected alternatives and the DNS
-constraint that settled it are recorded in `motir-core`'s
+A Vercel project, `motir-marketing`, functions in `iad1` — beside `motir-core`
+and `motir-ai` on Fly. It moved off Fly on 2026-10-27: shared-CPU steal and
+crawler bursts made two small machines slow, and the site needs no long-running
+process. The decision is recorded in `motir-core`'s
 [`docs/decisions/marketing-site-hosting.md`](https://github.com/motir-co/motir-core/blob/main/docs/decisions/marketing-site-hosting.md).
 
 A push to `main` that passes lint, typecheck, build and test is deployed by
-`.github/workflows/ci.yml`. There are no preview deployments, deliberately.
+`.github/workflows/ci.yml` (`vercel build` on the runner, `vercel deploy
+--prebuilt`). Vercel's Git integration is off (`vercel.json`), so there are no
+preview deployments, deliberately.
 
 ## Local development
 
@@ -37,14 +40,14 @@ runtime — by then a page whose every button leads nowhere has already shipped.
 
 It is supplied in three places, one per context, and they must agree:
 
-| context                        | supplied by                                            |
-| ------------------------------ | ------------------------------------------------------ |
-| local development              | `.env.local`, from `.env.example`                      |
-| CI's `Build` and `Test` checks | the workflow-level `env:` in `ci.yml`                  |
-| the released image             | `fly.toml`'s `[build.args]` → the `Dockerfile`'s `ARG` |
+| context                        | supplied by                                                |
+| ------------------------------ | ---------------------------------------------------------- |
+| local development              | `.env.local`, from `.env.example`                          |
+| CI's `Build` and `Test` checks | the workflow-level `env:` in `ci.yml`                      |
+| the release                    | the same workflow-level `env:` — `vercel build` runs in CI |
 
-It is **not** a Fly secret and cannot be one: a runtime secret arrives after the
-image that needed it was built.
+It is **not** a Vercel environment variable and cannot be one: the release is
+built on the runner (`vercel build`) and only its output is uploaded.
 
 ## Checks
 

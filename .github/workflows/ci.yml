@@ -63,17 +63,14 @@ env:
   # which is what stops a release shipping a landing page whose three doors
   # point at `undefined`. It is set HERE, once, for the `Build` check.
   #
-  # ⚠️ THIS IS NOT WHAT THE RELEASE USES. `NEXT_PUBLIC_*` is inlined by
-  # `next build`, and the `deploy` job below builds inside DOCKER — where a job
-  # env var does not reach. The released value is `fly.toml`'s `[build.args]`,
-  # and the `Dockerfile`'s `ARG` is what carries it in. Two sites, one meaning;
-  # changing the origin means changing both.
+  # It is ALSO what the release uses: `NEXT_PUBLIC_*` is inlined by
+  # `next build`, and the `deploy` job below runs `vercel build` on the runner,
+  # where this env reaches it. One site, one meaning.
   NEXT_PUBLIC_MOTIR_APP_ORIGIN: 'https://app.motir.co'
 
   # The tenant namespace's base domain (MOTIR-4220), for the `Build` check —
   # `lib/tenantDomain.ts` fails a PRODUCTION build without it, and `next build`
-  # is a production build. Same two-sites-one-meaning warning as above: the
-  # RELEASE takes its value from `fly.toml`'s `[build.args]`, not from here.
+  # is a production build. The release builds with it too, as above.
   #
   # ⚠️ THE BROWSER LANE DOES NOT INHERIT THIS. `playwright.config.ts` sets it to
   # `localhost` explicitly, because the lane's tenant host is `acme.localhost`
@@ -81,9 +78,8 @@ env:
   # domain none of its hosts belong to.
   NEXT_PUBLIC_MOTIR_TENANT_DOMAIN: 'motir.site'
 
-  # motir-ai's public origin (MOTIR-8382), for /price — the same
-  # two-sites-one-meaning warning: the RELEASE reads `fly.toml`'s
-  # `[build.args]`. The browser lane points it at the stub instead.
+  # motir-ai's public origin (MOTIR-8382), for /price — the release builds
+  # with it too. The browser lane points it at the stub instead.
   NEXT_PUBLIC_MOTIR_AI_ORIGIN: 'https://motir-ai.fly.dev'
 
 jobs:
@@ -284,50 +280,56 @@ jobs:
       - run: pnpm test:seam
 
   deploy:
-    name: Deploy to Fly
+    name: Deploy to Vercel
     runs-on: ${{ vars.MOTIR_RUNNER || 'ubuntu-latest' }}
     needs: [lint, typecheck, build, test, design-guards, e2e, subprocessor-seam]
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     # A release must NOT be cancelled mid-flight by a newer push — the
     # workflow-level `cancel-in-progress` above is right for a test run and
-    # wrong for a deploy, so this group overrides it. It is also its OWN group
-    # (`fly-deploy-marketing`, not motir-core's `fly-deploy`): two repositories
-    # sharing one group name would serialise unrelated releases.
+    # wrong for a deploy, so this group overrides it.
     concurrency:
-      group: fly-deploy-marketing
+      group: vercel-deploy-marketing
       cancel-in-progress: false
     permissions:
       contents: read
     timeout-minutes: 30
     env:
-      # An APP-scoped deploy token (`flyctl tokens create deploy -a
-      # motir-marketing`) — not an org token. An app token cannot create
-      # Machines in, or even see, sibling apps in the same org, and it does
-      # carry `registry.fly.io` write for its own app, which is all a deploy
-      # needs.
-      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-      FLY_APP: motir-marketing
-      # The host the smoke asks for (MOTIR-6842). `proxy.ts` serves the site
-      # only on `SITE_ORIGIN`'s host — `lib/siteOrigin.ts`'s default, which the
-      # release is built with — and routes every other host as a tenant, so the
-      # bare Fly hostname answers the host router's 404 room by design. Change
-      # this with `NEXT_PUBLIC_MOTIR_SITE_ORIGIN` if the release ever overrides it.
-      SITE_HOST: motir.co
+      # A token for the team that owns the project, and the two ids
+      # `vercel link` writes to `.vercel/project.json`. The build runs HERE,
+      # on the runner (`vercel build`), and only its output is uploaded
+      # (`--prebuilt`): the gates above stay the only thing that decides
+      # what ships, and `vercel.json` turns Vercel's Git integration off.
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
       - uses: actions/checkout@v6
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-      # `--local-only` builds on the runner's own Docker daemon and pushes to
-      # registry.fly.io, instead of Fly's remote builder — which flaked with
-      # repeated 503s for motir-ai even while Fly itself was operational.
-      - run: flyctl deploy --local-only --app "$FLY_APP"
-      # Prove the RELEASE, not a DNS record: this connects to the Fly-owned
-      # hostname, so it is green before motir.co points anywhere and stays
-      # honest after — and sends the site's own Host, so the host router serves
-      # the site rather than its unknown-host 404.
-      - name: Smoke the release on its Fly hostname
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm dlx vercel@58.4.4 pull --yes --environment=production --token "$VERCEL_TOKEN"
+      # The workflow-level `NEXT_PUBLIC_*` above are what this build inlines,
+      # and `SKILLS_RELEASE_TAG` is resolved the way `pnpm build` resolves it.
+      - run: |
+          export SKILLS_RELEASE_TAG="$(node scripts/skills/resolve-release.ts)"
+          pnpm dlx vercel@58.4.4 build --prod --token "$VERCEL_TOKEN"
+      - id: release
+        run: |
+          url=$(pnpm dlx vercel@58.4.4 deploy --prebuilt --prod --token "$VERCEL_TOKEN")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      # Prove the release on Vercel's edge, not through DNS: `--resolve` sends
+      # motir.co to Vercel's anycast address whatever the apex points at, so
+      # this is green before the DNS move and stays honest after. `proxy.ts`
+      # serves the site only on motir.co's own host. `--insecure` because the
+      # certificate is issued only once the apex points at Vercel: this
+      # proves the release answers, not the certificate.
+      - name: Smoke the release on Vercel's edge
         run: |
           set -euo pipefail
           code=$(curl -sS -o /dev/null -w '%{http_code}' --retry 6 --retry-delay 5 \
-            --retry-all-errors -H "Host: $SITE_HOST" "https://$FLY_APP.fly.dev/")
-          echo "GET https://$FLY_APP.fly.dev/ (Host: $SITE_HOST) -> $code"
+            --retry-all-errors --insecure --resolve motir.co:443:76.76.21.21 https://motir.co/)
+          echo "GET https://motir.co/ via 76.76.21.21 (${{ steps.release.outputs.url }}) -> $code"
           [ "$code" = "200" ]

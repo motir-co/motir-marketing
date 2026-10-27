@@ -371,7 +371,7 @@ export function currentHost(host: PublicHost): string {
  *
  * The router's own value where there is one, `https://<host>` as the fallback
  * for a tenant host that somehow arrived without it (a tenant address serves
- * only once its certificate is ISSUED, and `fly.toml` sets `force_https`), and
+ * only once its certificate is ISSUED, and the host redirects http to https), and
  * `SITE_ORIGIN` on the site itself.
  */
 export function currentOrigin(host: PublicHost): string {
