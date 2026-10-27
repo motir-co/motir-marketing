@@ -2619,8 +2619,6 @@
       "annualSave": "Oszczędź ${n}/rok",
       "monthlySub": "${yr} / rok · Oszczędź ${n} przy planie rocznym",
       "creditsAllotment": "{n} kredytów / mies.",
-      "ladderFirst": "Ta sama cena za kredyt w każdym planie",
-      "ladderMultiple": "{multiple}× kredytów planu {plan} · ta sama cena za kredyt",
       "seatIncluded": "+ {count, plural, one {# stanowisko Motir} few {# stanowiska Motir} many {# stanowisk Motir} other {# stanowiska Motir}} · bez limitu elementów roboczych",
       "everythingIn": "Wszystko z planu {prev}, a także",
       "ctaChoose": "Wybierz {plan}",

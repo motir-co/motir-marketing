@@ -2549,8 +2549,6 @@
       "annualSave": "每年省 ${n}",
       "monthlySub": "${yr} / 年 · 改按年再省 ${n}",
       "creditsAllotment": "{n} 额度 / 月",
-      "ladderFirst": "每个套餐的额度单价相同",
-      "ladderMultiple": "{plan} 的 {multiple} 倍额度 · 额度单价相同",
       "seatIncluded": "+ {count, plural, other {# 个 Motir 席位}} · 工作项不受上限",
       "everythingIn": "包含 {prev} 的全部，另加",
       "ctaChoose": "选择 {plan}",

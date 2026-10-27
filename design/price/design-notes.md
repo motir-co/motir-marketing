@@ -58,8 +58,6 @@ paraphrase them. The few lines the app has no string for are marked **NEW** in t
    - the price: "${n} / mo" with "${yr} / yr · Save ${n} with annual" (Monthly), or the per-month
      equivalent with "billed annually · ${yr} / yr" and a mint "Save ${n}/yr" `Pill` (Annual)
    - "{n} credits / mo"
-   - the ladder line: "Same price per credit on every plan" on Standard, then "{multiple}× {plan}'s
-     credits · same price per credit", computed from the pools and shown only when whole
    - "+ 1 Motir seat · work items uncapped" (the catalog's included-seat count)
    - the feature list: "Everything in {prev}, plus" on every tier above Standard, then the tier's two
      features
@@ -173,7 +171,7 @@ English only. There is one string per line, and amounts and names are parameters
 
 | marketing key                    | app string it copies (motir-core `messages/en.json`)                                                                                                                                                                                                                                                  |
 | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `price.plans.*`                  | `billing.plans.chooseTitle`, `chooseSub`, `cadenceLabel`, `monthly`, `annual`, `saveBadge`, `recommended`, `perMoEquiv`, `annualSub`, `annualSave`, `monthlySub`, `creditsAllotment`, `ladder.*`, `seatIncluded`, `everythingIn`, `ctaChoose`, `ctaUpgrade`, `tiers.*`                                |
+| `price.plans.*`                  | `billing.plans.chooseTitle`, `chooseSub`, `cadenceLabel`, `monthly`, `annual`, `saveBadge`, `recommended`, `perMoEquiv`, `annualSub`, `annualSave`, `monthlySub`, `creditsAllotment`, `seatIncluded`, `everythingIn`, `ctaChoose`, `ctaUpgrade`, `tiers.*`                                            |
 | `price.needMore.*`               | `billing.plans.needMore.title`, `body`, `action`                                                                                                                                                                                                                                                      |
 | `price.topup.*`                  | `billing.topup.title`, `subtitle`, `rate`                                                                                                                                                                                                                                                             |
 | `price.seats.*`                  | `billing.calculator.seat.included`, `feePerUserMonthly`; `billing.calculator.result.perOrg`                                                                                                                                                                                                           |
@@ -196,3 +194,11 @@ change to the app's wording is a change to these keys too.
   copy), whose labels, help and error lines this page reuses.
 - The catalog's ladder (`regular`, `standing` = Host, `larger`) as `motir-ai`
   `src/billing/calculatorTypes.ts` defines it.
+
+## Amendment 2026-10-27 — the ladder line is removed
+
+The plan card no longer carries the ladder line ("Same price per credit on every plan" on Standard,
+"{multiple}× {plan}'s credits · same price per credit" on the rest). The owner judged it unneeded,
+and app.motir.co's plans view dropped it in the same change. Each card goes straight from
+"{n} credits / mo" to the included-seat line. `pricePage.plans.ladderFirst` and `ladderMultiple`
+are gone from every locale, and the line is gone from the mock.

@@ -153,7 +153,6 @@ function PlanCard({
 }) {
   const recommended = plan.key === RECOMMENDED_PLAN_KEY
   const tier = (copy.tiers as Record<string, Tier | undefined>)[plan.key]
-  const ladder = ladderLine(plan, previous, copy)
   return (
     <article
       data-plan={plan.key}
@@ -185,9 +184,6 @@ function PlanCard({
       <p className="m-0 text-sm font-semibold text-(--el-text-strong)">
         {format(copy.creditsAllotment, { n: fmt(plan.monthlyCredits) })}
       </p>
-      {ladder ? (
-        <p className="m-0 text-xs text-(--el-text-secondary)">{ladder}</p>
-      ) : null}
       <p className="m-0 text-xs text-(--el-text-secondary)">
         {formatIcu(locale, copy.seatIncluded, {
           count: INCLUDED_TRACKER_SEATS,
@@ -308,21 +304,4 @@ function Feature({ children, lead }: { children: string; lead?: boolean }) {
       <span>{children}</span>
     </li>
   )
-}
-
-/*
- * The app's ladder line (motir-core `ladderLine`): the first rung says every
- * plan prices a credit the same; a later rung says how many times the rung
- * below's pool it holds, computed from the pools and shown only when whole.
- */
-export function ladderLine(
-  plan: LadderPlan,
-  previous: LadderPlan | null,
-  copy: PlansCopy,
-): string | null {
-  if (!previous) return copy.ladderFirst
-  if (!plan.monthlyCredits || !previous.monthlyCredits) return null
-  const multiple = plan.monthlyCredits / previous.monthlyCredits
-  if (!Number.isInteger(multiple)) return null
-  return format(copy.ladderMultiple, { multiple, plan: previous.name })
 }

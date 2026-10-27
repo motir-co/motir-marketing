@@ -2559,8 +2559,6 @@
       "annualSave": "연 ${n} 절약",
       "monthlySub": "연 ${yr} · 연간 결제 시 ${n} 절약",
       "creditsAllotment": "월 {n} 크레딧",
-      "ladderFirst": "모든 플랜의 크레딧당 가격은 동일",
-      "ladderMultiple": "{plan} 크레딧의 {multiple}배 · 크레딧당 가격 동일",
       "seatIncluded": "+ Motir 좌석 {count, plural, other {#개}} · 작업 항목 무제한",
       "everythingIn": "{prev}의 모든 기능에 더해",
       "ctaChoose": "{plan} 선택",
