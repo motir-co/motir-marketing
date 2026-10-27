@@ -319,7 +319,9 @@ jobs:
           pnpm dlx vercel@58.4.4 build --prod --token "$VERCEL_TOKEN"
       - id: release
         run: |
-          url=$(pnpm dlx vercel@58.4.4 deploy --prebuilt --prod --token "$VERCEL_TOKEN")
+          # `--archive=tgz`: the output is ~17k files (every page prerendered in
+          # twelve locales) and a deploy uploads at most 15,000 one by one.
+          url=$(pnpm dlx vercel@58.4.4 deploy --prebuilt --prod --archive=tgz --token "$VERCEL_TOKEN")
           echo "url=$url" >> "$GITHUB_OUTPUT"
       # Prove the release on Vercel's edge, not through DNS: `--resolve` sends
       # motir.co to Vercel's anycast address whatever the apex points at, so
