@@ -295,13 +295,14 @@ jobs:
     timeout-minutes: 30
     env:
       # A token for the team that owns the project, and the two ids
-      # `vercel link` writes to `.vercel/project.json`. The build runs HERE,
+      # `vercel link` writes to `.vercel/project.json` — ids, not secrets, so
+      # they are stated here where a reader can see where a release goes. The build runs HERE,
       # on the runner (`vercel build`), and only its output is uploaded
       # (`--prebuilt`): the gates above stay the only thing that decides
       # what ships, and `vercel.json` turns Vercel's Git integration off.
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_ORG_ID: team_cXYVewYY33k9VsAGRVe2Z54s
+      VERCEL_PROJECT_ID: prj_Pl49teksGo6P1edmAhl0vRqjrIb8
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
