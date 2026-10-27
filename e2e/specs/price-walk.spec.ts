@@ -202,10 +202,11 @@ test('a prospect reads the plans, toggles annual and estimates their usage, as M
     .getByRole('checkbox', { name: /^Frontier,/ })
     .click()
   await expect(shareValues).toHaveText(['34%', '33%', '33%'])
+  // Each key moves 1%, taken from the others in turn: 33/34/33, then 32/35/33.
   await calc(page).getByRole('slider', { name: 'Balanced' }).focus()
   await page.keyboard.press('ArrowRight')
   await page.keyboard.press('ArrowRight')
-  await expect(shareValues).toHaveText(['33%', '35%', '32%'])
+  await expect(shareValues).toHaveText(['32%', '35%', '33%'])
   await calc(page)
     .getByRole('button', { name: t('en', 'pricePage.calculator.submit') })
     .click()
@@ -267,7 +268,7 @@ test('a prospect reads the plans, toggles annual and estimates their usage, as M
   ).toEqual(
     expect.arrayContaining([
       { economy: 50, balanced: 50 },
-      { economy: 33, balanced: 35, frontier: 32 },
+      { economy: 32, balanced: 35, frontier: 33 },
     ]),
   )
 })
