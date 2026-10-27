@@ -5,6 +5,7 @@ import { SITE_HOST } from '@/lib/publicHost'
 import { readPlanLadder } from '@/lib/priceLadder'
 import { PricePage } from '../../_components/PricePage'
 import { PriceCard } from '../../_components/price/PriceCard'
+import { Calculator } from '../../_components/price/Calculator'
 import { SiteShell } from '../../_components/SiteShell'
 import { enterLocale, type LocalePageProps } from '@/i18n/locale'
 
@@ -31,7 +32,10 @@ export default async function PriceRoute({ params }: LocalePageProps) {
   const ladder = await readPlanLadder()
   return (
     <SiteShell host={SITE_HOST}>
-      <PricePage plans={<PriceCard ladder={ladder} />} />
+      <PricePage
+        plans={<PriceCard ladder={ladder} />}
+        calculator={<Calculator />}
+      />
     </SiteShell>
   )
 }

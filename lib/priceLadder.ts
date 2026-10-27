@@ -55,6 +55,9 @@ export type PlanLadderRead = PlanLadder | { kind: 'unavailable' }
  */
 export const RECOMMENDED_PLAN_KEY = 'pro'
 
+/** The standing plan the calculator's See-Host line points at — a key, never a figure. */
+export const HOST_PLAN_KEY = 'host'
+
 const UNAVAILABLE = { kind: 'unavailable' } as const
 
 export async function readPlanLadder(

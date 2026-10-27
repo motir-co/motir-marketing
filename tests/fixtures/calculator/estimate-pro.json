@@ -1,0 +1,62 @@
+{
+  "version": 2,
+  "kind": "estimate",
+  "profilesVersion": "2026-10-20.1",
+  "categoryRuleVersion": "2026-10-14.1",
+  "cadence": "annual",
+  "plannedPerMonth": {
+    "low": 20,
+    "high": 40
+  },
+  "runPerMonth": {
+    "low": 10,
+    "high": 20
+  },
+  "credits": {
+    "low": 3150,
+    "high": 12600
+  },
+  "perItemCredits": {
+    "planning": 110,
+    "running": 95
+  },
+  "split": {
+    "count": 1,
+    "categories": [
+      {
+        "key": "balanced",
+        "weight": 1.0,
+        "models": [
+          {
+            "id": "example",
+            "provider": "example"
+          }
+        ]
+      }
+    ]
+  },
+  "recommendation": {
+    "planKey": "pro",
+    "planName": "Pro",
+    "monthlyPriceUsd": 50,
+    "poolCredits": 15000
+  },
+  "topUp": {
+    "low": {
+      "units": 0,
+      "credits": 0,
+      "priceUsd": 0
+    },
+    "high": {
+      "units": 0,
+      "credits": 0,
+      "priceUsd": 0
+    }
+  },
+  "ceiling": {
+    "credits": 60000,
+    "exceeded": false,
+    "excessCredits": 0,
+    "outcome": "within_ladder"
+  }
+}

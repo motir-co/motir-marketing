@@ -1,0 +1,62 @@
+{
+  "version": 2,
+  "kind": "estimate",
+  "profilesVersion": "2026-10-20.1",
+  "categoryRuleVersion": "2026-10-14.1",
+  "cadence": "annual",
+  "plannedPerMonth": {
+    "low": 2000,
+    "high": 3000
+  },
+  "runPerMonth": {
+    "low": 1500,
+    "high": 2500
+  },
+  "credits": {
+    "low": 410000,
+    "high": 560000
+  },
+  "perItemCredits": {
+    "planning": 110,
+    "running": 95
+  },
+  "split": {
+    "count": 1,
+    "categories": [
+      {
+        "key": "frontier",
+        "weight": 1.0,
+        "models": [
+          {
+            "id": "example",
+            "provider": "example"
+          }
+        ]
+      }
+    ]
+  },
+  "recommendation": {
+    "planKey": "pool_600k",
+    "planName": "Pool 600,000",
+    "monthlyPriceUsd": 2000,
+    "poolCredits": 600000
+  },
+  "topUp": {
+    "low": {
+      "units": 0,
+      "credits": 0,
+      "priceUsd": 0
+    },
+    "high": {
+      "units": 0,
+      "credits": 0,
+      "priceUsd": 0
+    }
+  },
+  "ceiling": {
+    "credits": 60000,
+    "exceeded": true,
+    "excessCredits": 500000,
+    "outcome": "larger_pool"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "type": "https://motir.co/errors/internal_error",
+  "title": "Internal error",
+  "status": 500,
+  "code": "internal_error",
+  "detail": "calculator_unavailable: models_read_failed"
+}

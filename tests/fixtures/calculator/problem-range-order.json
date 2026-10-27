@@ -1,0 +1,7 @@
+{
+  "type": "https://motir.co/errors/validation_error",
+  "title": "Validation failed",
+  "status": 400,
+  "code": "validation_error",
+  "detail": "plannedPerMonth.low must not exceed plannedPerMonth.high"
+}
