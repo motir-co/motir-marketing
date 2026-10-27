@@ -323,16 +323,15 @@ jobs:
           # twelve locales) and a deploy uploads at most 15,000 one by one.
           url=$(pnpm dlx vercel@58.4.4 deploy --prebuilt --prod --archive=tgz --token "$VERCEL_TOKEN")
           echo "url=$url" >> "$GITHUB_OUTPUT"
-      # Prove the release on Vercel's edge, not through DNS: `--resolve` sends
-      # motir.co to Vercel's anycast address whatever the apex points at, so
-      # this is green before the DNS move and stays honest after. `proxy.ts`
-      # serves the site only on motir.co's own host. `--insecure` because the
-      # certificate is issued only once the apex points at Vercel: this
-      # proves the release answers, not the certificate.
-      - name: Smoke the release on Vercel's edge
+      # Prove the release itself, not DNS: `vercel curl` reaches the
+      # deployment's own address through its protection, and `proxy.ts`
+      # serves the site on that address (`VERCEL_URL`).
+      - name: Smoke the release on its deployment address
         run: |
           set -euo pipefail
-          code=$(curl -sS -o /dev/null -w '%{http_code}' --retry 6 --retry-delay 5 \
-            --retry-all-errors --insecure --resolve motir.co:443:216.198.79.1 https://motir.co/)
-          echo "GET https://motir.co/ via 216.198.79.1 (${{ steps.release.outputs.url }}) -> $code"
-          [ "$code" = "200" ]
+          for path in / /ideas /price; do
+            code=$(pnpm dlx vercel@58.4.4 curl "$path" --deployment "${{ steps.release.outputs.url }}" \
+              --token "$VERCEL_TOKEN" -- -sS -o /dev/null -w '%{http_code}' -L)
+            echo "GET ${{ steps.release.outputs.url }}$path -> $code"
+            [ "$code" = "200" ]
+          done
