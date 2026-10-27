@@ -2727,5 +2727,103 @@
         "failed": "Szacunek nie wrócił. Nic się nie zmieniło — spróbuj ponownie."
       }
     }
+  },
+  "explainer": {
+    "metaTitle": "Jak działa obliczenie — Motir AI",
+    "metaDescription": "Skąd biorą się szacunek kredytów Motir AI i plan, który poleca: co wpisujesz, kategorie modeli, kredyty na element roboczy, przedział, drabina planów aż do Host i plany z większą pulą oraz kto za co płaci.",
+    "eyebrow": "Cennik Motir AI",
+    "headline": "Jak działa obliczenie",
+    "lede": "Skąd biorą się szacunek kredytów i plan, który poleca — to te same wartości, których używają strona cennika i kalkulator.",
+    "contentsLabel": "Na tej stronie",
+    "figuresUnavailableNote": "Aktualne wartości są teraz niedostępne, więc ta strona objaśnia każdy krok słowami. Strona cennika pokazuje każdy plan wraz z ceną.",
+    "entryLink": "Chcesz wiedzieć, skąd biorą się te liczby? <link>Jak działa obliczenie</link>",
+    "plan": {
+      "credits": "{credits} kredytów miesięcznie",
+      "monthly": "{price} miesięcznie",
+      "annual": "{price} rocznie",
+      "figureFree": "Osobny plan"
+    },
+    "s1": {
+      "title": "Co wpisujesz",
+      "ranges": "Dwa przedziały na miesiąc: elementy robocze, które planujesz w Motir, i elementy robocze, które uruchamiasz na runnerze Motir.",
+      "ownAgent": "Element roboczy uruchomiony na Twoim własnym agencie — Claude Code, Codex — przez MCP lub CLI Motir nie zużywa kredytów na uruchomienia. Jeśli wszystko uruchamiasz sam, wpisz zero uruchomień, a wycena obejmie tylko planowanie."
+    },
+    "s2": {
+      "title": "Kategorie modeli",
+      "body": "Planowanie i uruchamianie wybierają każde swoją kategorię, a nie konkretny model. Przykładowe modele pochodzą z aktualnej listy modeli Motir, więc żaden model podany tutaj nie jest obietnicą.",
+      "categoriesLabel": "Kategorie",
+      "categoriesFigureFree": "Nazwy kategorii pochodzą z aktualnej listy modeli Motir.",
+      "split": "Dwie wybrane kategorie dzielą szacunek 50/50, trzy dzielą go 33/33/33."
+    },
+    "s3": {
+      "title": "Kredyty na element roboczy",
+      "body": "Referencyjna ilość pracy na element, pomnożona przez aktualną cenę wybranego modelu i przez współczynnik ścieżki dla planowania i dla uruchamiania. Referencja to typowa praca, jakiej wymaga jeden element; nie jest to cena.",
+      "laneFactors": "Planowanie i uruchamianie mają każde własny współczynnik ścieżki."
+    },
+    "s4": {
+      "title": "Przedział",
+      "body": "Rzeczywiste zużycie tokenów się waha, więc dolny koniec liczony jest jako 1×, a górny jako 2×.",
+      "low": "dolny · 1×",
+      "high": "górny · 2×",
+      "caption": "Zawsze przedział, nigdy jedna liczba."
+    },
+    "s5": {
+      "title": "Rekomendacja",
+      "body": "Kalkulator poleca najtańszy z tych planów, który pokrywa górny koniec Twojego przedziału. Każdy z nich jest osobnym planem.",
+      "maxX2FigureFree": "Osobny plan, z dwa razy większą liczbą kredytów niż Max",
+      "topUp": "Niewielki niedobór pokrywa szacowane doładowanie w cenie {price} za {credits} kredytów.",
+      "topUpFigureFree": "Niewielki niedobór pokrywa szacowane doładowanie według stawki doładowania z katalogu.",
+      "largerTitle": "Plan z większą pulą",
+      "largerBadge": "Szacunek",
+      "largerBody": "Gdy górny koniec Twojego przedziału przekracza Max ×2 i rozsądne doładowanie, kalkulator proponuje plan z większą pulą dopasowaną do Twojego szacunku, według tej samej stawki za kredyt co drabina, a kupujesz go samodzielnie.",
+      "largerFrom": "Większe plany zaczynają się od {credits} kredytów miesięcznie.",
+      "largerFromFigureFree": "Większe plany zaczynają się znacznie powyżej kredytów Host."
+    },
+    "s6": {
+      "title": "Host i to, co plan obejmuje poza kredytami",
+      "hostBody": "Zwykły plan powyżej Max ×2. Kupujesz go na stronie cennika; kalkulator nigdy go nie poleca, bo kupuje się w nim nie tylko kredyty. Organizacja Host otrzymuje trzy własne konta AWS:",
+      "accounts": [
+        {
+          "name": "Konto 1",
+          "use": "Runnery CI"
+        },
+        {
+          "name": "Konto 2",
+          "use": "Uruchomienia agentów"
+        },
+        {
+          "name": "Konto 3",
+          "use": "Wspólne dla indeksowania i hostowanych agentów"
+        }
+      ],
+      "sharedFloor": "Dopóki AWS nie przyzna pojemności tych kont, organizacja Host działa na współdzielonej pojemności Motir z limitami Max, a jej administrator widzi stan każdego konta.",
+      "largerPlans": "Plany z większą pulą zaczynają się znacznie powyżej Host i również mają własne konta AWS.",
+      "otherPlans": "Każdy inny plan działa na współdzielonej pojemności Motir, a to, ile uruchomień agentów i hostowanych agentów może mieć jednocześnie, określa jego plan."
+    },
+    "s7": {
+      "title": "Kto za co płaci",
+      "organization": "Każdy plan AI — Standard, Pro, Max, Max ×2, Host i plany z większą pulą — oraz każde doładowanie należą do organizacji. Jej kredyty są wspólne dla całej organizacji; cena planu AI nie zależy od tego, ile osób z niego korzysta, i plan nie ma liczby sztuk.",
+      "includedSeat": "Każdy plan AI zawiera jedno stanowisko Motir bez dodatkowej opłaty.",
+      "furtherSeats": "Stanowiska poza pierwszym są płatne za użytkownika: każda kolejna osoba korzystająca z Motir zajmuje stanowisko według opłaty za stanowisko Motir.",
+      "noAiPlanSeats": "Organizacja bez planu AI płaci za każde stanowisko, za użytkownika."
+    },
+    "s8": {
+      "title": "Zmiana planu w trakcie okresu",
+      "upTitle": "Przejście na wyższy plan",
+      "upBody": "Płacisz różnicę w cenie za dni pozostałe do końca okresu, a nie pełną nową cenę, i otrzymujesz odpowiadające tym dniom dodatkowe kredyty oraz limit indeksu grafu kodu.",
+      "upRenewal": "Każde kolejne odnowienie przyznaje pełną pulę nowego planu. Przejście na wyższy plan anuluje też zaplanowane wcześniej przejście na niższy.",
+      "downTitle": "Przejście na niższy plan",
+      "downBody": "Zaczyna obowiązywać z końcem bieżącego okresu, bez zwrotu pieniędzy i bez zmiany kredytów ani limitu, które już masz. Do tego czasu zachowujesz obecny plan.",
+      "downClear": "Ponowne przejście na wyższy plan przed tym terminem anuluje zaplanowane przejście na niższy.",
+      "billingNote": "Dokładna kwota przejścia na wyższy plan jest pokazywana właścicielowi na stronie rozliczeń przed potwierdzeniem."
+    },
+    "s9": {
+      "title": "Co zmienia wynik",
+      "body": "Zmiana ceny w bramce lub wycofanie modelu zmienia szacunek bez nowego wydania Motir."
+    },
+    "s10": {
+      "title": "Faktury, bezpieczeństwo i SSO",
+      "body": "Standardowe fakturowanie przez Stripe. W sprawie bezpieczeństwa lub SSO <link>skontaktuj się z nami</link>."
+    }
   }
 }

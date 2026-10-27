@@ -2716,5 +2716,103 @@
         "failed": "De schatting kwam niet terug. Er is niets gewijzigd — probeer het opnieuw."
       }
     }
+  },
+  "explainer": {
+    "metaTitle": "Zo werkt de berekening — Motir AI",
+    "metaDescription": "Waar de creditschatting van Motir AI en het aanbevolen abonnement vandaan komen: wat je invoert, modelcategorieën, credits per werkitem, de bandbreedte, de abonnementsladder tot en met Host en de abonnementen met een grotere pool, en wie wat betaalt.",
+    "eyebrow": "Prijzen van Motir AI",
+    "headline": "Zo werkt de berekening",
+    "lede": "Waar de creditschatting en het aanbevolen abonnement vandaan komen — dezelfde waarden die de prijspagina en de rekenhulp gebruiken.",
+    "contentsLabel": "Op deze pagina",
+    "figuresUnavailableNote": "Actuele waarden zijn op dit moment niet beschikbaar, dus deze pagina legt elke stap in woorden uit. De prijspagina toont elk abonnement met zijn prijs.",
+    "entryLink": "Wil je weten waar deze getallen vandaan komen? <link>Zo werkt de berekening</link>",
+    "plan": {
+      "credits": "{credits} credits per maand",
+      "monthly": "{price} per maand",
+      "annual": "{price} per jaar",
+      "figureFree": "Een eigen abonnement"
+    },
+    "s1": {
+      "title": "Wat je invoert",
+      "ranges": "Twee bandbreedtes per maand: werkitems die je in Motir plant, en werkitems die je op de runner van Motir uitvoert.",
+      "ownAgent": "Een werkitem dat je via de MCP of CLI van Motir op je eigen agent uitvoert — Claude Code, Codex — gebruikt geen uitvoeringscredits. Voer je alles zelf uit, vul dan nul runs in; je krijgt dan alleen een prijs voor planning."
+    },
+    "s2": {
+      "title": "Modelcategorieën",
+      "body": "Planning en uitvoering kiezen elk een categorie, geen specifiek model. Voorbeeldmodellen komen uit de actuele modellenlijst van Motir, dus geen enkel model hier is een belofte.",
+      "categoriesLabel": "Categorieën",
+      "categoriesFigureFree": "De namen van de categorieën komen uit de actuele modellenlijst van Motir.",
+      "split": "Twee gekozen categorieën delen de schatting 50/50; drie delen haar 33/33/33."
+    },
+    "s3": {
+      "title": "Credits per werkitem",
+      "body": "Een referentiehoeveelheid werk per item, maal de actuele prijs van het gekozen model, maal een lanefactor voor planning en voor uitvoering. De referentie is het typische werk dat één item vraagt; het is geen prijs.",
+      "laneFactors": "Planning en uitvoering hebben elk hun eigen lanefactor."
+    },
+    "s4": {
+      "title": "De bandbreedte",
+      "body": "Het werkelijke tokengebruik varieert, dus de lage kant telt mee tegen 1× en de hoge kant tegen 2×.",
+      "low": "laag · 1×",
+      "high": "hoog · 2×",
+      "caption": "Altijd een bandbreedte, nooit één getal."
+    },
+    "s5": {
+      "title": "De aanbeveling",
+      "body": "De rekenhulp beveelt het goedkoopste van deze abonnementen aan dat je hoge kant dekt. Elk is een eigen abonnement.",
+      "maxX2FigureFree": "Een eigen abonnement, met twee keer de credits van Max",
+      "topUp": "Een klein tekort wordt gedekt met een geschatte bijkoop tegen {price} voor {credits} credits.",
+      "topUpFigureFree": "Een klein tekort wordt gedekt met een geschatte bijkoop tegen het bijkooptarief uit de catalogus.",
+      "largerTitle": "Abonnement met grotere pool",
+      "largerBadge": "Schatting",
+      "largerBody": "Ligt je hoge kant boven Max ×2 plus een redelijke bijkoop, dan biedt de rekenhulp een abonnement met een grotere pool aan, afgestemd op je eigen schatting, op dezelfde basis per credit als de ladder, en dat koop je zelf.",
+      "largerFrom": "Grotere abonnementen beginnen bij {credits} credits per maand.",
+      "largerFromFigureFree": "Grotere abonnementen beginnen ruim boven de credits van Host."
+    },
+    "s6": {
+      "title": "Host, en wat een abonnement naast credits bevat",
+      "hostBody": "Een gewoon abonnement boven Max ×2. Je koopt het op de prijspagina; de rekenhulp beveelt het nooit aan, omdat je er niet alleen credits mee koopt. Een Host-organisatie krijgt drie eigen AWS-accounts:",
+      "accounts": [
+        {
+          "name": "Account 1",
+          "use": "CI-runners"
+        },
+        {
+          "name": "Account 2",
+          "use": "Agentruns"
+        },
+        {
+          "name": "Account 3",
+          "use": "Gedeeld door indexering en gehoste agents"
+        }
+      ],
+      "sharedFloor": "Totdat AWS de capaciteit van die accounts toekent, draait een Host-organisatie op de gedeelde capaciteit van Motir met de limieten van Max, en ziet de beheerder de status van elk account.",
+      "largerPlans": "De abonnementen met een grotere pool beginnen ruim boven Host en hebben ook eigen AWS-accounts.",
+      "otherPlans": "Elk ander abonnement draait op de gedeelde capaciteit van Motir; hoeveel agentruns en gehoste agents het tegelijk mag hebben, bepaalt het abonnement."
+    },
+    "s7": {
+      "title": "Wie betaalt wat",
+      "organization": "Elk AI-abonnement — Standard, Pro, Max, Max ×2, Host en de abonnementen met een grotere pool — en elke bijkoop hoort bij de organisatie. De credits worden door de hele organisatie gedeeld; de prijs van een AI-abonnement hangt niet af van hoeveel mensen het gebruiken en het heeft geen aantal.",
+      "includedSeat": "Elk AI-abonnement bevat één Motir-plek zonder extra kosten.",
+      "furtherSeats": "Plekken na de eerste kosten per gebruiker: elke extra persoon die Motir gebruikt, neemt een plek tegen het tarief voor een Motir-plek.",
+      "noAiPlanSeats": "Een organisatie zonder AI-abonnement betaalt per gebruiker voor elke plek."
+    },
+    "s8": {
+      "title": "Halverwege de periode van abonnement wisselen",
+      "upTitle": "Upgraden",
+      "upBody": "Je betaalt het prijsverschil voor de resterende dagen van de periode, niet een volledige nieuwe prijs, en ontvangt de bijbehorende extra credits en het tegoed voor de codegraafindex voor die dagen.",
+      "upRenewal": "Elke verlenging daarna geeft de volledige pool van het nieuwe abonnement. Een upgrade schrapt ook een downgrade die je eerder had gepland.",
+      "downTitle": "Downgraden",
+      "downBody": "Gaat in aan het einde van de huidige periode, zonder terugbetaling en zonder wijziging van de credits of het tegoed dat je al hebt. Tot dan houd je je huidige abonnement.",
+      "downClear": "Opnieuw upgraden vóór dat moment schrapt de geplande downgrade.",
+      "billingNote": "Het exacte bedrag van een upgrade wordt de eigenaar op de factuurpagina getoond voordat die bevestigt."
+    },
+    "s9": {
+      "title": "Wat het antwoord verandert",
+      "body": "Een prijswijziging bij de gateway of een uitgefaseerd model verandert de schatting, zonder nieuwe release van Motir."
+    },
+    "s10": {
+      "title": "Facturen, beveiliging en SSO",
+      "body": "Standaardfacturering via Stripe. Voor vragen over beveiliging of SSO kun je <link>contact met ons opnemen</link>."
+    }
   }
 }

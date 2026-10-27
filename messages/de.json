@@ -2723,5 +2723,103 @@
         "failed": "Die Schätzung ist nicht angekommen. Es wurde nichts geändert – versuchen Sie es erneut."
       }
     }
+  },
+  "explainer": {
+    "metaTitle": "So funktioniert die Berechnung — Motir AI",
+    "metaDescription": "Woher die Credit-Schätzung von Motir AI und der empfohlene Plan kommen: was Sie eingeben, Modellkategorien, Credits pro Arbeitselement, die Spanne, die Planstufen bis Host und die größeren Pool-Pläne sowie wer was bezahlt.",
+    "eyebrow": "Motir AI Preise",
+    "headline": "So funktioniert die Berechnung",
+    "lede": "Woher die Credit-Schätzung und der empfohlene Plan kommen – mit denselben Werten, die auch die Preisseite und der Rechner verwenden.",
+    "contentsLabel": "Auf dieser Seite",
+    "figuresUnavailableNote": "Aktuelle Werte sind gerade nicht verfügbar, deshalb erklärt diese Seite jeden Schritt in Worten. Die Preisseite zeigt jeden Plan mit seinem Preis.",
+    "entryLink": "Sie möchten wissen, woher diese Werte kommen? <link>So funktioniert die Berechnung</link>",
+    "plan": {
+      "credits": "{credits} Credits pro Monat",
+      "monthly": "{price} pro Monat",
+      "annual": "{price} pro Jahr",
+      "figureFree": "Ein eigenständiger Plan"
+    },
+    "s1": {
+      "title": "Was Sie eingeben",
+      "ranges": "Zwei Spannen pro Monat: Arbeitselemente, die Sie in Motir planen, und Arbeitselemente, die Sie auf dem Runner von Motir ausführen.",
+      "ownAgent": "Ein Arbeitselement, das Sie über Motirs MCP oder CLI auf Ihrem eigenen Agenten ausführen – Claude Code, Codex –, verbraucht keine Ausführungs-Credits. Wenn Sie alles selbst ausführen, geben Sie null Läufe ein und erhalten ein Angebot nur für die Planung."
+    },
+    "s2": {
+      "title": "Modellkategorien",
+      "body": "Planung und Ausführung wählen jeweils eine Kategorie, kein bestimmtes Modell. Beispielmodelle stammen aus Motirs aktueller Modellliste, daher ist kein hier genanntes Modell eine Zusage.",
+      "categoriesLabel": "Kategorien",
+      "categoriesFigureFree": "Die Kategorienamen stammen aus Motirs aktueller Modellliste.",
+      "split": "Zwei ausgewählte Kategorien teilen sich die Schätzung 50/50, drei teilen sie 33/33/33."
+    },
+    "s3": {
+      "title": "Credits pro Arbeitselement",
+      "body": "Eine Referenzmenge an Arbeit pro Arbeitselement, mal dem aktuellen Preis des gewählten Modells, mal einem Lane-Faktor für Planung und für Ausführung. Die Referenz ist die typische Arbeit, die ein Arbeitselement erfordert – sie ist kein Preis.",
+      "laneFactors": "Planung und Ausführung haben jeweils einen eigenen Lane-Faktor."
+    },
+    "s4": {
+      "title": "Die Spanne",
+      "body": "Der tatsächliche Token-Verbrauch schwankt, deshalb werden niedrige Elemente mit 1× und hohe Elemente mit 2× gezählt.",
+      "low": "niedrig · 1×",
+      "high": "hoch · 2×",
+      "caption": "Immer eine Spanne, nie eine einzelne Zahl."
+    },
+    "s5": {
+      "title": "Die Empfehlung",
+      "body": "Der Rechner empfiehlt den günstigsten dieser Pläne, der Ihr oberes Ende abdeckt. Jeder ist ein eigenständiger Plan.",
+      "maxX2FigureFree": "Ein eigenständiger Plan mit doppelt so vielen Credits wie Max",
+      "topUp": "Eine kleine Lücke wird mit einer geschätzten Aufladung zu {price} für {credits} Credits gedeckt.",
+      "topUpFigureFree": "Eine kleine Lücke wird mit einer geschätzten Aufladung zum Aufladepreis des Katalogs gedeckt.",
+      "largerTitle": "Größerer Pool-Plan",
+      "largerBadge": "Schätzung",
+      "largerBody": "Liegt Ihr oberes Ende über Max ×2 und einer sinnvollen Aufladung, bietet der Rechner einen größeren Pool-Plan an, der nach Ihrer eigenen Schätzung bemessen ist, zum selben Preis pro Credit wie die Planstufen – und Sie kaufen ihn selbst.",
+      "largerFrom": "Größere Pläne beginnen bei {credits} Credits pro Monat.",
+      "largerFromFigureFree": "Größere Pläne beginnen weit über den Credits von Host."
+    },
+    "s6": {
+      "title": "Host und was ein Plan über Credits hinaus enthält",
+      "hostBody": "Ein regulärer Plan über Max ×2. Sie kaufen ihn auf der Preisseite; der Rechner empfiehlt ihn nie, weil er nicht nur Credits umfasst. Eine Host-Organisation erhält drei eigene AWS-Konten:",
+      "accounts": [
+        {
+          "name": "Konto 1",
+          "use": "CI-Runner"
+        },
+        {
+          "name": "Konto 2",
+          "use": "Agentenläufe"
+        },
+        {
+          "name": "Konto 3",
+          "use": "Gemeinsam genutzt von Indexierung und gehosteten Agenten"
+        }
+      ],
+      "sharedFloor": "Bis AWS die Kapazität dieser Konten freigibt, läuft eine Host-Organisation auf Motirs gemeinsamer Kapazität mit den Limits von Max, und ihr Admin sieht den Status jedes Kontos.",
+      "largerPlans": "Die größeren Pool-Pläne beginnen weit über Host und haben ebenfalls eigene AWS-Konten.",
+      "otherPlans": "Jeder andere Plan läuft auf Motirs gemeinsamer Kapazität; wie viele Agentenläufe und gehostete Agenten gleichzeitig möglich sind, legt sein Plan fest."
+    },
+    "s7": {
+      "title": "Wer was bezahlt",
+      "organization": "Jeder KI-Plan – Standard, Pro, Max, Max ×2, Host und die größeren Pool-Pläne – und jede Aufladung gehört der Organisation. Ihre Credits teilt die ganze Organisation; ein KI-Plan wird nicht danach bepreist, wie viele Personen ihn nutzen, und hat keine Menge.",
+      "includedSeat": "Jeder KI-Plan enthält einen Motir-Platz ohne Aufpreis.",
+      "furtherSeats": "Plätze über den ersten hinaus werden pro Nutzer berechnet: Jede weitere Person, die Motir nutzt, belegt einen Platz zur Motir-Platzgebühr.",
+      "noAiPlanSeats": "Eine Organisation ohne KI-Plan zahlt pro Nutzer für jeden Platz."
+    },
+    "s8": {
+      "title": "Planwechsel mitten im Zeitraum",
+      "upTitle": "Upgrade",
+      "upBody": "Sie zahlen die Preisdifferenz für die verbleibenden Tage des Zeitraums, nicht den vollen neuen Preis, und erhalten für diese Tage die entsprechenden zusätzlichen Credits und das Kontingent für den Code-Graph-Index.",
+      "upRenewal": "Jede Verlängerung danach gewährt den vollen Pool des neuen Plans. Ein Upgrade hebt außerdem ein zuvor geplantes Downgrade auf.",
+      "downTitle": "Downgrade",
+      "downBody": "Wird zum Ende des aktuellen Zeitraums wirksam, ohne Erstattung und ohne Änderung an den Credits oder dem Kontingent, die Sie bereits haben. Bis dahin behalten Sie Ihren aktuellen Plan.",
+      "downClear": "Ein erneutes Upgrade vor diesem Zeitpunkt hebt das geplante Downgrade auf.",
+      "billingNote": "Der genaue Betrag eines Upgrades wird dem Inhaber auf der Abrechnungsseite angezeigt, bevor er bestätigt."
+    },
+    "s9": {
+      "title": "Was das Ergebnis verändert",
+      "body": "Eine Preisänderung beim Gateway oder ein eingestelltes Modell ändert die Schätzung, ohne dass Motir ein Release veröffentlicht."
+    },
+    "s10": {
+      "title": "Rechnungen, Sicherheit und SSO",
+      "body": "Standardrechnungen über Stripe. Bei Fragen zu Sicherheit oder SSO <link>kontaktieren Sie uns</link>."
+    }
   }
 }

@@ -2700,5 +2700,103 @@
         "failed": "The estimate didn't come back. Nothing changed — try again."
       }
     }
+  },
+  "explainer": {
+    "metaTitle": "How the calculation works — Motir AI",
+    "metaDescription": "Where Motir AI's credit estimate and the plan it recommends come from: what you enter, model categories, credits per item, the range, the plan ladder up to Host and the larger pool plans, and who pays for what.",
+    "eyebrow": "Motir AI pricing",
+    "headline": "How the calculation works",
+    "lede": "Where the credit estimate and the plan it recommends come from — the same figures the price page and the calculator use.",
+    "contentsLabel": "On this page",
+    "figuresUnavailableNote": "Live figures are not available right now, so this page explains each step in words. The price page shows every plan with its price.",
+    "entryLink": "Want to know where these numbers come from? <link>How the calculation works</link>",
+    "plan": {
+      "credits": "{credits} credits a month",
+      "monthly": "{price} a month",
+      "annual": "{price} a year",
+      "figureFree": "A plan of its own"
+    },
+    "s1": {
+      "title": "What you enter",
+      "ranges": "Two ranges a month: items you plan in Motir, and items you run on Motir's runner.",
+      "ownAgent": "An item you run on your own agent — Claude Code, Codex — through Motir's MCP or CLI uses no running credits. If you run everything yourself, enter zero runs and you are quoted planning only."
+    },
+    "s2": {
+      "title": "Model categories",
+      "body": "Planning and running each take a category, not a specific model. Example models come from Motir's live model list, so no model here is a promise.",
+      "categoriesLabel": "Categories",
+      "categoriesFigureFree": "The category names come from Motir's live model list.",
+      "split": "Two selected categories share the estimate 50/50; three share it 33/33/33."
+    },
+    "s3": {
+      "title": "Credits per item",
+      "body": "A reference amount of work per item, times the live price of the chosen model, times a lane factor for planning and for running. The reference is the typical work one item takes; it is not a price.",
+      "laneFactors": "Planning and running each carry their own lane factor."
+    },
+    "s4": {
+      "title": "The range",
+      "body": "Real token use varies, so low items are counted at 1× and high items at 2×.",
+      "low": "low · 1×",
+      "high": "high · 2×",
+      "caption": "Always a range, never a single number."
+    },
+    "s5": {
+      "title": "The recommendation",
+      "body": "The calculator recommends the cheapest of these plans that covers your high end. Each is a plan of its own.",
+      "maxX2FigureFree": "A plan of its own, twice Max's credits",
+      "topUp": "A small shortfall is covered by a top-up estimate at {price} for {credits} credits.",
+      "topUpFigureFree": "A small shortfall is covered by a top-up estimate at the catalog's top-up rate.",
+      "largerTitle": "Larger pool plan",
+      "largerBadge": "Estimate",
+      "largerBody": "When your high end is past Max ×2 and a sensible top-up, the calculator offers a larger pool plan sized from your own estimate, on the same per-credit basis as the ladder, and you buy it yourself.",
+      "largerFrom": "Larger plans start from {credits} credits a month.",
+      "largerFromFigureFree": "Larger plans start well above Host's credits."
+    },
+    "s6": {
+      "title": "Host, and what a plan includes beyond credits",
+      "hostBody": "A regular plan above Max ×2. You buy it from the price page; the calculator never recommends it, because what it buys is not only credits. A Host organization gets three AWS accounts of its own:",
+      "accounts": [
+        {
+          "name": "Account 1",
+          "use": "CI runners"
+        },
+        {
+          "name": "Account 2",
+          "use": "Agent runs"
+        },
+        {
+          "name": "Account 3",
+          "use": "Shared by indexing and hosted agents"
+        }
+      ],
+      "sharedFloor": "Until AWS grants those accounts' capacity, a Host organization runs on Motir's shared capacity with Max's limits, and its admin sees each account's state.",
+      "largerPlans": "The larger pool plans start well above Host and also carry AWS accounts of their own.",
+      "otherPlans": "Every other plan runs on Motir's shared capacity, with how many agent runs and hosted agents it may have at once set by its plan."
+    },
+    "s7": {
+      "title": "Who pays for what",
+      "organization": "Every AI plan — Standard, Pro, Max, Max ×2, Host and the larger pool plans — and every top-up belongs to the organization. Its credits are shared by the whole organization; an AI plan is not priced by how many people use it and has no quantity.",
+      "includedSeat": "Every AI plan includes one Motir seat at no charge.",
+      "furtherSeats": "Seats beyond the first are per user: each further person who uses Motir takes a seat at the Motir seat fee.",
+      "noAiPlanSeats": "An organization with no AI plan pays per user, for every seat."
+    },
+    "s8": {
+      "title": "Changing plan mid-period",
+      "upTitle": "Moving up",
+      "upBody": "You pay the price difference for the days left in the period, not a full new price, and receive the matching extra credits and code-graph index allowance for those days.",
+      "upRenewal": "Every renewal after that grants the new plan's full pool. An upgrade also clears a downgrade you scheduled earlier.",
+      "downTitle": "Moving down",
+      "downBody": "Takes effect at the end of the current period, with no refund and no change to the credits or allowance you already hold. You keep your current plan until then.",
+      "downClear": "Upgrading again before then clears the scheduled downgrade.",
+      "billingNote": "The exact amount of an upgrade is shown to the owner on the billing page before they confirm."
+    },
+    "s9": {
+      "title": "What changes the answer",
+      "body": "A gateway price change or a retired model changes the estimate, with no release of Motir."
+    },
+    "s10": {
+      "title": "Invoices, security and SSO",
+      "body": "Standard Stripe invoicing. For security or SSO questions, <link>contact us</link>."
+    }
   }
 }
