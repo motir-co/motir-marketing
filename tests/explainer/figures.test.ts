@@ -13,6 +13,7 @@ import {
   PLAN_LADDER_PATH,
   fetchPlanLadderBody,
 } from '@/lib/priceLadder'
+import { AI_ORIGIN } from '@/lib/aiOrigin'
 import recorded from '@/tests/fixtures/price/plans.json'
 import unknownVersion from '@/tests/fixtures/price/plans-unknown-version.json'
 import missingVersion from '@/tests/fixtures/price/plans-missing-version.json'
@@ -194,10 +195,19 @@ describe('readExplainerFigures', () => {
 })
 
 describe('catalogSource', () => {
-  it("is the price card's read: with no motir-ai origin it reads nothing", async () => {
+  it("is the price card's read, at the site's motir-ai origin", async () => {
     const fetcher = vi.fn(async () => jsonResponse(recorded))
-    expect(await catalogSource.read(fetcher)).toBeNull()
-    expect(fetcher).not.toHaveBeenCalled()
+    const body = await catalogSource.read(fetcher)
+    if (AI_ORIGIN === null) {
+      expect(body).toBeNull()
+      expect(fetcher).not.toHaveBeenCalled()
+    } else {
+      expect(body).toEqual(recorded)
+      expect(fetcher).toHaveBeenCalledWith(
+        `${AI_ORIGIN}${PLAN_LADDER_PATH}`,
+        expect.anything(),
+      )
+    }
   })
 })
 
