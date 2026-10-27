@@ -395,6 +395,7 @@ const ESTIMATE_SCENARIOS: Record<string, [number, string]> = {
 const CATEGORIES_SCENARIOS: Record<string, [number, string]> = {
   recorded: [200, 'calculator/categories.json'],
   'empty-frontier': [200, 'calculator/categories-empty-frontier.json'],
+  unavailable: [500, 'calculator/problem-unavailable.json'],
 }
 
 const price = {
