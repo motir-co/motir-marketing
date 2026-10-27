@@ -202,3 +202,81 @@ The plan card no longer carries the ladder line ("Same price per credit on every
 and app.motir.co's plans view dropped it in the same change. Each card goes straight from
 "{n} credits / mo" to the included-seat line. `pricePage.plans.ladderFirst` and `ladderMultiple`
 are gone from every locale, and the line is gone from the mock.
+
+## Amendment 2026-10-27 — each category's share of the run
+
+Subtask MOTIR-9833, task MOTIR-9829. Mock: **`price--calculator-shares.mock.html`**. It amends §
+"Elements — each named once" (the calculator's category list), § "Copy — keys for the translation
+pass" (`price.calc.*`), and the matching panels of `price.mock.html`, which is a record and is not
+edited. Only the panels that change are drawn: the category list, the new share sliders and the
+answer's split line. The ranges, the cadence control and the rest of the answer ship unchanged.
+
+The page mirrors app.motir.co's Calculator, whose approved design is motir-core
+`design/billing/design-notes.md` § "Amendment 2026-10-27 — each category's share of the run"
+(MOTIR-9831, slider revision). The interaction, the rule and the copy below are the app's own, and the
+strings are the app's word for word (the copy rule of 2026-10-26).
+
+**Design system.** `package.json` depends on `@motir/design-system` `0.17.0`, and `app/globals.css`
+imports its `theme.css`: ON MOTIR DESIGN. The mock is rendered with `renderMock` at the site's axes
+(`hand-drawn-indie` · `motir` · `grotesk`) with the area's Space Grotesk and JetBrains Mono
+`@font-face` blocks, from the package's `Checkbox`, `Button` and `Pill`, composed as `Calculator.tsx`
+composes them. **The package has no slider part**, so each share is a native `<input type="range">`
+coloured through `accent-color: var(--el-accent)`, as the app does. That is a local composition in
+`Calculator.tsx`, not a new design-system part.
+
+### What changes
+
+- **One category picked (panel 1): nothing changes.** No slider; the picked category's "100% of the
+  run" line ships as it is, and the request sends no `shares`.
+- **Two or three picked (panels 2–6): a share slider per picked category.** Under the category list,
+  a fieldset **Each category's share of the run** holds one row per picked category, in the list's
+  order: the category's name, a range input (`min` 1, step 1, `max` 100 minus 1 for each other picked
+  category) and the share read out as "70%". Under the rows, a thin decorative bar (`aria-hidden`)
+  shows the split. The picked categories no longer show `categoryShare`.
+- **They start even and reset to even.** 50 / 50, or 34 / 33 / 33 with the remainder on the first in
+  the list's order. Picking or unpicking a category resets every slider to the even split.
+- **Dragging one takes the difference from the others equally (panels 3, 5, 6).** Moving one share
+  by d moves each other share by −d split into equal whole parts. A part that does not divide goes to
+  the others in the list's order, first first (34 / 33 / 33 with Balanced dragged to 52 is 24 / 52 /
+  24). No share goes below 1%: what a share at 1% cannot give is taken from the rest (30 / 69 / 1
+  with Balanced dragged to 79 is 20 / 79 / 1). So the shares always total 100% and Estimate credits
+  is never disabled by them.
+- **Keyboard and screen reader.** Native sliders: arrow keys move 1%, Page Up / Page Down 10%, Home /
+  End to min / max. Each is named by its category's `<label>`, and its `aria-valuetext` reads
+  "Balanced: 70% of the run".
+- **The answer states the shares (panel 7).** With two or three categories the split sentence
+  becomes "The run is split Balanced 70% · Flagship 30%.", read from the answer's
+  `split.categories[].weight`, never from the sliders. It replaces "The run is split evenly across
+  …". The pills ship unchanged. One category keeps `splitOne` (panel 8).
+- **The help text stops promising an even split.** `categoriesHelp` is reworded.
+
+The engine takes the shares as an optional `shares` on the public estimate (motir-ai MOTIR-9830): keyed
+by the picked categories, whole numbers totalling 100. The build is MOTIR-9834.
+
+### Copy (en) — `pricePage.calculator`
+
+| marketing key    | en                                                                                                                                                                               | app string it copies                          | State   |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- | ------- |
+| `categoriesHelp` | Pick one to three. With two or three, drag each one's share of the run below — they start even. You never choose a model — each category lists the models it serves as examples. | `billing.calculator.inputs.runCategoriesHelp` | CHANGED |
+| `sharesLabel`    | Each category's share of the run                                                                                                                                                 | `billing.calculator.inputs.sharesLabel`       | NEW     |
+| `sharesHelp`     | Drag a share and the others give or take the difference equally, so they always total 100%. Adding or removing a category starts them even again.                                | `billing.calculator.inputs.sharesHelp`        | NEW     |
+| `shareValue`     | {category}: {share}% of the run                                                                                                                                                  | `billing.calculator.inputs.shareValue`        | NEW     |
+| `splitShares`    | The run is split {shares}.                                                                                                                                                       | `billing.calculator.split.shares`             | NEW     |
+
+`{shares}` is each category as "{name} {percent}" joined with " · ". `splitEven` is retired;
+`splitOne` and `categoryShare` (one pick only) stay. Every new or changed string is the translation
+pass's to land in every locale the site serves.
+
+### Colour + shape roles (additions only)
+
+| Element               | Role                                                                                                                                                     |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Share fieldset legend | `--el-text-strong`, `text-sm font-medium`, as the category legend                                                                                        |
+| Row label             | `--el-text`, `text-sm`                                                                                                                                   |
+| Range input           | native; `accent-color: var(--el-accent)`; `--focus-ring-color` focus ring                                                                                |
+| Share read-out        | `--el-text-strong`, `text-sm font-medium`, tabular numbers                                                                                               |
+| Split bar             | `aria-hidden`; track `--el-muted`; segments `--el-tint-sky` · `--el-tint-mint` · `--el-tint-lavender`, split by a 2px `--el-page-bg` gap; `rounded-full` |
+| Shares help           | `--el-text-secondary`                                                                                                                                    |
+| Split sentence        | `--el-text`, as shipped; pills unchanged                                                                                                                 |
+
+The shares, ranges and example models drawn are illustrative.
