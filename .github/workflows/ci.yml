@@ -330,8 +330,10 @@ jobs:
         run: |
           set -euo pipefail
           for path in / /ideas /price; do
+            # No `--token`: `vercel curl` hands options it does not know to
+            # curl, and the CLI reads `VERCEL_TOKEN` from the job env anyway.
             code=$(pnpm dlx vercel@58.4.4 curl "$path" --deployment "${{ steps.release.outputs.url }}" \
-              --token "$VERCEL_TOKEN" -- -sS -o /dev/null -w '%{http_code}' -L)
+              -- -sS -o /dev/null -w '%{http_code}' -L)
             echo "GET ${{ steps.release.outputs.url }}$path -> $code"
             [ "$code" = "200" ]
           done
