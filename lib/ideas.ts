@@ -1,4 +1,5 @@
 import { APP_ORIGIN } from '@/lib/appOrigin'
+import { IDEAS_TAGS_MAX } from '@/lib/crawlPolicy'
 import type { Locale } from '@/i18n/routing'
 
 /**
@@ -302,7 +303,7 @@ export const IDEAS_PATH = '/ideas'
 
 export interface IdeasParams {
   category?: IdeaCategory
-  /** Every tag must match. Kept in the order given, de-duplicated. */
+  /** Every tag must match. Kept in the order given, de-duplicated, at most `IDEAS_TAGS_MAX`. */
   tags: string[]
   q?: string
   kind?: IdeaKind
@@ -344,6 +345,7 @@ export function parseIdeasParams(raw: RawSearchParams): IdeasParams {
   for (const value of allValues(raw, 'tag')) {
     const tag = slugOrUndefined(value.trim())
     if (tag && !tags.includes(tag)) tags.push(tag)
+    if (tags.length === IDEAS_TAGS_MAX) break
   }
   const q = firstValue(raw, 'q')?.slice(0, IDEAS_QUERY_MAX).trim()
   return {
@@ -397,7 +399,7 @@ export function ideasHref(
   const tags = change.tags ?? params.tags
   const next: IdeasParams = {
     category: pick(change.category, params.category),
-    tags: [...new Set(tags)],
+    tags: [...new Set(tags)].slice(0, IDEAS_TAGS_MAX),
     q: pick(change.q, params.q)?.trim() || undefined,
     kind: pick(change.kind, params.kind),
     idea: pick(change.idea, params.idea),
