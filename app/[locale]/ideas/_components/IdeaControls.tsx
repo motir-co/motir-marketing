@@ -10,6 +10,7 @@ import {
   type PublicIdeaCategoryCountDto,
   type PublicIdeaTagListDto,
 } from '@/lib/ideas'
+import { IDEAS_TAGS_MAX } from '@/lib/crawlPolicy'
 import { CountLine, FilterLink, SearchForm } from './IdeasNav'
 
 /*
@@ -199,6 +200,24 @@ export function IdeaControls({
           >
             {tags.tags.map((t) => {
               const on = params.tags.includes(t.slug)
+              // At the cap a further tag would be dropped by the parse
+              // (`IDEAS_TAGS_MAX`), so it is drawn but not offered.
+              if (!on && params.tags.length >= IDEAS_TAGS_MAX) {
+                return (
+                  <span
+                    key={t.slug}
+                    aria-disabled="true"
+                    className={cn(
+                      CHIP,
+                      'cursor-default border-(--el-border-soft) bg-(--el-surface) text-(--el-text-secondary) opacity-50',
+                    )}
+                  >
+                    <Tag aria-hidden className="size-3" />
+                    <span lang={tagLang(t.labelFallback)}>{t.label}</span>
+                    <span className={COUNT}>{t.count}</span>
+                  </span>
+                )
+              }
               return (
                 <FilterLink
                   key={t.slug}

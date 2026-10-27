@@ -4,7 +4,12 @@ import { DEFAULT_LOCALE, LOCALES, routing } from '@/i18n/routing'
 import { chooseLocale, LOCALE_COOKIE } from '@/lib/localeDetection'
 import { SITE_ORIGIN } from '@/lib/siteOrigin'
 import { TENANT_DOMAIN } from '@/lib/tenantDomain'
-import { isRefusedCrawler } from '@/lib/crawlPolicy'
+import {
+  isCrawler,
+  isFilterUrl,
+  isRefusedCrawler,
+  trimmedIdeasUrl,
+} from '@/lib/crawlPolicy'
 import { logRequest } from '@/lib/requestLog'
 import {
   PUBLIC_ADDRESS_KIND_HEADER,
@@ -323,8 +328,9 @@ function kindOf(resolution: PublicHostResolution): 'workspace' | 'project' {
 const INTL_REWRITE_HEADER = 'x-next-intl-locale'
 
 /**
- * The entry point: refuse the crawlers `lib/crawlPolicy.ts` names, log the
- * request (`lib/requestLog.ts`), then route it.
+ * The entry point: refuse the crawlers `lib/crawlPolicy.ts` names, and any
+ * crawler on a filter URL, log the request (`lib/requestLog.ts`), then route
+ * it.
  *
  * ⚠️ A REFUSED CRAWLER STILL GETS `robots.txt`. The 403 is for the ones that
  * ignore it; the ones that read it should find the `Disallow: /` that names
@@ -341,9 +347,11 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   const host =
     normaliseHost(request.headers.get('x-forwarded-host')) ??
     normaliseHost(request.headers.get('host'))
+  const agent = request.headers.get('user-agent')
+  const { pathname, search } = request.nextUrl
   const refused =
-    isRefusedCrawler(request.headers.get('user-agent')) &&
-    request.nextUrl.pathname !== '/robots.txt'
+    (isRefusedCrawler(agent) && pathname !== '/robots.txt') ||
+    (isCrawler(agent) && isFilterUrl(pathname + search))
   if (!request.headers.has(INTL_REWRITE_HEADER)) {
     logRequest(request, host, refused)
   }
@@ -373,6 +381,10 @@ async function route(request: NextRequest): Promise<NextResponse> {
   if (!host || isSiteHost(host)) {
     const fixed = normaliseLocaleCase(request)
     if (fixed) return fixed
+    // An `/ideas` address with more tags than the page honours is answered
+    // with the trimmed one before anything renders (`lib/crawlPolicy.ts`).
+    const trimmed = trimmedIdeasUrl(request.nextUrl)
+    if (trimmed) return NextResponse.redirect(trimmed, 308)
     const { pathname } = request.nextUrl
     const ogImage = ogImagePath(pathname)
     if (ogImage?.prefixed) return NextResponse.next()

@@ -2,10 +2,15 @@ import { describe, expect, it, vi } from 'vitest'
 import { render } from '@/tests/helpers/withCopy'
 import {
   FILTER_DISALLOW,
+  IDEAS_TAGS_MAX,
   REFUSED_CRAWLERS,
   filterLinkRel,
+  isCrawler,
+  isFilterUrl,
   isRefusedCrawler,
+  trimmedIdeasUrl,
 } from '@/lib/crawlPolicy'
+import { ideasHref, parseIdeasParams } from '@/lib/ideas'
 import { logRequest, requestLogLine } from '@/lib/requestLog'
 import { RankTabs } from '@/app/[locale]/explore/_components/RankTabs'
 import { CategoryFilter } from '@/app/[locale]/explore/_components/CategoryFilter'
@@ -165,6 +170,119 @@ describe('the refused crawlers', () => {
       request('/explore', 'Mozilla/5.0 (compatible; Googlebot/2.1)'),
     )
     expect(res.status).not.toBe(403)
+  })
+})
+
+const GOOGLEBOT =
+  'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+const META_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 (compatible; meta-externalagent/1.1 (+https://developers.facebook.com/docs/sharing/webmasters/crawler))'
+const BROWSER =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Safari/605.1.15'
+
+describe('the filter-URL gate', () => {
+  it('reads the same lines robots.txt serves', () => {
+    expect(
+      isFilterUrl('/zh-tw/ideas?category=financial_services&tag=smb'),
+    ).toBe(true)
+    expect(isFilterUrl('/explore/topic/design?rank=recent')).toBe(true)
+    expect(isFilterUrl('/ideas')).toBe(false)
+    expect(isFilterUrl('/_next/image?url=%2Ficon.png&w=64&q=75')).toBe(false)
+  })
+
+  it('knows a crawler by its own words, and lets link previews and people through', () => {
+    for (const agent of [
+      GOOGLEBOT,
+      META_AGENT,
+      'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GPTBot/1.2; +https://openai.com/gptbot)',
+      'Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)',
+      'DuckDuckBot-Https/1.1; (+https://duckduckgo.com/duckduckbot)',
+    ]) {
+      expect(isCrawler(agent), agent).toBe(true)
+    }
+    for (const agent of [
+      BROWSER,
+      'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+      'Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)',
+      'Twitterbot/1.0',
+      'WhatsApp/2.23.20.0',
+      'meta-externalfetcher/1.1 (+https://developers.facebook.com/docs/sharing/webmasters/crawler)',
+    ]) {
+      expect(isCrawler(agent), agent).toBe(false)
+    }
+    expect(isCrawler(null)).toBe(false)
+  })
+
+  const request = (path: string, ua: string) =>
+    new NextRequest(`https://motir.co${path}`, {
+      headers: { 'user-agent': ua, 'x-forwarded-host': 'motir.co' },
+    })
+
+  it('answers a crawler 403 on a filter URL, and nowhere else', async () => {
+    for (const ua of [GOOGLEBOT, META_AGENT]) {
+      expect(
+        (
+          await proxy(
+            request('/pt/ideas?category=financial_services&tag=smb', ua),
+          )
+        ).status,
+        ua,
+      ).toBe(403)
+      expect(
+        (await proxy(request('/explore?rank=popular', ua))).status,
+        ua,
+      ).toBe(403)
+      expect((await proxy(request('/ideas', ua))).status, ua).not.toBe(403)
+      expect((await proxy(request('/explore', ua))).status, ua).not.toBe(403)
+    }
+  })
+
+  it('serves a person the same filter URL', async () => {
+    const res = await proxy(request('/ideas?category=pets&tag=smb', BROWSER))
+    expect(res.status).not.toBe(403)
+  })
+})
+
+describe('the ideas tag cap', () => {
+  const tags = ['a', 'b', 'c', 'd', 'e'].map((t) => `tag=${t}`).join('&')
+
+  it('parses at most IDEAS_TAGS_MAX distinct tags, and never writes more', () => {
+    const params = parseIdeasParams(
+      new URLSearchParams(`category=pets&tag=a&tag=a&${tags}`),
+    )
+    expect(params.tags).toEqual(['a', 'b', 'c'])
+    expect(params.tags).toHaveLength(IDEAS_TAGS_MAX)
+    expect(ideasHref(params, { tags: [...params.tags, 'd'] })).toBe(
+      '/ideas?category=pets&tag=a&tag=b&tag=c',
+    )
+  })
+
+  it('trims a longer address to the first distinct tags, keeping the rest', () => {
+    expect(
+      trimmedIdeasUrl(
+        new URL(
+          `https://motir.co/de/ideas?category=pets&tag=a&tag=a&${tags}&idea=x`,
+        ),
+      )?.toString(),
+    ).toBe('https://motir.co/de/ideas?category=pets&idea=x&tag=a&tag=b&tag=c')
+    expect(
+      trimmedIdeasUrl(new URL('https://motir.co/ideas?tag=a&tag=b&tag=c')),
+    ).toBeNull()
+    expect(
+      trimmedIdeasUrl(new URL(`https://motir.co/explore?${tags}`)),
+    ).toBeNull()
+  })
+
+  it('redirects a person with the trimmed address before anything renders', async () => {
+    const res = await proxy(
+      new NextRequest(`https://motir.co/ideas?${tags}`, {
+        headers: { 'user-agent': BROWSER, 'x-forwarded-host': 'motir.co' },
+      }),
+    )
+    expect(res.status).toBe(308)
+    expect(res.headers.get('location')).toBe(
+      'https://motir.co/ideas?tag=a&tag=b&tag=c',
+    )
   })
 })
 
