@@ -2639,8 +2639,6 @@
       "annualSave": "Économisez {n} $/an",
       "monthlySub": "{yr} $ / an · Économisez {n} $ avec la formule annuelle",
       "creditsAllotment": "{n} crédits / mois",
-      "ladderFirst": "Même prix par crédit dans chaque forfait",
-      "ladderMultiple": "{multiple}× les crédits de {plan} · même prix par crédit",
       "seatIncluded": "+ {count, plural, one {# siège Motir} other {# sièges Motir}} · éléments de travail illimités",
       "everythingIn": "Tout ce qu'inclut {prev}, plus",
       "ctaChoose": "Choisir {plan}",

@@ -2592,8 +2592,6 @@
       "annualSave": "Save ${n}/yr",
       "monthlySub": "${yr} / yr · Save ${n} with annual",
       "creditsAllotment": "{n} credits / mo",
-      "ladderFirst": "Same price per credit on every plan",
-      "ladderMultiple": "{multiple}× {plan}’s credits · same price per credit",
       "seatIncluded": "+ {count, plural, one {# Motir seat} other {# Motir seats}} · work items uncapped",
       "everythingIn": "Everything in {prev}, plus",
       "ctaChoose": "Choose {plan}",

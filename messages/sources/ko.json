@@ -1810,8 +1810,6 @@
   "pricePage.plans.annualSave": "Save ${n}/yr",
   "pricePage.plans.monthlySub": "${yr} / yr · Save ${n} with annual",
   "pricePage.plans.creditsAllotment": "{n} credits / mo",
-  "pricePage.plans.ladderFirst": "Same price per credit on every plan",
-  "pricePage.plans.ladderMultiple": "{multiple}× {plan}’s credits · same price per credit",
   "pricePage.plans.seatIncluded": "+ {count, plural, one {# Motir seat} other {# Motir seats}} · work items uncapped",
   "pricePage.plans.everythingIn": "Everything in {prev}, plus",
   "pricePage.plans.ctaChoose": "Choose {plan}",

@@ -2599,8 +2599,6 @@
       "annualSave": "年 ${n} お得",
       "monthlySub": "年額 ${yr} · 年払いで ${n} お得",
       "creditsAllotment": "月 {n} クレジット",
-      "ladderFirst": "どのプランもクレジット単価は同じ",
-      "ladderMultiple": "{plan} の {multiple} 倍のクレジット · クレジット単価は同じ",
       "seatIncluded": "+ Motir シート {count, plural, other {# つ}} · 作業項目数の上限なし",
       "everythingIn": "{prev} のすべての機能に加えて",
       "ctaChoose": "{plan} を選択",

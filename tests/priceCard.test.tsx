@@ -204,18 +204,10 @@ describe('the price card', () => {
     ).toHaveAttribute('href', PLANS_SIGN_UP)
   })
 
-  it('says the ladder line from the pools, and Everything in the rung below', () => {
+  it('says Everything in the rung below', () => {
     render(<PriceCard ladder={ladder} />)
-    expect(within(cards()[0]).getByText(copy.ladderFirst)).toBeInTheDocument()
-    const [a, b] = recorded.plans
-    expect(
-      within(cards()[1]).getByText(
-        format(copy.ladderMultiple, {
-          multiple: b.monthlyCredits / a.monthlyCredits,
-          plan: a.name,
-        }),
-      ),
-    ).toBeInTheDocument()
+    const [a] = recorded.plans
+    expect(screen.queryByText(/same price per credit/i)).toBeNull()
     expect(
       within(cards()[1]).getByText(format(copy.everythingIn, { prev: a.name })),
     ).toBeInTheDocument()

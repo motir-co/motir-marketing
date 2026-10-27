@@ -2615,8 +2615,6 @@
       "annualSave": "${n}/Jahr sparen",
       "monthlySub": "${yr} / Jahr · Mit jährlicher Abrechnung ${n} sparen",
       "creditsAllotment": "{n} Credits / Monat",
-      "ladderFirst": "Gleicher Preis pro Credit in jedem Plan",
-      "ladderMultiple": "{multiple}× die Credits von {plan} · gleicher Preis pro Credit",
       "seatIncluded": "+ {count, plural, one {# Motir-Platz} other {# Motir-Plätze}} · Arbeitselemente unbegrenzt",
       "everythingIn": "Alles aus {prev}, plus",
       "ctaChoose": "{plan} wählen",

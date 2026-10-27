@@ -2608,8 +2608,6 @@
       "annualSave": "Bespaar ${n} per jaar",
       "monthlySub": "${yr} per jaar · Bespaar ${n} met jaarlijks",
       "creditsAllotment": "{n} credits per maand",
-      "ladderFirst": "Dezelfde prijs per credit in elk abonnement",
-      "ladderMultiple": "{multiple}× de credits van {plan} · dezelfde prijs per credit",
       "seatIncluded": "+ {count, plural, one {# Motir-plek} other {# Motir-plekken}} · werkitems onbeperkt",
       "everythingIn": "Alles uit {prev}, plus",
       "ctaChoose": "{plan} kiezen",
