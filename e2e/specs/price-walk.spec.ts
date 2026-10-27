@@ -277,7 +277,7 @@ test('the server markup holds both cadence prices, and the browser never reads t
   )
   expect(engine.length).toBeGreaterThan(0)
   for (const r of engine) {
-    expect(r.url.startsWith(STUB_ORIGIN)).toBe(true)
+    expect(new URL(r.url).origin).toBe(STUB_ORIGIN)
     expect(r.headers['cookie']).toBeUndefined()
     expect(r.headers['authorization']).toBeUndefined()
   }

@@ -363,7 +363,7 @@ describe('the requests the page makes', () => {
     )
     expect(ladder).toHaveLength(1)
     expect(ladder[0]).toMatchObject({ method: 'GET', body: undefined })
-    expect(captured.every((c) => c.url.startsWith(ORIGIN))).toBe(true)
+    expect(captured.every((c) => new URL(c.url).origin === ORIGIN)).toBe(true)
     expect(captured.some((c) => c.url.includes('app.motir.co'))).toBe(false)
     const estimates = captured.filter((c) => c.method === 'POST')
     expect(estimates.length).toBeGreaterThan(0)
