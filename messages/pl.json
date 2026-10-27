@@ -2805,7 +2805,7 @@
       "organization": "Każdy plan AI — Standard, Pro, Max, Max ×2, Host i plany z większą pulą — oraz każde doładowanie należą do organizacji. Jej kredyty są wspólne dla całej organizacji; cena planu AI nie zależy od tego, ile osób z niego korzysta, i plan nie ma liczby sztuk.",
       "includedSeat": "Każdy plan AI zawiera jedno stanowisko Motir bez dodatkowej opłaty.",
       "furtherSeats": "Stanowiska poza pierwszym są płatne za użytkownika: każda kolejna osoba korzystająca z Motir zajmuje stanowisko według opłaty za stanowisko Motir.",
-      "noAiPlanSeats": "Organizacja bez planu AI płaci za każde stanowisko, za użytkownika."
+      "noAiPlanSeats": "Organizacja bez planu AI płaci za każde stanowisko."
     },
     "s8": {
       "title": "Zmiana planu w trakcie okresu",

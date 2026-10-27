@@ -47,6 +47,10 @@ export const SITE_ROUTES: readonly SiteRoute[] = [
   { pattern: '/how-it-works', url: '/how-it-works' },
   { pattern: '/how-to-use', url: '/how-to-use' },
   { pattern: '/price', url: '/price' },
+  {
+    pattern: '/how-the-calculation-works',
+    url: '/how-the-calculation-works',
+  },
   { pattern: '/ideas', url: '/ideas' },
   { pattern: '/motir-builds-itself', url: '/motir-builds-itself' },
 

@@ -2801,7 +2801,7 @@
       "organization": "Jeder KI-Plan – Standard, Pro, Max, Max ×2, Host und die größeren Pool-Pläne – und jede Aufladung gehört der Organisation. Ihre Credits teilt die ganze Organisation; ein KI-Plan wird nicht danach bepreist, wie viele Personen ihn nutzen, und hat keine Menge.",
       "includedSeat": "Jeder KI-Plan enthält einen Motir-Platz ohne Aufpreis.",
       "furtherSeats": "Plätze über den ersten hinaus werden pro Nutzer berechnet: Jede weitere Person, die Motir nutzt, belegt einen Platz zur Motir-Platzgebühr.",
-      "noAiPlanSeats": "Eine Organisation ohne KI-Plan zahlt pro Nutzer für jeden Platz."
+      "noAiPlanSeats": "Eine Organisation ohne KI-Plan zahlt für jeden Platz."
     },
     "s8": {
       "title": "Planwechsel mitten im Zeitraum",

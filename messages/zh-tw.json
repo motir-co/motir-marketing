@@ -2729,7 +2729,7 @@
       "organization": "每個 AI 方案（Standard、Pro、Max、Max ×2、Host 和更大點數池方案）以及每次加購都屬於組織。其點數由整個組織共享；AI 方案不按使用人數定價，也沒有數量。",
       "includedSeat": "每個 AI 方案都包含一個 Motir 席位，不額外收費。",
       "furtherSeats": "第一個席位之外的席位按使用者計費：每多一位使用 Motir 的人，就按 Motir 席位費佔用一個席位。",
-      "noAiPlanSeats": "沒有 AI 方案的組織按使用者為每個席位付費。"
+      "noAiPlanSeats": "沒有 AI 方案的組織需為每個席位付費。"
     },
     "s8": {
       "title": "週期中途變更方案",

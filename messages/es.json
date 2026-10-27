@@ -2819,7 +2819,7 @@
       "organization": "Cada plan de IA —Standard, Pro, Max, Max ×2, Host y los planes de reserva mayor— y cada recarga pertenecen a la organización. Sus créditos los comparte toda la organización; un plan de IA no tiene precio según cuántas personas lo usan y no tiene cantidad.",
       "includedSeat": "Todos los planes de IA incluyen un puesto de Motir sin coste.",
       "furtherSeats": "Los puestos a partir del primero se cobran por usuario: cada persona adicional que usa Motir ocupa un puesto con la tarifa de puesto de Motir.",
-      "noAiPlanSeats": "Una organización sin plan de IA paga por usuario cada puesto."
+      "noAiPlanSeats": "Una organización sin plan de IA paga cada puesto."
     },
     "s8": {
       "title": "Cambiar de plan a mitad de periodo",

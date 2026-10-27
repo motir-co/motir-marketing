@@ -194,6 +194,17 @@ export const HOW_IT_WORKS = '/how-it-works'
 /** "How to use Motir": the three parts, and the three ways to use them. */
 export const HOW_TO_USE = '/how-to-use'
 
+/**
+ * "How the calculation works" (MOTIR-8383): where the credit estimate and the
+ * plan it recommends come from. Reached by plain in-text links only, so it is
+ * deliberately NOT in `SITE_PATHS` (the header and footer's own list); the
+ * sitemap lists it on its own line.
+ */
+export const HOW_THE_CALCULATION_WORKS = '/how-the-calculation-works'
+
+/** Where the explainer's security and SSO questions go: the billing inbox, as the price card's invoice line names it. */
+export const BILLING_CONTACT = 'mailto:billing@motir.co'
+
 export const SITE_PATHS = [
   SITE_ROOT,
   HOW_IT_WORKS,

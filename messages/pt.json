@@ -2812,7 +2812,7 @@
       "organization": "Todo plano de IA — Standard, Pro, Max, Max ×2, Host e os planos de pool maior — e toda recarga pertencem à organização. Os créditos são compartilhados por toda a organização; o preço de um plano de IA não depende de quantas pessoas o usam, e ele não tem quantidade.",
       "includedSeat": "Todo plano de IA inclui uma licença da Motir sem custo.",
       "furtherSeats": "As licenças além da primeira são cobradas por usuário: cada pessoa a mais que usa a Motir ocupa uma licença pela tarifa de licença da Motir.",
-      "noAiPlanSeats": "Uma organização sem plano de IA paga por usuário cada licença."
+      "noAiPlanSeats": "Uma organização sem plano de IA paga por cada licença."
     },
     "s8": {
       "title": "Mudar de plano no meio do período",

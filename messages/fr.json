@@ -2825,7 +2825,7 @@
       "organization": "Chaque forfait IA — Standard, Pro, Max, Max ×2, Host et les forfaits à plus grande réserve — et chaque recharge appartiennent à l'organisation. Ses crédits sont partagés par toute l'organisation ; un forfait IA n'est pas tarifé selon le nombre de personnes qui l'utilisent et n'a pas de quantité.",
       "includedSeat": "Chaque forfait IA inclut un siège Motir sans frais.",
       "furtherSeats": "Les sièges au-delà du premier sont facturés par utilisateur : chaque personne supplémentaire qui utilise Motir occupe un siège au tarif du siège Motir.",
-      "noAiPlanSeats": "Une organisation sans forfait IA paie chaque siège, par utilisateur."
+      "noAiPlanSeats": "Une organisation sans forfait IA paie chaque siège."
     },
     "s8": {
       "title": "Changer de forfait en cours de période",

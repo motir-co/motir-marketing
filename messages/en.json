@@ -2778,7 +2778,7 @@
       "organization": "Every AI plan — Standard, Pro, Max, Max ×2, Host and the larger pool plans — and every top-up belongs to the organization. Its credits are shared by the whole organization; an AI plan is not priced by how many people use it and has no quantity.",
       "includedSeat": "Every AI plan includes one Motir seat at no charge.",
       "furtherSeats": "Seats beyond the first are per user: each further person who uses Motir takes a seat at the Motir seat fee.",
-      "noAiPlanSeats": "An organization with no AI plan pays per user, for every seat."
+      "noAiPlanSeats": "An organization with no AI plan pays for every seat."
     },
     "s8": {
       "title": "Changing plan mid-period",

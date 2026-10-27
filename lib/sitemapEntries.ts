@@ -8,6 +8,7 @@ import {
 import { DEFAULT_LOCALE, LOCALES } from '@/i18n/routing'
 import { legalDocumentSlugs } from '@/lib/legal/documents'
 import { DOCS_INDEX_HREF, DOCS_ROUTES } from '@/lib/docsSurfaces'
+import { HOW_THE_CALCULATION_WORKS } from '@/lib/destinations'
 import { PROJECT_TABS, loadAllPublicProjects } from '@/lib/publicProject'
 import {
   currentHost,
@@ -198,6 +199,10 @@ export function siteSitemapEntries(): MetadataRoute.Sitemap {
       priority: 0.8,
     }),
     ...everyLanguage('/price', { changeFrequency: 'weekly', priority: 0.8 }),
+    ...everyLanguage(HOW_THE_CALCULATION_WORKS, {
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    }),
     ...everyLanguage('/design', { changeFrequency: 'monthly', priority: 0.8 }),
     // The square (MOTIR-4045). Its per-topic landing pages are dynamic (read
     // from the public API) and are reached through the square's own crawlable

@@ -115,6 +115,8 @@ describe('sitemap', () => {
       'https://motir.co/how-to-use',
       // MOTIR-8382 — the price page.
       'https://motir.co/price',
+      // MOTIR-8383 — "How the calculation works", under the price page.
+      'https://motir.co/how-the-calculation-works',
       'https://motir.co/design',
       'https://motir.co/explore',
       'https://motir.co/docs',
@@ -157,6 +159,7 @@ describe('sitemap', () => {
         '/how-it-works',
         '/how-to-use',
         '/price',
+        '/how-the-calculation-works',
         '/design',
         '/explore',
         '/legal',

@@ -2797,7 +2797,7 @@
       "organization": "Ogni piano IA — Standard, Pro, Max, Max ×2, Host e i piani con pool più grande — e ogni ricarica appartengono all'organizzazione. I suoi crediti sono condivisi da tutta l'organizzazione; un piano IA non ha un prezzo basato su quante persone lo usano e non ha una quantità.",
       "includedSeat": "Ogni piano IA include una postazione Motir senza costi aggiuntivi.",
       "furtherSeats": "Le postazioni oltre la prima si pagano per utente: ogni persona in più che usa Motir occupa una postazione alla tariffa della postazione Motir.",
-      "noAiPlanSeats": "Un'organizzazione senza piano IA paga per utente ogni postazione."
+      "noAiPlanSeats": "Un'organizzazione senza piano IA paga ogni postazione."
     },
     "s8": {
       "title": "Cambiare piano a metà periodo",

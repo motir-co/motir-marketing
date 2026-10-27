@@ -2729,7 +2729,7 @@
       "organization": "每个 AI 套餐（Standard、Pro、Max、Max ×2、Host 和更大积分池套餐）以及每次加购都属于组织。其积分由整个组织共享；AI 套餐不按使用人数定价，也没有数量。",
       "includedSeat": "每个 AI 套餐都包含一个 Motir 席位，不额外收费。",
       "furtherSeats": "第一个席位之外的席位按用户计费：每多一个使用 Motir 的人，就按 Motir 席位费占用一个席位。",
-      "noAiPlanSeats": "没有 AI 套餐的组织按用户为每个席位付费。"
+      "noAiPlanSeats": "没有 AI 套餐的组织需为每个席位付费。"
     },
     "s8": {
       "title": "周期中途更换套餐",
