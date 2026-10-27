@@ -67,7 +67,7 @@ export function literalHits(where: string, text: string): LiteralHit[] {
   for (const n of catalogFigures()) {
     for (const s of spellings(n)) {
       const re = new RegExp(
-        `(?<![\\w.,])${s.replace(/[.]/g, '\\.')}(?![\\w]|[.,]\\d)`,
+        `(?<![\\w.,])${s.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&')}(?![\\w]|[.,]\\d)`,
       )
       if (n >= 4 && re.test(bare)) hits.push({ where, literal: s })
     }
