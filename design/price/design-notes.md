@@ -209,10 +209,10 @@ Subtask MOTIR-9833, task MOTIR-9829. Mock: **`price--calculator-shares.mock.html
 "Elements — each named once" (the calculator's category list), § "Copy — keys for the translation
 pass" (`price.calc.*`), and the matching panels of `price.mock.html`, which is a record and is not
 edited. Only the panels that change are drawn: the category list, the new share sliders and the
-answer's split line. The ranges, the cadence control and the rest of the answer ship unchanged.
+answer's split line. The ranges, the cadence control and the rest of the answer ship unchanged. Panels 9 and 10 put the change in context: the whole Calculator from `price.mock.html` panels 5 and 7, with only its category list swapped for the shares, so the change can be read against the shipped page.
 
-The page mirrors app.motir.co's Calculator, whose approved design is motir-core
-`design/billing/design-notes.md` § "Amendment 2026-10-27 — each category's share of the run"
+The page mirrors app.motir.co's Calculator, whose approved design is
+`motir-core/design/billing/design-notes.md` § "Amendment 2026-10-27 — each category's share of the run"
 (MOTIR-9831, slider revision). The interaction, the rule and the copy below are the app's own, and the
 strings are the app's word for word (the copy rule of 2026-10-26).
 
