@@ -2656,8 +2656,11 @@
       "lowLabel": "Low",
       "highLabel": "High",
       "categoriesLabel": "Models the runner uses",
-      "categoriesHelp": "Pick one to three. The run is split evenly across what you pick: one takes 100%, two take 50% each, all three take 33% each. You never choose a model — each category lists the models it serves as examples.",
+      "categoriesHelp": "Pick one to three. With two or three, drag each one's share of the run below — they start even. You never choose a model — each category lists the models it serves as examples.",
       "categoryShare": "{share} of the run",
+      "sharesLabel": "Each category's share of the run",
+      "sharesHelp": "Drag a share and the others give or take the difference equally, so they always total 100%. Adding or removing a category starts them even again.",
+      "shareValue": "{category}: {share}% of the run",
       "categoryExamples": "For example: {models}",
       "picked": "Picked",
       "notPicked": "Not picked",
@@ -2665,7 +2668,7 @@
       "categoriesFailed": "We couldn't load the model categories.",
       "categoryEmpty": "No model in this category right now, so it can't be picked.",
       "splitOne": "One category, so the whole run sits on {category}.",
-      "splitEven": "The run is split evenly across {categories} — {shares} each.",
+      "splitShares": "The run is split {shares}.",
       "idle": "Nothing is estimated until you ask: enter the range, pick one to three categories, then choose Estimate credits.",
       "priced": "Priced for {plannedLow}–{plannedHigh} planned in Motir and {runLow}–{runHigh} run on Motir's runner a month.",
       "loading": "Working out your credits…",
@@ -2724,7 +2727,7 @@
       "body": "Planning and running each take a category, not a specific model. Example models come from Motir's live model list, so no model here is a promise.",
       "categoriesLabel": "Categories",
       "categoriesFigureFree": "The category names come from Motir's live model list.",
-      "split": "Two selected categories share the estimate 50/50; three share it 33/33/33."
+      "split": "Two or three selected categories share the estimate as you set them in the Calculator, starting even: 50/50 for two, 34/33/33 for three."
     },
     "s3": {
       "title": "Credits per item",

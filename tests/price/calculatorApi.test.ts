@@ -64,6 +64,25 @@ describe('requestEstimate', () => {
     expect(body).toEqual(INPUT)
   })
 
+  it('sends the shares only when they are set (MOTIR-9834)', async () => {
+    const fetcher = answer(pro)
+    const shares = { economy: 70, balanced: 30 }
+    await requestEstimate(
+      { ...INPUT, categories: ['economy', 'balanced'], shares },
+      { fetcher, origin: ORIGIN },
+    )
+    const [, init] = fetcher.mock.calls[0] as unknown as [string, RequestInit]
+    const body = JSON.parse(init.body as string)
+    expect(Object.keys(body).sort()).toEqual([
+      'cadence',
+      'categories',
+      'plannedPerMonth',
+      'runPerMonth',
+      'shares',
+    ])
+    expect(body.shares).toEqual(shares)
+  })
+
   it('reads a known-version estimate as it is', async () => {
     const out = await requestEstimate(INPUT, {
       fetcher: answer(pro),

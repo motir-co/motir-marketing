@@ -8,8 +8,9 @@ import type { Cadence } from '@/lib/priceLadder'
  * `POST /v1/public/calculator/estimate`, with no credential.
  *
  * It computes nothing. The request carries the two ranges, the picked category
- * keys and the cadence — nothing else, so no quantity, user count or seat field
- * can reach the wire — and every answer is folded into a closed union the
+ * keys, their shares when two or more are picked (MOTIR-9834) and the cadence —
+ * nothing else, so no quantity, user count or seat field can reach the wire —
+ * and every answer is folded into a closed union the
  * island switches on. A `version` this page does not know is `unavailable`,
  * never a guessed estimate.
  */
@@ -69,6 +70,8 @@ export interface EstimateInput {
   plannedPerMonth: Range
   runPerMonth: Range
   categories: string[]
+  /** Each picked category's whole percentage of the run, totalling 100; absent splits evenly. */
+  shares?: Record<string, number>
   cadence: Cadence
 }
 
@@ -167,7 +170,7 @@ export function parseCategories(body: unknown): CategoriesResult {
   }
 }
 
-/** The request body: the two ranges, the categories and the cadence — only. */
+/** The request body: the two ranges, the categories, their shares when set and the cadence — only. */
 export function estimateBody(input: EstimateInput): string {
   return JSON.stringify({
     plannedPerMonth: {
@@ -176,6 +179,7 @@ export function estimateBody(input: EstimateInput): string {
     },
     runPerMonth: { low: input.runPerMonth.low, high: input.runPerMonth.high },
     categories: [...input.categories],
+    ...(input.shares ? { shares: { ...input.shares } } : {}),
     cadence: input.cadence,
   })
 }

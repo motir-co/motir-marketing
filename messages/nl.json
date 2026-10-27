@@ -2672,8 +2672,11 @@
       "lowLabel": "Laag",
       "highLabel": "Hoog",
       "categoriesLabel": "Modellen die de runner gebruikt",
-      "categoriesHelp": "Kies er één tot drie. De uitvoering wordt gelijk verdeeld over wat je kiest: één krijgt 100%, twee elk 50%, alle drie elk 33%. Je kiest nooit een model — elke categorie toont de modellen die erbij horen als voorbeeld.",
+      "categoriesHelp": "Kies er één tot drie. Bij twee of drie sleep je hieronder het aandeel van elk in de uitvoering; ze beginnen gelijk verdeeld. Je kiest nooit een model — elke categorie noemt de modellen die ze bedient als voorbeeld.",
       "categoryShare": "{share} van de uitvoering",
+      "sharesLabel": "Het aandeel van elke categorie in de uitvoering",
+      "sharesHelp": "Sleep een aandeel en de andere geven of nemen het verschil in gelijke delen, zodat ze altijd samen 100% zijn. Een categorie toevoegen of weghalen verdeelt ze weer gelijk.",
+      "shareValue": "{category}: {share}% van de uitvoering",
       "categoryExamples": "Bijvoorbeeld: {models}",
       "picked": "Gekozen",
       "notPicked": "Niet gekozen",
@@ -2681,7 +2684,7 @@
       "categoriesFailed": "We konden de modelcategorieën niet laden.",
       "categoryEmpty": "Op dit moment is er geen model in deze categorie, dus je kunt hem niet kiezen.",
       "splitOne": "Eén categorie, dus de hele uitvoering valt op {category}.",
-      "splitEven": "De uitvoering is gelijk verdeeld over {categories} — {shares} per categorie.",
+      "splitShares": "De uitvoering is verdeeld als {shares}.",
       "idle": "Er wordt niets geschat totdat je erom vraagt: vul het bereik in, kies één tot drie categorieën en kies dan Credits schatten.",
       "priced": "Berekend voor {plannedLow}–{plannedHigh} werkitems gepland in Motir en {runLow}–{runHigh} uitgevoerd op de runner van Motir per maand.",
       "loading": "Je credits worden berekend…",
@@ -2740,7 +2743,7 @@
       "body": "Planning en uitvoering kiezen elk een categorie, geen specifiek model. Voorbeeldmodellen komen uit de actuele modellenlijst van Motir, dus geen enkel model hier is een belofte.",
       "categoriesLabel": "Categorieën",
       "categoriesFigureFree": "De namen van de categorieën komen uit de actuele modellenlijst van Motir.",
-      "split": "Twee gekozen categorieën delen de schatting 50/50; drie delen haar 33/33/33."
+      "split": "Twee of drie gekozen categorieën delen de schatting zoals je ze in de calculator instelt, eerst gelijk verdeeld: 50/50 bij twee, 34/33/33 bij drie."
     },
     "s3": {
       "title": "Credits per werkitem",

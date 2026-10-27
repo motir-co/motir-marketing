@@ -1,4 +1,4 @@
-import { act, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render } from '@/tests/helpers/withCopy'
@@ -154,7 +154,7 @@ describe('an ordinary plan', () => {
     })
   })
 
-  it('follows each answer as the picks change, sending only ranges, categories and cadence', async () => {
+  it('follows each answer as the picks change, sending only ranges, categories, shares and cadence', async () => {
     const user = await setUp()
     await fill(user, ['20', '40'], ['10', '20'])
     await pick(user, 'economy')
@@ -169,11 +169,119 @@ describe('an ordinary plan', () => {
       'categories',
       'plannedPerMonth',
       'runPerMonth',
+      'shares',
     ])
     expect((bodies[0] as { categories: string[] }).categories).toEqual([
       'economy',
       'balanced',
     ])
+  })
+})
+
+describe('the category shares (MOTIR-9834)', () => {
+  const values = () =>
+    screen.getAllByTestId('calculator-share-value').map((el) => el.textContent)
+  const slider = (key: string) =>
+    within(screen.getByTestId('calculator-shares')).getByRole('slider', {
+      name: categoryLabel(key),
+    })
+  const drag = (key: string, to: number) =>
+    fireEvent.change(slider(key), { target: { value: String(to) } })
+
+  it('shows no slider for one pick, which carries the whole run', async () => {
+    const user = await setUp()
+    await pick(user, 'balanced')
+    expect(screen.queryByTestId('calculator-shares')).toBeNull()
+    expect(
+      screen.getByText(format(words.categoryShare, { share: '100%' })),
+    ).toBeInTheDocument()
+  })
+
+  it('starts even in the list’s order, and starts over when the picks change', async () => {
+    const user = await setUp()
+    await pick(user, 'balanced')
+    await pick(user, 'economy')
+    expect(
+      within(screen.getByTestId('calculator-shares')).getByText(
+        words.sharesLabel,
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByText(words.sharesHelp)).toBeInTheDocument()
+    expect(values()).toEqual(['50%', '50%'])
+    expect(slider('economy')).toHaveAttribute('max', '99')
+    drag('economy', 70)
+    expect(values()).toEqual(['70%', '30%'])
+    await pick(user, 'frontier')
+    expect(values()).toEqual(['34%', '33%', '33%'])
+    expect(slider('economy')).toHaveAttribute('max', '98')
+    expect(slider('economy')).toHaveAttribute(
+      'aria-valuetext',
+      format(words.shareValue, { category: 'Economy', share: '34' }),
+    )
+    expect(
+      screen.queryByText(format(words.categoryShare, { share: '33%' })),
+    ).toBeNull()
+  })
+
+  it('takes a drag from the others equally, never below 1%', async () => {
+    const user = await setUp()
+    await pick(user, 'economy')
+    await pick(user, 'balanced')
+    await pick(user, 'frontier')
+    drag('balanced', 52)
+    expect(values()).toEqual(['24%', '52%', '24%'])
+    drag('balanced', 100)
+    expect(values()).toEqual(['1%', '98%', '1%'])
+  })
+
+  it('sends 70/30 and states the split the engine priced', async () => {
+    const user = await setUp()
+    await fill(user, ['20', '40'], ['10', '20'])
+    await pick(user, 'economy')
+    await pick(user, 'balanced')
+    drag('economy', 70)
+    estimate = () =>
+      json({
+        ...proTwo,
+        split: {
+          ...proTwo.split,
+          categories: [
+            { ...proTwo.split.categories[0], weight: 0.7 },
+            { ...proTwo.split.categories[1], weight: 0.3 },
+          ],
+        },
+      })
+    await submit(user)
+    const out = await screen.findByTestId('calculator-estimate')
+    expect((bodies[0] as { shares: object }).shares).toEqual({
+      economy: 70,
+      balanced: 30,
+    })
+    expect(
+      within(out).getByText(
+        format(words.splitShares, { shares: 'Economy 70% · Balanced 30%' }),
+      ),
+    ).toBeInTheDocument()
+  })
+
+  it('sends no shares once a pick the engine emptied leaves one', async () => {
+    const user = await setUp()
+    await fill(user, ['20', '40'], ['1', '2'])
+    await pick(user, 'balanced')
+    await pick(user, 'frontier')
+    drag('balanced', 80)
+    estimate = () => json(emptyCategory)
+    await submit(user)
+    await waitFor(() =>
+      expect(
+        screen.getByRole('checkbox', { name: /^Frontier,/ }),
+      ).toHaveAttribute('aria-checked', 'false'),
+    )
+    expect(screen.queryByTestId('calculator-shares')).toBeNull()
+    estimate = () => json(pro)
+    await submit(user)
+    await screen.findByTestId('calculator-estimate')
+    expect(bodies[1]).not.toHaveProperty('shares')
   })
 })
 

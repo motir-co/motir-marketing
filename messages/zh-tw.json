@@ -2607,8 +2607,11 @@
       "lowLabel": "下限",
       "highLabel": "上限",
       "categoriesLabel": "執行器使用的模型",
-      "categoriesHelp": "選擇一到三類。執行部分在你選中的類別之間平均分攤：選一類佔 100%，兩類各佔 50%，三類各佔 33%。無需選擇模型 —— 每個類別下列出的是它所服務的範例模型。",
+      "categoriesHelp": "選一到三類。選兩類或三類時，在下方拖動每一類在執行中的佔比 —— 初始為平均分配。無需選擇模型 —— 每個類別下列出的是它所服務的範例模型。",
       "categoryShare": "執行部分的 {share}",
+      "sharesLabel": "每個類別在執行中的佔比",
+      "sharesHelp": "拖動一個佔比，其餘類別會平均讓出或接收差額，因此總和始終為 100%。新增或移除類別後會重新平均分配。",
+      "shareValue": "{category}：執行的 {share}%",
       "categoryExamples": "例如：{models}",
       "picked": "已選",
       "notPicked": "未選",
@@ -2616,7 +2619,7 @@
       "categoriesFailed": "無法載入模型類別。",
       "categoryEmpty": "該類目前沒有可用模型，無法選擇。",
       "splitOne": "只選了一類，全部執行都落在 {category} 上。",
-      "splitEven": "執行部分在 {categories} 之間平均分攤 —— 各佔 {shares}。",
+      "splitShares": "執行的分配為 {shares}。",
       "idle": "在你發起估算之前不會計算任何內容：填寫區間、選擇一到三個類別，然後選擇「估算點數」。",
       "priced": "按每月在 Motir 中規劃 {plannedLow}–{plannedHigh} 個、在 Motir 執行器上執行 {runLow}–{runHigh} 個工作項目計算。",
       "loading": "正在計算點數…",
@@ -2675,7 +2678,7 @@
       "body": "規劃和執行各選一個類別，而不是特定模型。範例模型來自 Motir 的即時模型清單，因此這裡列出的模型並非承諾。",
       "categoriesLabel": "類別",
       "categoriesFigureFree": "類別名稱來自 Motir 的即時模型清單。",
-      "split": "選擇兩個類別時估算按 50/50 分攤；選擇三個時按 33/33/33 分攤。"
+      "split": "選擇兩個或三個類別時，估算按你在計算器中設定的佔比分攤，初始為平均分配：兩個為 50/50，三個為 34/33/33。"
     },
     "s3": {
       "title": "每個工作項目的點數",
