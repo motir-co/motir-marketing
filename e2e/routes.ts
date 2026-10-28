@@ -97,12 +97,12 @@ export const SITE_ROUTES: readonly SiteRoute[] = [
   { pattern: '/products/agent-hosting', url: '/products/agent-hosting' },
 
   // ⚠️ THE ONLY ROW WHOSE URL IS ABSOLUTE, AND IT HAS TO BE (MOTIR-4220).
-  // `/w` renders a WORKSPACE's project list, so it exists only on a workspace
-  // host — on `motir.co` it 404s by design, which would fail the lane's
-  // status assertion. The URL below is the ROOT of the lane's tenant host,
-  // which the router rewrites to `/w`: the row therefore walks the route AND
-  // the rewrite that is the only way a visitor reaches it.
-  { pattern: '/w', url: `${TENANT_ORIGIN}/` },
+  // `/no-application` renders for a live WORKSPACE host (MOTIR-9512), so it
+  // exists only there — on `motir.co` it 404s by design, which would fail the
+  // lane's status assertion. The URL below is the ROOT of the lane's tenant
+  // host, which the router rewrites to `/no-application`: the row therefore
+  // walks the route AND the rewrite that is the only way a visitor reaches it.
+  { pattern: '/no-application', url: `${TENANT_ORIGIN}/` },
 
   // Where the router sends a request whose contract read failed. Reachable on
   // any host — it renders one static state and reads nothing.

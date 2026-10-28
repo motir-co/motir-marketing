@@ -41,9 +41,8 @@ const { ProjectHeader } =
 const WORKSPACE: HostRead = {
   status: 'ok',
   data: {
-    kind: 'workspace',
+    kind: 'no_application',
     workspace: { name: 'Acme' },
-    projects: [{ identifier: 'MOTIR', name: 'Motir' }],
   },
 }
 const CUSTOM: HostRead = {
@@ -213,13 +212,12 @@ describe.each([
   ['a customer host', CUSTOM, 'https://roadmap.acme.com'],
 ] as const)('%s', (_label, read, origin) => {
   const workspace = read === WORKSPACE
-  const cases = [
-    [
-      workspace ? '/MOTIR/changelog' : '/changelog',
-      (l: string) => `/${l}/p/MOTIR/changelog`,
-    ],
-    ['/', (l: string) => (workspace ? `/${l}/w` : `/${l}/p/MOTIR`)],
-  ] as const
+  const cases = workspace
+    ? ([['/', (l: string) => `/${l}/no-application`]] as const)
+    : ([
+        ['/changelog', (l: string) => `/${l}/p/MOTIR/changelog`],
+        ['/', (l: string) => `/${l}/p/MOTIR`],
+      ] as const)
 
   describe.each([
     ['by browser', (l: string) => ({ 'accept-language': l })],
@@ -256,9 +254,9 @@ describe.each([
 })
 
 describe('the rewrite and the render, joined', () => {
-  it('a French visitor on a workspace host reads fr.json’s tab label', async () => {
-    resolveHost.mockResolvedValue(WORKSPACE)
-    const res = await ask('https://acme.motir.site/MOTIR/changelog', {
+  it('a French visitor on a customer host reads fr.json’s tab label', async () => {
+    resolveHost.mockResolvedValue(CUSTOM)
+    const res = await ask('https://roadmap.acme.com/changelog', {
       'accept-language': 'fr',
     })
     // The locale the proxy chose is the first segment of the tree it picked —

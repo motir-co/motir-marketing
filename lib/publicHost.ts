@@ -6,15 +6,14 @@ import type { Locale } from '@/i18n/routing'
  * THE ONE PLACE THAT KNOWS WHAT A LINK LOOKS LIKE ON THIS HOST
  * (Story MOTIR-3878 · MOTIR-4220).
  *
- * The same project page is now served at three shapes of address, and the path
+ * The same project page is served at two shapes of address, and the path
  * to a given tab is different at each:
  *
  *   • `motir.co`            — `/p/ACME/board`   (the site; the shape that shipped)
- *   • `acme.motir.site`     — `/ACME/board`     (a workspace subdomain)
  *   • `roadmap.acme.com`    — `/board`          (a customer domain; ADR Q3 puts
  *                                                ONE project at the host's root)
  *
- * `proxy.ts` rewrites all three onto the SAME `app/p/[identifier]/**` tree, so
+ * `proxy.ts` rewrites both onto the SAME `app/p/[identifier]/**` tree, so
  * no page is duplicated — but a page that emitted `/p/ACME/board` on a customer
  * domain would send the visitor to a path that host does not serve. Every href
  * under `app/p/**` therefore goes through {@link publicPathFor}, and a grep for
@@ -201,15 +200,15 @@ export function publicPathFor(
 ): string {
   const rest = path ? `/${path}` : ''
   switch (host.kind) {
-    case 'workspace':
-      return `/${encodeURIComponent(identifier)}${rest}`
     case 'project':
       // ONE project at the root (ADR Q3) — the identifier is the host, so it is
       // absent from the path. `''` is the root itself, not the empty string.
       return rest || '/'
     default:
-      // `site`, and `unresolved` with it. An `unresolved` host reaches only the
-      // router's own two landing pads (MOTIR-4430), neither of which renders a
+      // `site`, and `unresolved` and `workspace` with it. An `unresolved` host
+      // reaches only the router's own two landing pads (MOTIR-4430), and a
+      // workspace host serves no project since the address decision MOTIR-9790
+      // (its root is the no-application page, MOTIR-9512) — neither renders a
       // project path, so this arm is the site's shape and nothing is claimed
       // about a host that has no projects to address.
       return localizedPath(

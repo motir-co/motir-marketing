@@ -63,7 +63,6 @@ function hrefs(container: HTMLElement): string[] {
 
 describe.each([
   ['the site', SITE_HOST, '/p/PROD', '/p/PROD/changelog'],
-  ['a workspace subdomain', WORKSPACE, '/PROD', '/PROD/changelog'],
   ['a customer domain', CUSTOM, '/', '/changelog'],
 ])('%s', (_label, host, overview, changelog) => {
   it('the SITE tabs point at this host; the APP tabs at the app, on every host', () => {

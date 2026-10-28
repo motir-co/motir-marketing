@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   isSiteAssetPath,
   localisedPath,
+  isStorable,
   maxAgeMs,
   resetHostResolutionCache,
   resolveHost,
@@ -18,16 +19,8 @@ import { APP_ORIGIN } from '@/lib/appOrigin'
  */
 
 const WORKSPACE: PublicHostResolution = {
-  kind: 'workspace',
+  kind: 'no_application',
   workspace: { name: 'Acme' },
-  projects: [
-    { identifier: 'PROD', name: 'Prod' },
-    { identifier: 'DOCS', name: 'Docs' },
-  ],
-}
-const ALIAS: PublicHostResolution = {
-  kind: 'alias',
-  redirectTo: 'acme.motir.site',
 }
 const CUSTOM: PublicHostResolution = {
   kind: 'project',
@@ -112,9 +105,7 @@ describe('resolveHost', () => {
 
   it('CACHES an answer for the contract’s own max-age', async () => {
     const fetchMock = vi.fn(async () =>
-      answer(WORKSPACE, {
-        cacheControl: 'public, max-age=60, stale-while-revalidate=300',
-      }),
+      answer(WORKSPACE, { cacheControl: 'public, max-age=30' }),
     )
     vi.stubGlobal('fetch', fetchMock)
     vi.useFakeTimers()
@@ -123,7 +114,7 @@ describe('resolveHost', () => {
       await resolveHost('acme.motir.site')
       expect(fetchMock).toHaveBeenCalledTimes(1)
 
-      vi.advanceTimersByTime(59_000)
+      vi.advanceTimersByTime(29_000)
       await resolveHost('acme.motir.site')
       expect(fetchMock).toHaveBeenCalledTimes(1)
 
@@ -135,13 +126,64 @@ describe('resolveHost', () => {
     }
   })
 
-  it('caches a 404 too — a pointed-at hostname must not cost a hop per request', async () => {
-    const fetchMock = vi.fn(async () => answer({}, { status: 404 }))
+  it('holds an answer with no Cache-Control for 30 seconds, the producer’s own bound', async () => {
+    // A retired name may keep answering for at most the contract's max-age (ADR
+    // §8 Amendment 3 rule 2). Two caches in series add their bounds, so a floor
+    // longer than the producer's would let a renamed name answer past it.
+    const fetchMock = vi.fn(async () => answer(WORKSPACE))
+    vi.stubGlobal('fetch', fetchMock)
+    vi.useFakeTimers()
+    try {
+      await resolveHost('acme.motir.site')
+      vi.advanceTimersByTime(29_000)
+      await resolveHost('acme.motir.site')
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      vi.advanceTimersByTime(2_000)
+      await resolveHost('acme.motir.site')
+      expect(fetchMock).toHaveBeenCalledTimes(2)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('caches a 404 the contract lets it cache', async () => {
+    const fetchMock = vi.fn(async () =>
+      answer({}, { status: 404, cacheControl: 'max-age=30' }),
+    )
     vi.stubGlobal('fetch', fetchMock)
 
     await resolveHost('nope.example')
     await resolveHost('nope.example')
     expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('does NOT remember a no-store 404 — a name claimed a moment later must answer', async () => {
+    const fetchMock = vi.fn(async () =>
+      answer({}, { status: 404, cacheControl: 'no-store' }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    await resolveHost('fresh.motir.site')
+    await resolveHost('fresh.motir.site')
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('reads a kind it does not know as not-found — a retired alias never redirects', async () => {
+    // A stale producer still sending the retired never-released `alias` outcome
+    // must 404 like an unknown host (rule 2), and a newer kind this build
+    // predates must not be drawn as a shape it was not given.
+    for (const body of [
+      { kind: 'alias', redirectTo: 'acme.motir.site' },
+      { kind: 'workspace', workspace: { name: 'Acme' }, projects: [] },
+      { kind: 'application' },
+      null,
+    ]) {
+      resetHostResolutionCache()
+      vi.stubGlobal('fetch', async () => answer(body))
+      await expect(resolveHost('old.motir.site')).resolves.toEqual({
+        status: 'not-found',
+      })
+    }
   })
 
   it('does NOT cache an outage — a restart must not become a minute of it', async () => {
@@ -191,54 +233,55 @@ describe('resolveHost', () => {
 
 describe('maxAgeMs', () => {
   it('reads the contract’s directive', () => {
-    expect(maxAgeMs('public, max-age=60, stale-while-revalidate=300')).toBe(
-      60_000,
-    )
+    expect(maxAgeMs('public, max-age=30')).toBe(30_000)
     expect(maxAgeMs('max-age=5')).toBe(5_000)
   })
 
   it('falls back to the producing route’s own number when there is none', () => {
-    expect(maxAgeMs(null)).toBe(60_000)
-    expect(maxAgeMs('no-store')).toBe(60_000)
+    expect(maxAgeMs(null)).toBe(30_000)
   })
 
   it('does not mistake s-maxage for max-age', () => {
-    expect(maxAgeMs('s-maxage=1')).toBe(60_000)
+    expect(maxAgeMs('s-maxage=1')).toBe(30_000)
+  })
+})
+
+describe('isStorable', () => {
+  it('is false only for no-store', () => {
+    expect(isStorable('no-store')).toBe(false)
+    expect(isStorable('private, no-store')).toBe(false)
+    expect(isStorable('public, max-age=30')).toBe(true)
+    expect(isStorable(null)).toBe(true)
   })
 })
 
 /* ── the decision ─────────────────────────────────────────────────────────── */
 
-describe('routeForHost — a workspace subdomain', () => {
-  it('serves the workspace’s project list at the root', () => {
+describe('routeForHost — a live workspace host with no application', () => {
+  it('answers the no-application page at the root', () => {
     expect(routeForHost(WORKSPACE, '/')).toEqual({
-      action: 'workspace-root',
-      path: '/en/w',
+      action: 'no-application',
+      path: '/en/no-application',
     })
   })
 
-  it('rewrites a known project onto the shipped /p/* tree, path and all', () => {
-    expect(routeForHost(WORKSPACE, '/PROD/board')).toEqual({
-      action: 'rewrite',
-      path: '/en/p/PROD/board',
-    })
-    expect(routeForHost(WORKSPACE, '/PROD')).toEqual({
-      action: 'rewrite',
-      path: '/en/p/PROD',
-    })
-    expect(routeForHost(WORKSPACE, '/PROD/items/PROD-42')).toEqual({
-      action: 'rewrite',
-      path: '/en/p/PROD/items/PROD-42',
-    })
-  })
-
-  it('404s a project this workspace does not publish', () => {
-    // Not "the project does not exist" — it is not THIS workspace's, and a
-    // subdomain that served another tenant's project would be the whole point
-    // of the address undone.
-    expect(routeForHost(WORKSPACE, '/OTHER/board')).toEqual({
-      action: 'not-found',
-    })
+  it('serves NO project path — public projects live at motir.co/p/<identifier>', () => {
+    // MOTIR-9790 / MOTIR-9512: the bare workspace host belongs to the default
+    // application. The `/<identifier>` rewrite is gone, so a published link to
+    // `acme.motir.site/PROD` is a 404 rather than a project page.
+    for (const path of [
+      '/PROD',
+      '/PROD/board',
+      '/PROD/items/PROD-42',
+      '/PROD/changelog.xml',
+      '/OTHER/board',
+      '/w',
+      '/explore',
+    ]) {
+      expect(routeForHost(WORKSPACE, path), path).toEqual({
+        action: 'not-found',
+      })
+    }
   })
 
   it('lets a site asset through — the chrome’s logo is at the ROOT', () => {
@@ -251,26 +294,12 @@ describe('routeForHost — a workspace subdomain', () => {
   })
 
   it('and the CRAWL SURFACE takes that arm too, with the host attached', () => {
-    // ⚠️ `forward`, NOT `pass`, and the difference is a whole card. Both are
-    // "serve this path unchanged", but `/sitemap.xml` and `/robots.txt` are
-    // site-asset-SHAPED and must still know which host asked: a sitemap may only
-    // list URLs on its own (MOTIR-4222). Forwarding nothing made both answer as
-    // `motir.co` on every tenant host.
+    // ⚠️ `forward`, NOT `pass`: `/sitemap.xml` and `/robots.txt` are
+    // site-asset-SHAPED and must still know which host asked (MOTIR-4222).
     expect(routeForHost(WORKSPACE, '/sitemap.xml')).toEqual({
       action: 'forward',
     })
     expect(routeForHost(CUSTOM, '/robots.txt')).toEqual({ action: 'forward' })
-  })
-
-  it('and the ATOM FEED is not mistaken for one', () => {
-    // ⚠️ THE TRAP THIS ROUTER IS SHAPED AROUND. `changelog.xml` has an
-    // extension, so the idiomatic "skip anything with a dot" matcher would
-    // leave the feed unrouted — in people's feed readers — on every tenant
-    // host. A project path is never ONE segment, which is what tells them apart.
-    expect(routeForHost(WORKSPACE, '/PROD/changelog.xml')).toEqual({
-      action: 'rewrite',
-      path: '/en/p/PROD/changelog.xml',
-    })
   })
 })
 
@@ -297,19 +326,6 @@ describe('routeForHost — a customer domain', () => {
   })
 })
 
-describe('routeForHost — a retired subdomain', () => {
-  it('redirects to the live host, whatever the path', () => {
-    expect(routeForHost(ALIAS, '/OLD/board')).toEqual({
-      action: 'redirect',
-      host: 'acme.motir.site',
-    })
-    expect(routeForHost(ALIAS, '/')).toEqual({
-      action: 'redirect',
-      host: 'acme.motir.site',
-    })
-  })
-})
-
 describe('routeForHost is IDEMPOTENT — Next re-enters on its own rewrite', () => {
   /*
    * ⚠️ THE FINDING THIS SUITE EXISTS FOR, and it was found in the browser lane
@@ -319,16 +335,13 @@ describe('routeForHost is IDEMPOTENT — Next re-enters on its own rewrite', () 
    * pass read `p` as a project the workspace does not publish and answered 404,
    * so EVERY tenant page 404'd while every single-pass unit test stayed green.
    */
-  it('forwards a rewrite it could have produced, on both host kinds', () => {
+  it('forwards a rewrite it could have produced', () => {
     // MOTIR-7948: the router's targets carry a locale, so the second pass
     // arrives as `/en/p/…` — or as another locale's tree, once one is chosen.
-    expect(routeForHost(WORKSPACE, '/en/p/PROD/board')).toEqual({
-      action: 'forward',
-    })
     expect(routeForHost(CUSTOM, '/en/p/PROD/items/PROD-1')).toEqual({
       action: 'forward',
     })
-    expect(routeForHost(WORKSPACE, '/ja/p/PROD')).toEqual({
+    expect(routeForHost(CUSTOM, '/ja/p/PROD')).toEqual({
       action: 'forward',
     })
   })
@@ -337,7 +350,7 @@ describe('routeForHost is IDEMPOTENT — Next re-enters on its own rewrite', () 
     // A visitor can type `/p/PROD/board` on their own host. It was a duplicate
     // URL before MOTIR-7948 and still is, but no route serves it bare any more,
     // so it is rewritten rather than forwarded — into the chosen locale's tree.
-    expect(routeForHost(WORKSPACE, '/p/PROD/board')).toEqual({
+    expect(routeForHost(CUSTOM, '/p/PROD/board')).toEqual({
       action: 'rewrite',
       path: '/en/p/PROD/board',
     })
@@ -352,7 +365,15 @@ describe('routeForHost is IDEMPOTENT — Next re-enters on its own rewrite', () 
     // router already ran" would be settable by any caller, and trusting it
     // would serve any project at any tenant address. There is nothing to forge
     // here, because the identifier must be one the contract just named.
-    for (const path of ['/p/OTHER/board', '/en/p/OTHER/board', '/p/']) {
+    for (const path of [
+      '/p/OTHER/board',
+      '/en/p/OTHER/board',
+      '/p/',
+      // A workspace host serves no project at all, so even a path shaped like
+      // the router's own rewrite is not one it could have produced.
+      '/p/PROD/board',
+      '/en/p/PROD',
+    ]) {
       expect(routeForHost(WORKSPACE, path), path).toEqual({
         action: 'not-found',
       })
@@ -364,16 +385,22 @@ describe('routeForHost is IDEMPOTENT — Next re-enters on its own rewrite', () 
     })
   })
 
-  it('forwards the workspace root back to itself, and refuses it elsewhere', () => {
-    expect(routeForHost(WORKSPACE, '/en/w')).toEqual({ action: 'forward' })
-    expect(routeForHost(WORKSPACE, '/w')).toEqual({
-      action: 'rewrite',
-      path: '/en/w',
+  it('forwards the no-application page back to itself, and refuses it elsewhere', () => {
+    expect(routeForHost(WORKSPACE, '/en/no-application')).toEqual({
+      action: 'forward',
     })
-    // A customer domain has no workspace list — the page would 404 anyway, but
-    // the router must not tell it to try.
-    expect(routeForHost(CUSTOM, '/en/w')).toEqual({ action: 'not-found' })
-    expect(routeForHost(CUSTOM, '/w')).toEqual({ action: 'not-found' })
+    expect(routeForHost(WORKSPACE, '/no-application')).toEqual({
+      action: 'rewrite',
+      path: '/en/no-application',
+    })
+    // A customer domain always has its project — the router must not send it
+    // to a page saying there is nothing here.
+    expect(routeForHost(CUSTOM, '/en/no-application')).toEqual({
+      action: 'not-found',
+    })
+    expect(routeForHost(CUSTOM, '/no-application')).toEqual({
+      action: 'not-found',
+    })
   })
 
   it('passes its own two landing pads through untouched', () => {
@@ -392,15 +419,15 @@ describe('routeForHost is IDEMPOTENT — Next re-enters on its own rewrite', () 
       path: '/ja/p/PROD/board',
     })
     expect(routeForHost(WORKSPACE, '/', 'ko')).toEqual({
-      action: 'workspace-root',
-      path: '/ko/w',
+      action: 'no-application',
+      path: '/ko/no-application',
     })
   })
 })
 
 describe('localisedPath', () => {
   it('prefixes a router target, and the root has no trailing slash', () => {
-    expect(localisedPath('/w')).toBe('/en/w')
+    expect(localisedPath('/no-application')).toBe('/en/no-application')
     expect(localisedPath('/host-unavailable', 'pt')).toBe(
       '/pt/host-unavailable',
     )

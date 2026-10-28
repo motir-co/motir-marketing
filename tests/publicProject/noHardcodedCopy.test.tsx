@@ -220,7 +220,8 @@ const IntakePage = (
 const RequestPage = (
   await import('@/app/[locale]/p/[identifier]/requests/[requestKey]/page')
 ).default
-const WorkspacePage = (await import('@/app/[locale]/w/page')).default
+const NoApplicationPage = (await import('@/app/[locale]/no-application/page'))
+  .default
 const HostUnavailablePage = (
   await import('@/app/[locale]/host-unavailable/page')
 ).default
@@ -251,14 +252,13 @@ const requestPage = () =>
   RequestPage({
     params: Promise.resolve({ ...ACME, requestKey: 'ACME-4051' }),
   })
-const workspace = () =>
-  WorkspacePage({ params: Promise.resolve({ locale: 'en' }) })
+const noApplication = () =>
+  NoApplicationPage({ params: Promise.resolve({ locale: 'en' }) })
 
-const workspaceRead = (projects: unknown[]) => ({
-  kind: 'workspace',
+const noApplicationRead = {
+  kind: 'no_application',
   workspace: { name: '«Acme»' },
-  projects,
-})
+}
 
 const SCREENS: Screen[] = [
   {
@@ -318,27 +318,16 @@ const SCREENS: Screen[] = [
     page: requestPage,
   },
   {
-    label: 'the workspace root, with projects',
-    reads: {
-      host: workspaceRead([
-        { identifier: 'ACME', name: '«Acme Roadmap»' },
-        { identifier: 'MOTIR', name: '«Motir»' },
-      ]),
-    },
+    label: 'the no-application page',
+    reads: { host: noApplicationRead },
     headers: WORKSPACE_HEADERS,
-    page: workspace,
+    page: noApplication,
   },
   {
-    label: 'the workspace root, empty',
-    reads: { host: workspaceRead([]) },
-    headers: WORKSPACE_HEADERS,
-    page: workspace,
-  },
-  {
-    label: 'the workspace root, failed',
+    label: 'the no-application page, failed',
     reads: { host: 'failed' },
     headers: WORKSPACE_HEADERS,
-    page: workspace,
+    page: noApplication,
   },
   {
     label: 'the host-unavailable page',
@@ -391,13 +380,10 @@ describe('every screen and state draws its words from the catalogue', () => {
       ['the request doorway', PSEUDO.publicProject.requestNew.heading],
       ['a request, with none', PSEUDO.publicProject.request.noComments],
       ['a request, failed', PSEUDO.publicProject.states.error.request],
+      ['the no-application page', PSEUDO.publicProject.noApplication.heading],
       [
-        'the workspace root, empty',
-        PSEUDO.publicProject.workspaceRoot.empty.title,
-      ],
-      [
-        'the workspace root, failed',
-        PSEUDO.publicProject.states.error.workspaceProjects,
+        'the no-application page, failed',
+        PSEUDO.publicProject.states.error.address,
       ],
       ['the host-unavailable page', PSEUDO.publicProject.states.error.address],
     ]

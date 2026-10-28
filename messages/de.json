@@ -54,7 +54,6 @@
         "project": "Dieses Projekt konnte nicht geladen werden",
         "changelog": "Das Änderungsprotokoll dieses Projekts konnte nicht geladen werden",
         "request": "Dieser Funktionswunsch konnte nicht geladen werden",
-        "workspaceProjects": "Die Projekte dieses Arbeitsbereichs konnten nicht geladen werden",
         "address": "Diese Adresse konnte nicht geladen werden",
         "body": "Die Motir-Anwendung antwortet gerade nicht. Mit der Seite, auf der Sie sind, ist alles in Ordnung – sie liest von {host}, einem separaten Deployment. Versuchen Sie es gleich noch einmal.",
         "bodyWithFeed": "Die Motir-Anwendung antwortet gerade nicht. Mit der Seite, auf der Sie sind, ist alles in Ordnung – sie liest von {host}, einem separaten Deployment. Versuchen Sie es gleich noch einmal, oder lesen Sie das Änderungsprotokoll, das aus einem Feed bereitgestellt wird.",
@@ -96,12 +95,9 @@
       "askHeading": "Etwas anfragen",
       "requestFeature": "Funktion wünschen ↗"
     },
-    "workspaceRoot": {
-      "heading": "Öffentliche Projekte",
-      "empty": {
-        "title": "Hier ist noch nichts öffentlich",
-        "body": "Dieser Arbeitsbereich hat seine Adresse beansprucht, aber noch kein Projekt öffentlich gemacht. Sobald er das tut, erscheint das Projekt hier."
-      }
+    "noApplication": {
+      "heading": "Hier gibt es noch keine Anwendung",
+      "body": "Diese Adresse gehört zu {workspace}. Hier ist noch keine Anwendung bereitgestellt."
     },
     "meta": {
       "overviewFallback": "Ein öffentlich gebautes Projekt auf Motir – Übersicht, Änderungsprotokoll und Funktionswünsche, dazu das Live-Board in der Motir-App.",
@@ -110,8 +106,7 @@
       "tabDescription": "{label} für {name} – öffentlich auf Motir.",
       "requestNewTitle": "Funktion wünschen · {name}",
       "requestNewDescription": "Bitten Sie das Team von {name} um etwas. Anfragen sind öffentlich.",
-      "workspaceTitle": "Öffentliche Projekte",
-      "workspaceDescription": "Die öffentlichen Projekte, die dieser Arbeitsbereich auf Motir veröffentlicht.",
+      "noApplicationTitle": "Hier gibt es noch keine Anwendung",
       "hostUnavailableTitle": "Vorübergehend nicht verfügbar"
     }
   },

@@ -130,43 +130,12 @@ describe('the sitemap on motir.co', () => {
 })
 
 describe('the sitemap on a workspace subdomain', () => {
-  it('lists only that host’s projects, at HOST-RELATIVE paths', async () => {
+  it('lists NOTHING — a workspace host serves no project (MOTIR-9512)', async () => {
+    // Even when an index row still names the workspace host as a project's
+    // canonical: `acme.motir.site/PROD` is a 404 since the address decision
+    // MOTIR-9790, and a sitemap may only list pages that exist.
     const { entries } = await crawlSurfaceAs(asWorkspace)
-    const urls = entries.map((e) => e.url)
-
-    expect(urls).toContain('https://acme.motir.site/PROD')
-    expect(urls).toContain('https://acme.motir.site/PROD/changelog')
-    for (const view of ['/board', '/items', '/tree', '/roadmap']) {
-      expect(
-        urls.join(' '),
-        `a read page (${view}) is not a page on this host`,
-      ).not.toContain(view)
-    }
-    // ⚠️ NOT `/p/PROD`. The sitemap entry and the page's own navigation go
-    // through the SAME helper, so they cannot spell the address differently —
-    // which is the way a sitemap normally goes stale.
-    expect(urls.join(' ')).not.toContain('/p/PROD')
-    expect(urls.join(' ')).not.toContain('MOTIR')
-  })
-
-  it('lists each URL ONCE, with no alternates — one URL serves every language there (MOTIR-7956)', async () => {
-    const { entries } = await crawlSurfaceAs(asWorkspace)
-    const urls = entries.map((e) => e.url)
-
-    expect(new Set(urls).size).toBe(urls.length)
-    expect(entries.every((e) => e.alternates === undefined)).toBe(true)
-    expect(urls.join(' ')).not.toMatch(/acme\.motir\.site\/(fr|ja|de)\//)
-  })
-
-  it('carries NONE of the marketing site’s pages', async () => {
-    // A tenant host is a project's address, not a copy of motir.co — listing
-    // this site's pages there asks a crawler to attribute them to that host.
-    const { entries } = await crawlSurfaceAs(asWorkspace)
-    const urls = entries.map((e) => e.url).join(' ')
-
-    expect(urls).not.toContain('/explore')
-    expect(urls).not.toContain('/legal')
-    expect(urls).not.toContain('/docs')
+    expect(entries).toEqual([])
   })
 })
 

@@ -30,20 +30,20 @@ import { DEFAULT_LOCALE, LOCALES, type Locale } from '@/i18n/routing'
 
 /* ── the contract shapes (motir-core `lib/dto/publicAddresses.ts`) ────────── */
 
-/** A workspace subdomain — the host lists that workspace's public projects. */
-export interface PublicHostWorkspace {
-  readonly kind: 'workspace'
+/**
+ * A live workspace subdomain with no application to serve yet (Story MOTIR-4528
+ * · MOTIR-9512, the address decision MOTIR-9790). The bare workspace host
+ * belongs to the workspace's default application; until the application record
+ * exists, every live workspace host answers this. It lists no projects — they
+ * live at `motir.co/p/<identifier>`.
+ *
+ * There is NO alias shape any more. ADR §8 Amendment 3 rule 2: a renamed or
+ * released name stops answering at once, so the producer answers it the same
+ * 404 as an unknown host and nothing here redirects.
+ */
+export interface PublicHostNoApplication {
+  readonly kind: 'no_application'
   readonly workspace: { readonly name: string }
-  readonly projects: ReadonlyArray<{
-    readonly identifier: string
-    readonly name: string
-  }>
-}
-
-/** A RETIRED subdomain. It keeps redirecting for ever — ADR §8. */
-export interface PublicHostAlias {
-  readonly kind: 'alias'
-  readonly redirectTo: string
 }
 
 /** A customer domain with an issued certificate: ONE project, at the root. */
@@ -54,8 +54,13 @@ export interface PublicHostProject {
   readonly primary: boolean
 }
 
-export type PublicHostResolution =
-  PublicHostWorkspace | PublicHostAlias | PublicHostProject
+export type PublicHostResolution = PublicHostNoApplication | PublicHostProject
+
+/** The kinds this router understands; anything else is a 404, never a guess. */
+const KNOWN_KINDS: ReadonlySet<string> = new Set<PublicHostResolution['kind']>([
+  'no_application',
+  'project',
+])
 
 /**
  * The same THREE outcomes `lib/publicProject.ts` splits, for the same reason and
@@ -73,12 +78,14 @@ export type HostRead =
 /**
  * How long an answer with no usable `Cache-Control` is held.
  *
- * The contract sends `max-age=60`; this is only the floor for a deployment that
- * has stripped it. Sixty seconds is the number the producing route chose, and
- * choosing a different one here would mean a rename took two different times to
- * become visible depending on which layer answered.
+ * The contract sends `max-age=30` on a 200 (motir-core
+ * `lib/publicAddresses/hostContractCache.ts`); this is only the floor for a
+ * deployment that has stripped it. It is the producer's number on purpose: a
+ * retired name may keep answering for at most that bound, and two caches in
+ * series ADD their bounds, so a longer floor here would let a renamed or
+ * released name answer past it.
  */
-const DEFAULT_MAX_AGE_MS = 60_000
+const DEFAULT_MAX_AGE_MS = 30_000
 
 /**
  * ⚠️ THE CACHE IS BOUNDED, AND THE BOUND IS A SECURITY PROPERTY, NOT TIDINESS.
@@ -108,14 +115,28 @@ export function resetHostResolutionCache(): void {
   cache.clear()
 }
 
-/** `public, max-age=60, stale-while-revalidate=300` → 60_000. */
+/**
+ * Whether an answer may be remembered at all. The contract sends `no-store` on
+ * a 404, so a name claimed moments after a refusal is not hidden by a cached one.
+ */
+export function isStorable(cacheControl: string | null): boolean {
+  return !/(?:^|[\s,])no-store(?:$|[\s,])/i.test(cacheControl ?? '')
+}
+
+/** `public, max-age=30` → 30_000. */
 export function maxAgeMs(cacheControl: string | null): number {
   const match = /(?:^|[\s,])max-age\s*=\s*(\d+)/i.exec(cacheControl ?? '')
   if (!match) return DEFAULT_MAX_AGE_MS
   return Number(match[1]) * 1000
 }
 
-function remember(host: string, read: HostRead, ttlMs: number): void {
+function remember(
+  host: string,
+  read: HostRead,
+  cacheControl: string | null,
+): void {
+  if (!isStorable(cacheControl)) return
+  const ttlMs = maxAgeMs(cacheControl)
   // Insertion-ordered, so the first key is the oldest: one eviction per write
   // keeps the map at its bound without a sweep.
   if (cache.size >= MAX_ENTRIES) {
@@ -128,12 +149,12 @@ function remember(host: string, read: HostRead, ttlMs: number): void {
 /**
  * Resolve a host through the public contract, with the in-process cache.
  *
- * ⚠️ `ok` AND `not-found` ARE CACHED; `failed` IS NOT. A 404 is the contract
- * SAYING something and is as cacheable as an answer — caching it is what stops a
- * hostname somebody has pointed at us from costing a round trip on every hit.
- * An outage is not an answer: pinning it for a minute would extend every
- * `app.motir.co` restart into a minute of tenant hosts showing the error state
- * after the API came back.
+ * ⚠️ `ok` AND `not-found` ARE CACHED FOR AS LONG AS THE CONTRACT SAYS; `failed`
+ * IS NOT. The contract's own `Cache-Control` decides: `max-age=30` on a 200,
+ * and `no-store` on a 404 (so a name claimed moments after a refusal is not
+ * hidden by it). An outage is not an answer: pinning it would extend every
+ * `app.motir.co` restart into tenant hosts showing the error state after the
+ * API came back.
  */
 export async function resolveHost(rawHost: string): Promise<HostRead> {
   const host = normaliseHost(rawHost)
@@ -159,7 +180,7 @@ export async function resolveHost(rawHost: string): Promise<HostRead> {
 
   if (res.status === 404) {
     const read: HostRead = { status: 'not-found' }
-    remember(host, read, maxAgeMs(res.headers.get('cache-control')))
+    remember(host, read, res.headers.get('cache-control'))
     return read
   }
   if (!res.ok) return { status: 'failed' }
@@ -173,8 +194,16 @@ export async function resolveHost(rawHost: string): Promise<HostRead> {
     return { status: 'failed' }
   }
 
+  // ⚠️ A KIND THIS ROUTER DOES NOT KNOW IS A 404, NEVER A GUESS. A stale
+  // producer still sending the retired `alias` outcome must not be redirected,
+  // and a newer one sending a kind this build predates must not be drawn as a
+  // shape it was not given. Not cached: it is a version skew, not an answer.
+  if (!data || typeof data !== 'object' || !KNOWN_KINDS.has(data.kind)) {
+    return { status: 'not-found' }
+  }
+
   const read: HostRead = { status: 'ok', data }
-  remember(host, read, maxAgeMs(res.headers.get('cache-control')))
+  remember(host, read, res.headers.get('cache-control'))
   return read
 }
 
@@ -185,8 +214,11 @@ export async function resolveHost(rawHost: string): Promise<HostRead> {
  * {@link routeForHost} IDEMPOTENT — see the ⚠️ on that function.
  */
 export const ROUTER_PATHS = {
-  /** A workspace subdomain's root: that workspace's public-project list. */
-  workspaceRoot: '/w',
+  /**
+   * A live workspace host with no application yet (MOTIR-9512) — a localised,
+   * `noindex` page in the site chrome that names the workspace.
+   */
+  noApplication: '/no-application',
   /**
    * No route matches it, so Next renders `app/not-found.tsx` with a 404.
    *
@@ -212,7 +244,7 @@ export const ROUTER_PATHS = {
 } as const
 
 /**
- * A router page target inside one locale's tree (MOTIR-7948) — `/en/w`,
+ * A router page target inside one locale's tree (MOTIR-7948) — `/en/no-application`,
  * `/en/host-unavailable`, `/en/p/<id>/…`.
  *
  * Every PAGE lives under `app/[locale]` now, so a rewrite onto an unprefixed
@@ -258,12 +290,10 @@ export type HostRoute =
   /** Rewrite onto the shipped `/<locale>/p/*` tree, with the visitor's URL unchanged. */
   | { action: 'rewrite'; path: string }
   /**
-   * A workspace subdomain's ROOT — that workspace's public-project list, at
-   * `path` (the locale's `/w`).
+   * A live workspace host's ROOT while it has no application to serve — the
+   * locale's `/no-application` page.
    */
-  | { action: 'workspace-root'; path: string }
-  /** 301 to the same path on another host (a retired subdomain). */
-  | { action: 'redirect'; host: string }
+  | { action: 'no-application'; path: string }
   /** The site's not-found page, with a 404 status. */
   | { action: 'not-found' }
 
@@ -286,13 +316,12 @@ export function isSiteAssetPath(pathname: string): boolean {
   return segments.length === 1 && segments[0]!.includes('.')
 }
 
-/** Every project identifier a host may serve — one, or a workspace's set. */
-function identifiersOf(
-  resolution: Exclude<PublicHostResolution, PublicHostAlias>,
-): readonly string[] {
-  return resolution.kind === 'workspace'
-    ? resolution.projects.map((p) => p.identifier)
-    : [resolution.project.identifier]
+/**
+ * Every project identifier a host may serve — a customer domain's one, and
+ * none on a workspace host, whose projects live at `motir.co/p/<identifier>`.
+ */
+function identifiersOf(resolution: PublicHostResolution): readonly string[] {
+  return resolution.kind === 'project' ? [resolution.project.identifier] : []
 }
 
 /**
@@ -319,7 +348,7 @@ function identifiersOf(
  * primary.
  */
 function alreadyRouted(
-  resolution: Exclude<PublicHostResolution, PublicHostAlias>,
+  resolution: PublicHostResolution,
   pathname: string,
   locale: Locale,
 ): HostRoute | null {
@@ -338,8 +367,10 @@ function alreadyRouted(
       : { action: 'rewrite', path: localisedPath(route, locale) }
 
   if (bare === ROUTER_PATHS.unavailable) return own(bare)
-  if (bare === ROUTER_PATHS.workspaceRoot) {
-    return resolution.kind === 'workspace' ? own(bare) : { action: 'not-found' }
+  if (bare === ROUTER_PATHS.noApplication) {
+    return resolution.kind === 'no_application'
+      ? own(bare)
+      : { action: 'not-found' }
   }
   if (!bare.startsWith('/p/')) {
     // A locale-prefixed path that is none of the router's targets — `/en/` or
@@ -363,10 +394,6 @@ export function routeForHost(
   pathname: string,
   locale: Locale = DEFAULT_LOCALE,
 ): HostRoute {
-  if (resolution.kind === 'alias') {
-    return { action: 'redirect', host: resolution.redirectTo }
-  }
-
   const routed = alreadyRouted(resolution, pathname, locale)
   if (routed) return routed
 
@@ -382,31 +409,15 @@ export function routeForHost(
     }
   }
 
-  // A workspace subdomain. The ROOT is the workspace's project list; everything
-  // else is addressed by a project identifier in the first segment.
+  // A live workspace host with no application yet. Its ROOT says so; every
+  // other path is a 404 except a site asset the shared chrome needs. It serves
+  // no project paths — public projects live at `motir.co/p/<identifier>`.
   if (pathname === '/') {
     return {
-      action: 'workspace-root',
-      path: localisedPath(ROUTER_PATHS.workspaceRoot, locale),
+      action: 'no-application',
+      path: localisedPath(ROUTER_PATHS.noApplication, locale),
     }
   }
-
-  const [first, ...rest] = pathname.split('/').filter(Boolean)
-  const project = resolution.projects.find((p) => p.identifier === first)
-  if (!project) {
-    // ⚠️ THE ASSET CHECK IS SECOND, NOT FIRST, so a project could never be
-    // shadowed by it. Only once the segment is known NOT to be a project does a
-    // dot in it mean "a file on the site".
-    if (isSiteAssetPath(pathname)) return { action: 'forward' }
-    return { action: 'not-found' }
-  }
-
-  const suffix = rest.length ? `/${rest.join('/')}` : ''
-  return {
-    action: 'rewrite',
-    path: localisedPath(
-      `/p/${encodeURIComponent(project.identifier)}${suffix}`,
-      locale,
-    ),
-  }
+  if (isSiteAssetPath(pathname)) return { action: 'forward' }
+  return { action: 'not-found' }
 }

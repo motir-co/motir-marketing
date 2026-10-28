@@ -79,7 +79,6 @@ function hrefsOf(page: Page): Promise<string[]> {
 
 /*
  * ⚠️ THE IDENTIFIERS ARE THE FIXTURE'S, AND THEY ARE NOT `MOTIR`.
- * `e2e/fixtures/host-workspace.json` publishes `ACME` and `ROAD`, and
  * `host-project.json` puts `ROAD` at the customer domain's root — while every
  * `/p/*` URL in `e2e/routes.ts` uses `MOTIR`, which is the SITE host's fixture.
  * A tenant URL naming `MOTIR` is a 404, and it renders the 404 room inside this
@@ -88,15 +87,16 @@ function hrefsOf(page: Page): Promise<string[]> {
  * The `expect(status).toBe(200)` in each test is what keeps that mistake
  * legible rather than mysterious.
  *
- * `ACME`'s primary IS the workspace subdomain and `ROAD`'s IS the customer
- * domain (`acceptance-public-address.spec.ts` states why), so neither URL below
- * takes `redirectIfNotPrimary`'s 308 to somewhere else.
+ * `ROAD`'s primary IS the customer domain, so its URL does not take
+ * `redirectIfNotPrimary`'s 308 to somewhere else. The workspace host serves no
+ * project since MOTIR-9512, so its row walks the page it does serve: the
+ * no-application page at its root, in the same chrome.
  */
 for (const [label, url] of [
-  ['a workspace subdomain', `${TENANT_ORIGIN}/ACME`],
+  ['a workspace subdomain', `${TENANT_ORIGIN}/`],
   ['a customer domain', `${CUSTOM_ORIGIN}/`],
 ] as const) {
-  test(`${label} — a project page takes ZERO responses at 400 or above`, async ({
+  test(`${label} — its page takes ZERO responses at 400 or above`, async ({
     page,
   }) => {
     const failures = recordFailures(page)
@@ -230,8 +230,8 @@ test('the SITE keeps the relative chrome it has always had', async ({
 const STRANGER_ORIGIN = `http://stranger.localhost:${SITE_PORT}`
 
 for (const [label, url, status] of [
-  // A RESOLVED workspace host serving a path that is not one of its projects —
-  // the branch the card's reproduction takes, and the one where the router
+  // A RESOLVED workspace host serving a path it does not have — the branch
+  // the card's reproduction takes, and the one where the router
   // already held the answer and simply did not pass it on.
   ['the 404 room on a resolved tenant host', `${TENANT_ORIGIN}/explore`, 404],
   // A host the contract does not know: `unresolved`, and still not this site.

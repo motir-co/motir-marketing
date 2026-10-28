@@ -1,11 +1,6 @@
 import { writeFileSync } from 'node:fs'
 import { expect, test, type Page } from '@playwright/test'
-import {
-  CUSTOM_ORIGIN,
-  SITE_ORIGIN,
-  STUB_ORIGIN,
-  TENANT_ORIGIN,
-} from '../stub/origin'
+import { CUSTOM_ORIGIN, SITE_ORIGIN, STUB_ORIGIN } from '../stub/origin'
 
 /*
  * ⚠️ THE ACCEPTANCE WALK FOR STORY MOTIR-6171 (MOTIR-6749) — motir.co's read
@@ -203,34 +198,29 @@ test('every old read path on motir.co answers 308 into the app', async ({
 test('the same on a customer-owned address, and its app tabs point at the app', async ({
   page,
 }) => {
-  for (const [origin, path, id] of [
-    [TENANT_ORIGIN, '/ACME/board', 'ACME'],
-    [CUSTOM_ORIGIN, '/board', 'ROAD'],
-  ] as const) {
-    const res = await page.request.get(`${origin}${path}`, { maxRedirects: 0 })
-    expect(res.status(), origin).toBe(308)
-    expect(res.headers()['location'], origin).toBe(`${APP}/p/${id}/board`)
-  }
+  // A customer domain only: a workspace host serves no project since
+  // MOTIR-9512, so it has no read link to move.
+  const res = await page.request.get(`${CUSTOM_ORIGIN}/board`, {
+    maxRedirects: 0,
+  })
+  expect(res.status()).toBe(308)
+  expect(res.headers()['location']).toBe(`${APP}/p/ROAD/board`)
 
-  await page.goto(`${TENANT_ORIGIN}/ACME`)
+  await page.goto(`${CUSTOM_ORIGIN}/`)
   const nav = page.getByRole('navigation', { name: 'Project' })
   await expect(nav.getByRole('link', { name: /^Board/ })).toHaveAttribute(
     'href',
-    `${APP}/p/ACME/board`,
+    `${APP}/p/ROAD/board`,
+  )
+  await expect(nav.getByRole('link', { name: /^Roadmap/ })).toHaveAttribute(
+    'href',
+    `${APP}/p/ROAD/roadmap`,
   )
   await expect(nav.getByRole('link', { name: 'Changelog' })).toHaveAttribute(
     'href',
-    '/ACME/changelog',
+    '/changelog',
   )
   await expectWatchSentence(page)
-  expect(await sameHostReadLinks(page)).toEqual([])
-
-  await page.goto(`${CUSTOM_ORIGIN}/`)
-  await expect(
-    page
-      .getByRole('navigation', { name: 'Project' })
-      .getByRole('link', { name: /^Roadmap/ }),
-  ).toHaveAttribute('href', `${APP}/p/ROAD/roadmap`)
   expect(await sameHostReadLinks(page)).toEqual([])
 })
 

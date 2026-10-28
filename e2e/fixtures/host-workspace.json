@@ -1,16 +1,6 @@
 {
-  "kind": "workspace",
+  "kind": "no_application",
   "workspace": {
     "name": "moooon B.V."
-  },
-  "projects": [
-    {
-      "identifier": "ACME",
-      "name": "Acme Roadmap"
-    },
-    {
-      "identifier": "ROAD",
-      "name": "Acme Public Roadmap"
-    }
-  ]
+  }
 }

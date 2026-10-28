@@ -54,7 +54,6 @@
         "project": "No pudimos cargar este proyecto",
         "changelog": "No pudimos cargar las novedades de este proyecto",
         "request": "No pudimos cargar esta solicitud de función",
-        "workspaceProjects": "No pudimos cargar los proyectos de este espacio de trabajo",
         "address": "No pudimos cargar esta dirección",
         "body": "La aplicación de Motir no responde en este momento. La página en la que estás funciona bien: esto se lee desde {host}, que es un despliegue aparte. Vuelve a intentarlo en un momento.",
         "bodyWithFeed": "La aplicación de Motir no responde en este momento. La página en la que estás funciona bien: esto se lee desde {host}, que es un despliegue aparte. Vuelve a intentarlo en un momento o lee las novedades, que se sirven desde un feed.",
@@ -96,12 +95,9 @@
       "askHeading": "Pide algo",
       "requestFeature": "Solicitar una función ↗"
     },
-    "workspaceRoot": {
-      "heading": "Proyectos públicos",
-      "empty": {
-        "title": "Todavía no hay nada público aquí",
-        "body": "Este espacio de trabajo ha reservado su dirección, pero aún no ha hecho público ningún proyecto. Cuando lo haga, el proyecto aparecerá aquí."
-      }
+    "noApplication": {
+      "heading": "Todavía no hay ninguna aplicación aquí",
+      "body": "Esta dirección pertenece a {workspace}. Todavía no hay ninguna aplicación desplegada aquí."
     },
     "meta": {
       "overviewFallback": "Un proyecto construido en público con Motir: su resumen, sus novedades y sus solicitudes de funciones, y el tablero en directo en la aplicación de Motir.",
@@ -110,8 +106,7 @@
       "tabDescription": "{label} de {name}, público en Motir.",
       "requestNewTitle": "Solicitar una función · {name}",
       "requestNewDescription": "Pide algo al equipo de {name}. Las solicitudes son públicas.",
-      "workspaceTitle": "Proyectos públicos",
-      "workspaceDescription": "Los proyectos públicos que este espacio de trabajo publica en Motir.",
+      "noApplicationTitle": "Todavía no hay ninguna aplicación aquí",
       "hostUnavailableTitle": "No disponible temporalmente"
     }
   },

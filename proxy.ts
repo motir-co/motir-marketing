@@ -263,25 +263,6 @@ function forwardedOrigin(request: NextRequest): string {
 }
 
 /**
- * The same value as a URL, so the scheme and the port can be read off it
- * separately (MOTIR-4447).
- *
- * ⚠️ IT FALLS BACK RATHER THAN THROWING. `forwardedOrigin` builds its authority
- * out of a request header, and a header is whatever the client sent — an
- * `x-forwarded-host` that is not an authority would make `new URL` throw inside
- * the proxy, which is a 500 on every request to that host rather than a slightly
- * wrong `Location`. The fallback is `request.nextUrl`, i.e. exactly today's
- * behaviour for a request nothing forwarded.
- */
-function visitorOrigin(request: NextRequest): URL {
-  try {
-    return new URL(forwardedOrigin(request))
-  } catch {
-    return new URL(request.nextUrl)
-  }
-}
-
-/**
  * Forward the request with the three host headers SET (never merged).
  *
  * ⚠️ EVERY BRANCH GOES THROUGH HERE NOW (MOTIR-4430). It used to have a
@@ -327,9 +308,9 @@ function forwardWithHost(
   )
 }
 
-/** The header value for a resolution — an alias never reaches a page. */
+/** The header value for a resolution. */
 function kindOf(resolution: PublicHostResolution): 'workspace' | 'project' {
-  return resolution.kind === 'workspace' ? 'workspace' : 'project'
+  return resolution.kind === 'no_application' ? 'workspace' : 'project'
 }
 
 /** The header next-intl's rewrite carries back into this proxy. */
@@ -447,42 +428,6 @@ async function route(request: NextRequest): Promise<NextResponse> {
   const route = routeForHost(read.data, request.nextUrl.pathname, locale)
 
   switch (route.action) {
-    case 'redirect': {
-      // A retired subdomain — ADR §8's never-released promise, made observable.
-      // 301 with the PATH AND QUERY preserved: a link somebody published to a
-      // deep page must land on that page, not on the new root.
-      const destination = new URL(request.nextUrl)
-      // ⚠️ `hostname`, NOT `host`, AND THE SCHEME AND PORT COME FROM THE
-      // VISITOR — `visitorOrigin`, not `request.nextUrl` (MOTIR-4447).
-      //
-      // The contract answers a bare hostname, so the scheme and port have to be
-      // supplied from somewhere, and the live subdomain is served by THIS
-      // deployment — so they are the ones the visitor already reached us on.
-      // That reasoning is unchanged and is still why the port is not simply
-      // cleared: clearing it sends a browser to :80 and breaks every
-      // non-production run of this redirect, including the browser lane's,
-      // where the app genuinely is on the port the visitor typed.
-      //
-      // What it got wrong is WHICH VALUE carries that port. Behind a proxy that
-      // terminates TLS, `request.nextUrl` is the INTERNAL address: Fly ends TLS
-      // on 443 and forwards to the machine's 8080, so a visitor who arrived on
-      // 443 was answered `Location: https://<live host>:8080/…` — a port that
-      // is not published, and a 301 chain that died at one hop while every
-      // signal on this side read green. `request.nextUrl` is precisely the
-      // thing that does NOT hold "the port the visitor reached us on" in
-      // production. `visitorOrigin` reads the address the visitor actually
-      // used (`x-forwarded-proto` / `x-forwarded-host`, then `Host`) and falls
-      // back to `request.nextUrl` only when nothing forwarded anything — which
-      // is exactly the local and browser-lane case the paragraph above names.
-      const visitor = visitorOrigin(request)
-      destination.protocol = visitor.protocol
-      destination.hostname = route.host
-      // `''` when the visitor's authority carried no port, which CLEARS it.
-      // Assigned after `protocol`, so a default port for the new scheme is
-      // normalised away rather than spelled out.
-      destination.port = visitor.port
-      return NextResponse.redirect(destination, 301)
-    }
     case 'forward':
       // A tenant's `robots.txt` and `sitemap.xml` are the two root files
       // answered per request, by route handlers: motir.co's own are built.
@@ -501,11 +446,12 @@ async function route(request: NextRequest): Promise<NextResponse> {
     case 'not-found':
       // ⚠️ THE ONE 404 BRANCH THAT HOLDS A RESOLUTION, so it forwards the REAL
       // kind rather than `unresolved` (MOTIR-4430). `hey.motir.site/explore` is
-      // a workspace address serving a path that is not one of its projects —
-      // the host is known, the path is not — and this is the branch the card's
+      // a live workspace address serving a path it does not have — the host is
+      // known, the path is not — and this is the branch the card's
       // reproduction takes.
       return forwardWithHost(request, kindOf(read.data), host, NOT_FOUND_PATH)
-    case 'workspace-root':
+    case 'no-application':
+      // A live workspace host with no application to serve yet (MOTIR-9512).
       return forwardWithHost(request, 'workspace', host, route.path)
     default:
       return forwardWithHost(request, kindOf(read.data), host, route.path)

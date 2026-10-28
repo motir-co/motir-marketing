@@ -36,10 +36,15 @@ import type { PublicProjectOverviewDto } from '@/lib/publicProject'
  */
 
 const WORKSPACE_PAYLOAD = {
-  kind: 'workspace',
+  kind: 'no_application',
   workspace: { name: 'moooon B.V.' },
-  projects: [{ identifier: 'ACME', name: 'Acme Roadmap' }],
 }
+const CUSTOM_PAYLOAD = {
+  kind: 'project',
+  project: { identifier: 'ACME', name: 'Acme Roadmap' },
+  primary: true,
+}
+/** The retired never-released outcome a stale producer might still send. */
 const ALIAS_PAYLOAD = { kind: 'alias', redirectTo: 'acme.motir.site' }
 
 const project = (primary: string): PublicProjectOverviewDto => ({
@@ -70,41 +75,61 @@ afterEach(() => {
 
 /* ── seam (a): contract → router → rendered page ──────────────────────────── */
 
-describe('a recorded workspace resolution, driven to a rendered tab page', () => {
-  it('produces host-relative hrefs AND the canonical in ONE pass', async () => {
+describe('a recorded workspace resolution, driven through the router', () => {
+  it('answers the no-application page at the root and a 404 for a project path (MOTIR-9512)', async () => {
     resetHostResolutionCache()
     vi.stubGlobal('fetch', async () =>
       Response.json(WORKSPACE_PAYLOAD, {
-        headers: { 'cache-control': 'public, max-age=60' },
+        headers: { 'cache-control': 'public, max-age=30' },
+      }),
+    )
+
+    const read = await resolveHost('acme.motir.site')
+    expect(read.status).toBe('ok')
+    if (read.status !== 'ok') return
+
+    const { routeForHost } = await import('@/lib/hostResolution')
+    expect(routeForHost(read.data, '/')).toEqual({
+      action: 'no-application',
+      path: '/en/no-application',
+    })
+    expect(routeForHost(read.data, '/ACME/board')).toEqual({
+      action: 'not-found',
+    })
+  })
+})
+
+describe('a recorded customer-domain resolution, driven to a rendered tab page', () => {
+  it('produces host-relative hrefs AND the canonical in ONE pass', async () => {
+    resetHostResolutionCache()
+    vi.stubGlobal('fetch', async () =>
+      Response.json(CUSTOM_PAYLOAD, {
+        headers: { 'cache-control': 'public, max-age=30' },
       }),
     )
 
     // 1. the ROUTER's read of the real contract shape
-    const read = await resolveHost('acme.motir.site')
+    const read = await resolveHost('roadmap.acme.com')
     expect(read.status).toBe('ok')
+    if (read.status !== 'ok') return
 
     const { routeForHost } = await import('@/lib/hostResolution')
-    const route = routeForHost(
-      read.status === 'ok'
-        ? read.data
-        : (() => {
-            throw new Error('the recorded payload did not resolve')
-          })(),
-      '/ACME/board',
-    )
-    expect(route).toEqual({ action: 'rewrite', path: '/en/p/ACME/board' })
+    expect(routeForHost(read.data, '/changelog')).toEqual({
+      action: 'rewrite',
+      path: '/en/p/ACME/changelog',
+    })
 
     // 2. the headers the router would then forward, read back as a page does
     const host = readPublicHost(
       new Headers({
-        [PUBLIC_ADDRESS_KIND_HEADER]: 'workspace',
-        [PUBLIC_HOST_HEADER]: 'acme.motir.site',
-        [PUBLIC_ORIGIN_HEADER]: 'https://acme.motir.site',
+        [PUBLIC_ADDRESS_KIND_HEADER]: 'project',
+        [PUBLIC_HOST_HEADER]: 'roadmap.acme.com',
+        [PUBLIC_ORIGIN_HEADER]: 'https://roadmap.acme.com',
       }),
     )
 
     // 3. the RENDERED page — links and canonical together, which is the join
-    const subject = project('https://acme.motir.site/ACME')
+    const subject = project('https://roadmap.acme.com')
     render(<ProjectHeader project={subject} current="changelog" host={host} />)
     const { container } = render(
       <ProjectJsonLd project={subject} fallbackDescription="" />,
@@ -113,17 +138,14 @@ describe('a recorded workspace resolution, driven to a rendered tab page', () =>
     const nav = screen.getAllByRole('navigation', { name: 'Project' })[0]!
     expect(within(nav).getByRole('link', { name: 'Overview' })).toHaveAttribute(
       'href',
-      '/ACME',
+      '/',
     )
     expect(
       within(nav).getByRole('link', { name: 'Changelog' }),
-    ).toHaveAttribute('href', '/ACME/changelog')
+    ).toHaveAttribute('href', '/changelog')
 
     const graph = JSON.parse(container.querySelector('script')!.innerHTML)
-    expect(graph['@id']).toBe('https://acme.motir.site/ACME')
-    expect(publicUrlFor(subject, 'board')).toBe(
-      'https://acme.motir.site/ACME/board',
-    )
+    expect(graph['@id']).toBe('https://roadmap.acme.com')
   })
 })
 
@@ -140,7 +162,7 @@ describe('the crawl index’s primaryHost, driven into the sitemap', () => {
       {
         identifier: 'ACME',
         updatedAt: '2026-09-01T00:00:00.000Z',
-        primaryHost: 'acme.motir.site',
+        primaryHost: 'roadmap.acme.com',
       },
     ],
     nextCursor: null,
@@ -165,13 +187,13 @@ describe('the crawl index’s primaryHost, driven into the sitemap', () => {
     // single-host test.
     const onSite = await sitemapAs({})
     const onTenant = await sitemapAs({
-      [PUBLIC_ADDRESS_KIND_HEADER]: 'workspace',
-      [PUBLIC_HOST_HEADER]: 'acme.motir.site',
-      [PUBLIC_ORIGIN_HEADER]: 'https://acme.motir.site',
+      [PUBLIC_ADDRESS_KIND_HEADER]: 'project',
+      [PUBLIC_HOST_HEADER]: 'roadmap.acme.com',
+      [PUBLIC_ORIGIN_HEADER]: 'https://roadmap.acme.com',
     })
 
     expect(onSite.some((u) => u.includes('ACME'))).toBe(false)
-    expect(onTenant.some((u) => u.includes('ACME'))).toBe(true)
+    expect(onTenant).toContain('https://roadmap.acme.com/')
 
     expect(onSite).toContain('https://motir.co/p/MOTIR')
     expect(onTenant.some((u) => u.includes('MOTIR'))).toBe(false)
@@ -191,38 +213,28 @@ describe('the crawl index’s primaryHost, driven into the sitemap', () => {
   })
 })
 
-/* ── seam (c): an alias resolution → the 301 ──────────────────────────────── */
+/* ── seam (c): a retired alias outcome → the 404 room, never a redirect ───── */
 
-describe('a recorded alias resolution, driven through the router to the 301', () => {
-  it('answers 301 to the live host, path and query preserved', async () => {
+describe('a recorded alias resolution, driven through the router', () => {
+  it('is the 404 room — a retired name never redirects (ADR §8 Amendment 3 rule 2)', async () => {
     resetHostResolutionCache()
-    const resolveHostMock = vi.fn(async () => ({
-      status: 'ok' as const,
-      data: ALIAS_PAYLOAD as never,
-    }))
-    vi.resetModules()
-    vi.doMock('@/lib/hostResolution', async (importOriginal) => ({
-      ...(await importOriginal<typeof import('@/lib/hostResolution')>()),
-      resolveHost: resolveHostMock,
-    }))
-    try {
-      const { proxy } = await import('@/proxy')
-      const { NextRequest } = await import('next/server')
-      const res = await proxy(
-        new NextRequest('https://old.motir.site/ACME/items?cursor=w9', {
-          headers: { host: 'old.motir.site' },
-        }),
-      )
+    vi.stubGlobal('fetch', async () => Response.json(ALIAS_PAYLOAD))
+    expect(await resolveHost('old.motir.site')).toEqual({ status: 'not-found' })
 
-      expect(res.status).toBe(301)
-      const location = new URL(res.headers.get('location')!)
-      expect(location.host).toBe('acme.motir.site')
-      expect(location.pathname).toBe('/ACME/items')
-      expect(location.search).toBe('?cursor=w9')
-    } finally {
-      vi.doUnmock('@/lib/hostResolution')
-      vi.resetModules()
-    }
+    vi.resetModules()
+    const { proxy } = await import('@/proxy')
+    const { NextRequest } = await import('next/server')
+    const res = await proxy(
+      new NextRequest('https://old.motir.site/ACME/items?cursor=w9', {
+        headers: { host: 'old.motir.site' },
+      }),
+    )
+
+    expect(res.status).not.toBe(301)
+    expect(res.headers.get('location')).toBeNull()
+    expect(new URL(res.headers.get('x-middleware-rewrite')!).pathname).toBe(
+      '/_host-unknown',
+    )
   })
 })
 

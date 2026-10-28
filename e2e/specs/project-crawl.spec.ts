@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { TENANT_ORIGIN } from '../stub/origin'
+import { CUSTOM_ORIGIN, TENANT_ORIGIN } from '../stub/origin'
 import { readSitemap } from '../support/sitemap'
 
 /*
@@ -68,29 +68,37 @@ test('and OMITS one whose canonical has moved to a tenant host', async ({
   request,
 }) => {
   // ⚠️ THIS ASSERTION USED TO BE ITS OPPOSITE, and the change is the card
-  // (MOTIR-4222). `ACME`'s primary is `acme.localhost` in the stub's index, and
-  // a sitemap may only list URLs on its OWN host — so the project disappears
-  // from here and appears in that host's sitemap, which the test below walks.
-  // Listing it in both is the duplication *make primary* exists to prevent;
-  // listing it in neither loses it.
+  // (MOTIR-4222). `ROAD`'s primary is `roadmap.localhost` in the stub's index,
+  // and a sitemap may only list URLs on its OWN host — so the project
+  // disappears from here and appears in that host's sitemap, which the test
+  // below walks. Listing it in both is the duplication *make primary* exists to
+  // prevent; listing it in neither loses it.
   const xml = await readSitemap(request)
 
-  expect(xml).not.toContain('/p/ACME')
+  expect(xml).not.toContain('/p/ROAD')
 })
 
 test('the tenant host’s sitemap lists ITS project, at its own paths', async ({
   request,
 }) => {
-  const xml = await (await request.get(`${TENANT_ORIGIN}/sitemap.xml`)).text()
+  const xml = await (await request.get(`${CUSTOM_ORIGIN}/sitemap.xml`)).text()
 
-  expect(xml).toContain(`${TENANT_ORIGIN}/ACME</loc>`)
-  expect(xml).toContain(`${TENANT_ORIGIN}/ACME/changelog</loc>`)
-  expect(xml).not.toContain(`${TENANT_ORIGIN}/ACME/board</loc>`)
-  // Not `/p/ACME`, and none of the marketing site's own pages: a tenant host is
+  expect(xml).toContain(`${CUSTOM_ORIGIN}/</loc>`)
+  expect(xml).toContain(`${CUSTOM_ORIGIN}/changelog</loc>`)
+  expect(xml).not.toContain(`${CUSTOM_ORIGIN}/board</loc>`)
+  // Not `/p/ROAD`, and none of the marketing site's own pages: a tenant host is
   // a project's address, not a copy of motir.co.
-  expect(xml).not.toContain('/p/ACME')
+  expect(xml).not.toContain('/p/ROAD')
   expect(xml).not.toContain('/explore')
   expect(xml).not.toContain('MOTIR')
+})
+
+test('a workspace host’s sitemap lists nothing — it serves no project', async ({
+  request,
+}) => {
+  // MOTIR-9512: the bare workspace host belongs to the default application.
+  const xml = await (await request.get(`${TENANT_ORIGIN}/sitemap.xml`)).text()
+  expect(xml).not.toContain('<loc>')
 })
 
 test('and its robots.txt names ITS OWN sitemap', async ({ request }) => {

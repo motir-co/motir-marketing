@@ -117,7 +117,7 @@ describe('the covered pages hold no hard-coded copy', () => {
     expect(COVERED).toContain('app/_components/NotFoundRoom.tsx')
     expect(COVERED).toContain('app/[locale]/docs/_components/DocsRail.tsx')
     expect(COVERED).toContain('app/[locale]/p/[identifier]/page.tsx')
-    expect(COVERED).toContain('app/[locale]/w/page.tsx')
+    expect(COVERED).toContain('app/[locale]/no-application/page.tsx')
   })
 
   it('finds no literal outside the catalogue', () => {

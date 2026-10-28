@@ -87,17 +87,6 @@ const SITE: HostCase = {
   headers: {},
   primary: 'https://motir.co/p/ACME',
 }
-const WORKSPACE: HostCase = {
-  label: 'a workspace subdomain',
-  origin: 'https://acme.motir.site',
-  path: (view) => `/ACME${view ? `/${view}` : ''}`,
-  headers: {
-    [PUBLIC_ADDRESS_KIND_HEADER]: 'workspace',
-    [PUBLIC_HOST_HEADER]: 'acme.motir.site',
-    [PUBLIC_ORIGIN_HEADER]: 'https://acme.motir.site',
-  },
-  primary: 'https://acme.motir.site/ACME',
-}
 const CUSTOM: HostCase = {
   label: 'a custom domain',
   origin: 'https://roadmap.acme.com',
@@ -109,13 +98,14 @@ const CUSTOM: HostCase = {
   },
   primary: 'https://roadmap.acme.com',
 }
-const HOSTS = [SITE, WORKSPACE, CUSTOM]
+// A workspace host serves no project since MOTIR-9512, so it has no read
+// links to move; its refusals are asserted below.
+const HOSTS = [SITE, CUSTOM]
 
 const HOST_READS: Record<string, unknown> = {
   'acme.motir.site': {
-    kind: 'workspace',
+    kind: 'no_application',
     workspace: { name: 'Acme' },
-    projects: [{ identifier: 'ACME', name: 'Acme Roadmap' }],
   },
   'roadmap.acme.com': {
     kind: 'project',
@@ -248,9 +238,9 @@ describe.each(HOSTS)('$label — every old read link lands in the app', (h) => {
   )
 })
 
-describe('the matrix is fifteen cases, not fewer', () => {
-  it('three host kinds × five read paths', () => {
-    expect(HOSTS.length * READ_PATHS.length).toBe(15)
+describe('the matrix is ten cases, not fewer', () => {
+  it('two host kinds × five read paths', () => {
+    expect(HOSTS.length * READ_PATHS.length).toBe(10)
   })
 
   it('and no case read the contract for anything but a HOST', async () => {
@@ -266,11 +256,14 @@ describe('the matrix is fifteen cases, not fewer', () => {
 /* ── 2 · the router's refusals, unchanged by the story ────────────────────── */
 
 describe('the router still refuses what it refused before', () => {
-  it('a workspace host asked for a project it does not publish → not-found, never a redirect', async () => {
+  it('a workspace host asked for any project path → not-found, never a redirect', async () => {
     for (const path of [
       '/p/OTHER/board',
       '/OTHER/board',
       '/p/OTHER/items/OTHER-1',
+      // MOTIR-9512: not even a project of its own workspace.
+      '/ACME/board',
+      '/p/ACME/board',
     ]) {
       const res = await proxy(request(`https://acme.motir.site${path}`))
       expect(rewriteOf(res), path).toBe(ROUTER_PATHS.notFound)
@@ -278,15 +271,11 @@ describe('the router still refuses what it refused before', () => {
     }
   })
 
-  it('a retired alias subdomain → 301 with the path kept, then the 308 on the live host', async () => {
+  it('a retired alias outcome → not-found, never a redirect (ADR §8 Amendment 3 rule 2)', async () => {
     const res = await proxy(request('https://old.motir.site/ACME/board'))
-    expect(res.status).toBe(301)
-    const live = res.headers.get('location')!
-    expect(live).toBe('https://acme.motir.site/ACME/board')
-
-    const onward = await handle(await route(live))
-    expect(onward.status).toBe(308)
-    expect(onward.headers.get('location')).toBe(`${APP}/p/ACME/board`)
+    expect(res.status).not.toBe(301)
+    expect(res.headers.get('location')).toBeNull()
+    expect(rewriteOf(res)).toBe(ROUTER_PATHS.notFound)
   })
 
   it('the tenant base domain → not-found, without asking the contract', async () => {

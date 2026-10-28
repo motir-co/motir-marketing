@@ -54,7 +54,6 @@
         "project": "Non siamo riusciti a caricare questo progetto",
         "changelog": "Non siamo riusciti a caricare il changelog di questo progetto",
         "request": "Non siamo riusciti a caricare questa richiesta di funzionalità",
-        "workspaceProjects": "Non siamo riusciti a caricare i progetti di questa area di lavoro",
         "address": "Non siamo riusciti a caricare questo indirizzo",
         "body": "L’applicazione Motir al momento non risponde. La pagina in cui ti trovi funziona: questa sezione legge da {host}, che è un deployment separato. Riprova tra un momento.",
         "bodyWithFeed": "L’applicazione Motir al momento non risponde. La pagina in cui ti trovi funziona: questa sezione legge da {host}, che è un deployment separato. Riprova tra un momento, oppure leggi il changelog, servito da un feed.",
@@ -96,12 +95,9 @@
       "askHeading": "Chiedi qualcosa",
       "requestFeature": "Richiedi una funzionalità ↗"
     },
-    "workspaceRoot": {
-      "heading": "Progetti pubblici",
-      "empty": {
-        "title": "Qui non c’è ancora nulla di pubblico",
-        "body": "Questa area di lavoro ha registrato il suo indirizzo ma non ha ancora reso pubblico alcun progetto. Quando lo farà, il progetto comparirà qui."
-      }
+    "noApplication": {
+      "heading": "Nessuna applicazione qui, per ora",
+      "body": "Questo indirizzo appartiene a {workspace}. Qui non è ancora stata distribuita nessuna applicazione."
     },
     "meta": {
       "overviewFallback": "Un progetto costruito in pubblico su Motir: panoramica, changelog e richieste di funzionalità, più la bacheca in tempo reale nell’app Motir.",
@@ -110,8 +106,7 @@
       "tabDescription": "{label} di {name}, pubblico su Motir.",
       "requestNewTitle": "Richiedi una funzionalità · {name}",
       "requestNewDescription": "Chiedi qualcosa al team di {name}. Le richieste sono pubbliche.",
-      "workspaceTitle": "Progetti pubblici",
-      "workspaceDescription": "I progetti pubblici che questa area di lavoro pubblica su Motir.",
+      "noApplicationTitle": "Nessuna applicazione qui, per ora",
       "hostUnavailableTitle": "Temporaneamente non disponibile"
     }
   },

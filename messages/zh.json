@@ -54,7 +54,6 @@
         "project": "无法加载此项目",
         "changelog": "无法加载此项目的更新日志",
         "request": "无法加载此功能需求",
-        "workspaceProjects": "无法加载此工作区的项目",
         "address": "无法加载此地址",
         "body": "Motir 应用暂时没有响应。你所在的页面没有异常——这部分内容读取自 {host}，那是一个独立的部署。请稍后再试。",
         "bodyWithFeed": "Motir 应用暂时没有响应。你所在的页面没有异常——这部分内容读取自 {host}，那是一个独立的部署。请稍后再试，或者阅读通过订阅源提供的更新日志。",
@@ -96,12 +95,9 @@
       "askHeading": "提出你的需要",
       "requestFeature": "提出功能需求 ↗"
     },
-    "workspaceRoot": {
-      "heading": "公开项目",
-      "empty": {
-        "title": "这里还没有公开内容",
-        "body": "此工作区已认领了地址，但尚未公开任何项目。公开后，项目会显示在这里。"
-      }
+    "noApplication": {
+      "heading": "这里还没有应用",
+      "body": "此地址属于 {workspace}。这里还没有部署任何应用。"
     },
     "meta": {
       "overviewFallback": "一个在 Motir 上公开构建的项目——它的概览、更新日志和功能需求，以及 Motir 应用中的实时面板。",
@@ -110,8 +106,7 @@
       "tabDescription": "{name} 的{label}——在 Motir 上公开。",
       "requestNewTitle": "提出功能需求 · {name}",
       "requestNewDescription": "向 {name} 团队提出你的需要。需求是公开的。",
-      "workspaceTitle": "公开项目",
-      "workspaceDescription": "此工作区在 Motir 上发布的公开项目。",
+      "noApplicationTitle": "这里还没有应用",
       "hostUnavailableTitle": "暂时无法访问"
     }
   },
