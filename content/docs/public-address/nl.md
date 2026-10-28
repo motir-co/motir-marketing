@@ -1,20 +1,29 @@
 ---
-source: b6adcdeabaad
+source: 410c4c87d2ef
 ---
 
-Een openbaar project is bereikbaar op een adres naar keuze. Elke werkruimte kan één eigen adres claimen, en een project kan daarnaast antwoorden op een domein dat je al bezit.
+Een openbaar project antwoordt op zijn eigen adres op `motir.co`, en kan daarnaast antwoorden op een domein dat je al bezit. Los daarvan kan een werkruimte één eigen naam claimen onder `motir.site`.
 
 ## Je Motir-adres {#your-motir-address}
 
-Een werkruimte claimt één subdomein, en elk openbaar project erin antwoordt eronder — dus `acme` geeft je `acme.motir.site/ROADMAP` voor een project met de sleutel `ROADMAP`. Een eigenaar of beheerder van de werkruimte claimt het, in Projectinstellingen onder _Openbaar adres_.
+Elk openbaar project antwoordt op `motir.co/p/ROADMAP` voor een project met de sleutel `ROADMAP`. Er valt niets te claimen: het adres volgt uit de sleutel van het project, en het zit in elk abonnement.
 
-Een label bestaat uit kleine letters, cijfers en koppeltekens, van drie tot drieënzestig tekens. Een kleine set namen is gereserveerd voor de eigen hosts van Motir en voor namen die een lezer voor zo’n host zou kunnen aanzien.
+## De naam van je werkruimte {#your-workspace-name}
 
-Je kunt het een beperkt aantal keren hernoemen, en het paneel toont hoeveel hernoemingen je nog hebt. **Het oude adres blijft daarna werken en komt nooit vrij.** Het verwijst permanent door naar het nieuwe en kan door niemand anders worden geclaimd — ook niet door jou, later. Dat is bewust: een link die iemand al heeft gedeeld, mag niet op een dag ergens heen leiden dat jij niet hebt gekozen.
+Een werkruimte kan één naam claimen onder `motir.site`, dus `acme` geeft je `acme.motir.site`. Op die naam antwoorden de applicaties die Motir voor je werkruimte host: het kale adres toont de standaardapplicatie van de werkruimte, of een pagina die zegt dat hier nog geen applicatie is. **Openbare projecten antwoorden er nooit onder** — een project blijft op zijn `motir.co`-adres.
+
+Een eigenaar of beheerder van de werkruimte claimt de naam in _Werkruimte-instellingen_ onder _Openbaar adres_. Projectinstellingen tonen hem alleen-lezen, met een link daarheen.
+
+Een naam bestaat uit kleine letters, cijfers en losse koppeltekens, van drie tot drieënzestig tekens. Een kleine set namen is gereserveerd voor de eigen hosts van Motir en voor namen die een lezer voor zo’n host zou kunnen aanzien.
+
+Een werkruimte heeft één naam of geen. **Er zijn geen aliassen, en niets verwijst door:** als je de naam hernoemt of vrijgeeft, antwoordt het oude adres meteen niet meer, en links die al gedeeld zijn werken niet meer.
+
+- **Eén wijziging per 30 dagen.** Een hernoeming en een vrijgave tellen elk als één wijziging, dus vrijgeven en opnieuw claimen omzeilt het niet. Zolang een wijziging nog niet mag, toont het paneel de datum waarop dat wel kan.
+- **Een naam die je loslaat wordt vastgehouden, tenzij je hem net pas claimde.** Een naam die je korter dan 24 uur had, gaat meteen terug naar de pool. Een naam die je 24 uur of langer had, wordt 90 dagen vastgehouden, zodat niemand anders links kan overnemen die naar jou wezen; het bevestigingsvenster noemt de precieze datum waarop hij weer vrij is.
 
 ## Je eigen domein koppelen {#connecting-your-own-domain}
 
-Een domein dat je bezit koppelen kan met betaalde abonnementen — zie [onze abonnementen](/). Het subdomein van je werkruimte zit in elk abonnement en blijft hoe dan ook werken.
+Een domein dat je bezit koppelen kan met betaalde abonnementen — zie [onze abonnementen](/). Je `motir.co`-adres zit in elk abonnement en blijft hoe dan ook werken.
 
 Een gekoppeld domein bedient _één_ project, op zijn root: `roadmap.acme.com/` is de pagina van dat project en `roadmap.acme.com/changelog` zijn changelog. Het live bord, de werkitems en de roadmap staan in de Motir-app, en hun links daar leiden naar binnen.
 

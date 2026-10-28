@@ -1,16 +1,25 @@
-A public project is reachable at an address you choose. Every workspace can claim one address of its own, and a project can additionally answer on a domain you already own.
+A public project answers at its own address on `motir.co`, and can additionally answer on a domain you already own. Separately, a workspace can claim one name of its own under `motir.site`.
 
 ## Your Motir address {#your-motir-address}
 
-A workspace claims a single subdomain, and every public project in it answers underneath — so `acme` gives you `acme.motir.site/ROADMAP` for a project keyed `ROADMAP`. A workspace owner or admin claims it, in Project settings under _Public address_.
+Every public project answers at `motir.co/p/ROADMAP` for a project keyed `ROADMAP`. There is nothing to claim: the address follows from the project’s key, and it is included on every plan.
 
-A label is lowercase letters, digits and hyphens, three to sixty-three characters. A small set of names is kept back for Motir’s own hosts and for names a reader could mistake for one.
+## Your workspace name {#your-workspace-name}
 
-You can rename it a limited number of times, and the pane shows how many renames you have left. **The old address keeps working afterwards, and is never released.** It redirects to the new one permanently and cannot be claimed by anyone else — including you, later. That is deliberate: a link somebody has already shared must not one day lead somewhere you did not choose.
+A workspace can claim one name under `motir.site`, so `acme` gives you `acme.motir.site`. That name is where the applications Motir hosts for your workspace answer: the bare address shows the workspace’s default application, or a page saying there is no application here yet. **Public projects never answer under it** — a project stays at its `motir.co` address.
+
+A workspace owner or admin claims the name in Workspace settings under _Public address_. Project settings shows it read-only, with a link there.
+
+A name is lowercase letters, digits and single hyphens, three to sixty-three characters. A small set of names is kept back for Motir’s own hosts and for names a reader could mistake for one.
+
+A workspace has one name or none. **There are no aliases, and nothing redirects:** when you rename or release the name, the old address stops answering at once, and links already shared to it stop working.
+
+- **One change every 30 days.** A rename and a release each count as one change, so releasing and claiming again does not get round it. While a change is not allowed yet, the pane shows the date it will be.
+- **A name you let go of is held, unless you only just claimed it.** A name held for less than 24 hours goes straight back to the pool. A name held for 24 hours or more is kept back for 90 days, so nobody else can pick up links that pointed at you; the confirm dialog names the exact date it becomes free.
 
 ## Connecting your own domain {#connecting-your-own-domain}
 
-Connecting a domain you own is available on paid plans — see [our plans](/). Your workspace subdomain is included on every plan and keeps working either way.
+Connecting a domain you own is available on paid plans — see [our plans](/). Your `motir.co` address is included on every plan and keeps working either way.
 
 A connected domain serves _one_ project, at its root: `roadmap.acme.com/` is that project’s page and `roadmap.acme.com/changelog` its changelog. The live board, work items and roadmap are in the Motir app, and their links there lead in.
 

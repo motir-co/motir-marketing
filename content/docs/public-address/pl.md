@@ -1,20 +1,29 @@
 ---
-source: b6adcdeabaad
+source: 410c4c87d2ef
 ---
 
-Projekt publiczny jest dostępny pod wybranym przez Ciebie adresem. Każdy obszar roboczy może zająć jeden własny adres, a projekt może dodatkowo odpowiadać na domenie, którą już posiadasz.
+Projekt publiczny odpowiada pod własnym adresem w `motir.co` i może dodatkowo odpowiadać na domenie, którą już posiadasz. Niezależnie od tego obszar roboczy może zająć jedną własną nazwę w `motir.site`.
 
 ## Twój adres Motir {#your-motir-address}
 
-Obszar roboczy zajmuje jedną subdomenę, a każdy projekt publiczny w nim odpowiada pod nią — więc `acme` daje `acme.motir.site/ROADMAP` dla projektu z kluczem `ROADMAP`. Zajmuje ją właściciel lub administrator obszaru roboczego, w sekcji _Ustawienia projektu_, pod _Adres publiczny_.
+Każdy projekt publiczny odpowiada pod `motir.co/p/ROADMAP` dla projektu z kluczem `ROADMAP`. Nie ma czego zajmować: adres wynika z klucza projektu i jest wliczony w każdy plan.
 
-Etykieta składa się z małych liter, cyfr i łączników i ma od trzech do sześćdziesięciu trzech znaków. Niewielki zestaw nazw jest zarezerwowany dla własnych hostów Motir oraz dla nazw, które czytelnik mógłby z nimi pomylić.
+## Nazwa Twojego obszaru roboczego {#your-workspace-name}
 
-Możesz zmienić ją ograniczoną liczbę razy, a panel pokazuje, ile zmian Ci zostało. **Stary adres działa nadal i nigdy nie zostaje zwolniony.** Przekierowuje na stałe na nowy i nikt inny nie może go zająć — łącznie z Tobą, w przyszłości. To celowe: link, który ktoś już udostępnił, nie może pewnego dnia prowadzić w miejsce, którego nie wybrano.
+Obszar roboczy może zająć jedną nazwę w `motir.site` — więc `acme` daje `acme.motir.site`. Pod tą nazwą odpowiadają aplikacje, które Motir hostuje dla Twojego obszaru roboczego: sam adres pokazuje domyślną aplikację obszaru roboczego albo stronę informującą, że nie ma tu jeszcze żadnej aplikacji. **Projekty publiczne nigdy pod nią nie odpowiadają** — projekt pozostaje pod swoim adresem `motir.co`.
+
+Nazwę zajmuje właściciel lub administrator obszaru roboczego, w sekcji _Ustawienia obszaru roboczego_, pod _Adres publiczny_. Ustawienia projektu pokazują ją tylko do odczytu, z linkiem do tego miejsca.
+
+Nazwa składa się z małych liter, cyfr i pojedynczych łączników i ma od trzech do sześćdziesięciu trzech znaków. Niewielki zestaw nazw jest zarezerwowany dla własnych hostów Motir oraz dla nazw, które czytelnik mógłby z nimi pomylić.
+
+Obszar roboczy ma jedną nazwę albo żadnej. **Nie ma aliasów i nic nie przekierowuje:** gdy zmienisz nazwę lub ją zwolnisz, stary adres od razu przestaje odpowiadać, a udostępnione już do niego linki przestają działać.
+
+- **Jedna zmiana na 30 dni.** Zmiana nazwy i zwolnienie liczą się każde jako jedna zmiana, więc zwolnienie i ponowne zajęcie nie obchodzi tego limitu. Dopóki zmiana nie jest jeszcze dozwolona, panel pokazuje datę, od której będzie.
+- **Nazwa, którą oddajesz, jest wstrzymywana — chyba że dopiero co ją zająłeś.** Nazwa trzymana krócej niż 24 godziny od razu wraca do puli. Nazwa trzymana 24 godziny lub dłużej jest wstrzymywana na 90 dni, aby nikt inny nie przejął linków, które prowadziły do Ciebie; okno potwierdzenia podaje dokładną datę, od której znów jest wolna.
 
 ## Podłączanie własnej domeny {#connecting-your-own-domain}
 
-Podłączenie własnej domeny jest dostępne w planach płatnych — zobacz [nasze plany](/). Subdomena Twojego obszaru roboczego jest wliczona w każdy plan i działa tak czy inaczej.
+Podłączenie własnej domeny jest dostępne w planach płatnych — zobacz [nasze plany](/). Twój adres `motir.co` jest wliczony w każdy plan i działa tak czy inaczej.
 
 Podłączona domena obsługuje _jeden_ projekt, w swoim katalogu głównym: `roadmap.acme.com/` to strona tego projektu, a `roadmap.acme.com/changelog` — jego lista zmian. Aktywna tablica, elementy robocze i roadmapa znajdują się w aplikacji Motir, a prowadzą do nich tamtejsze linki.
 

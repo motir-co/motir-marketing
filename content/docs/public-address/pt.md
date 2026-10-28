@@ -1,20 +1,29 @@
 ---
-source: b6adcdeabaad
+source: 410c4c87d2ef
 ---
 
-Um projeto público pode ser acessado em um endereço que você escolhe. Todo espaço de trabalho pode reivindicar um endereço próprio, e um projeto pode, além disso, responder em um domínio que você já possui.
+Um projeto público responde no seu próprio endereço em `motir.co` e pode, além disso, responder em um domínio que você já possui. À parte, um espaço de trabalho pode reivindicar um nome próprio em `motir.site`.
 
 ## O seu endereço no Motir {#your-motir-address}
 
-Um espaço de trabalho reivindica um único subdomínio, e todo projeto público dentro dele responde por baixo desse subdomínio — assim, `acme` dá a você `acme.motir.site/ROADMAP` para um projeto com a chave `ROADMAP`. Quem reivindica é um proprietário ou administrador do espaço de trabalho, em Configurações do projeto, em _Endereço público_.
+Todo projeto público responde em `motir.co/p/ROADMAP` para um projeto com a chave `ROADMAP`. Não há nada a reivindicar: o endereço decorre da chave do projeto e está incluído em todos os planos.
 
-Um rótulo tem letras minúsculas, dígitos e hifens, de três a sessenta e três caracteres. Um pequeno conjunto de nomes fica reservado para os hosts do próprio Motir e para nomes que alguém poderia confundir com eles.
+## O nome do seu espaço de trabalho {#your-workspace-name}
 
-Você pode renomeá-lo um número limitado de vezes, e o painel mostra quantas renomeações ainda restam. **O endereço antigo continua funcionando depois e nunca é liberado.** Ele redireciona permanentemente para o novo e não pode ser reivindicado por ninguém mais — nem por você, mais tarde. Isso é proposital: um link que alguém já compartilhou não pode um dia levar a um lugar que você não escolheu.
+Um espaço de trabalho pode reivindicar um nome em `motir.site` — assim, `acme` dá a você `acme.motir.site`. É nesse nome que respondem as aplicações que o Motir hospeda para o seu espaço de trabalho: o endereço sozinho mostra a aplicação padrão do espaço de trabalho, ou uma página dizendo que ainda não há aplicação aqui. **Projetos públicos nunca respondem nele** — um projeto fica no seu endereço `motir.co`.
+
+Quem reivindica o nome é um proprietário ou administrador do espaço de trabalho, em _Configurações do espaço de trabalho_, em _Endereço público_. As Configurações do projeto o mostram somente para leitura, com um link para lá.
+
+Um nome tem letras minúsculas, dígitos e hifens isolados, de três a sessenta e três caracteres. Um pequeno conjunto de nomes fica reservado para os hosts do próprio Motir e para nomes que alguém poderia confundir com eles.
+
+Um espaço de trabalho tem um nome ou nenhum. **Não há aliases, e nada redireciona:** quando você renomeia ou libera o nome, o endereço antigo para de responder na hora, e os links já compartilhados para ele param de funcionar.
+
+- **Uma mudança a cada 30 dias.** Uma renomeação e uma liberação contam cada uma como uma mudança, então liberar e reivindicar de novo não contorna o limite. Enquanto uma mudança ainda não é permitida, o painel mostra a data a partir da qual será.
+- **Um nome que você solta fica retido, a menos que você tenha acabado de reivindicá-lo.** Um nome mantido por menos de 24 horas volta na hora para o conjunto disponível. Um nome mantido por 24 horas ou mais fica retido por 90 dias, para que ninguém mais herde links que apontavam para você; a caixa de confirmação informa a data exata em que ele fica livre.
 
 ## Conectando o seu próprio domínio {#connecting-your-own-domain}
 
-Conectar um domínio que você possui está disponível nos planos pagos — veja [nossos planos](/). O subdomínio do seu espaço de trabalho está incluído em todos os planos e continua funcionando de qualquer modo.
+Conectar um domínio que você possui está disponível nos planos pagos — veja [nossos planos](/). O seu endereço `motir.co` está incluído em todos os planos e continua funcionando de qualquer modo.
 
 Um domínio conectado serve _um_ projeto, na sua raiz: `roadmap.acme.com/` é a página desse projeto e `roadmap.acme.com/changelog` é o seu registro de mudanças. O quadro ao vivo, os itens de trabalho e o roadmap ficam no aplicativo do Motir, e os links de lá levam até eles.
 
