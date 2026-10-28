@@ -2,7 +2,11 @@ import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render } from '@/tests/helpers/withCopy'
-import { Calculator } from '@/app/_components/price/Calculator'
+import {
+  CATEGORY_MODEL_EXAMPLES,
+  Calculator,
+} from '@/app/_components/price/Calculator'
+import { exampleModels } from '@/app/_components/price/modelExamples'
 import { categoryLabel } from '@/app/_components/price/calculatorOutput'
 import { englishCopy, format } from '@/lib/copy'
 import categories from '@/tests/fixtures/calculator/categories.json'
@@ -116,7 +120,10 @@ describe('the calculator, before any ask', () => {
       expect(
         screen.getByText(
           format(words.categoryExamples, {
-            models: c.models.map((m) => m.id).join(', '),
+            models: exampleModels(
+              c.models.map((m) => m.id),
+              CATEGORY_MODEL_EXAMPLES,
+            ).join(', '),
           }),
         ),
       ).toBeInTheDocument()
