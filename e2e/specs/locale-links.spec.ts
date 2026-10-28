@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { SITE_ORIGIN, TENANT_ORIGIN } from '../stub/origin'
+import { CUSTOM_ORIGIN, SITE_ORIGIN } from '../stub/origin'
 import { t } from '../support/catalogue'
 import { HEADER_LADDER } from '../../i18n/routing'
 
@@ -77,10 +77,10 @@ test('on a tenant host, motir.co is French and the project is not prefixed', asy
   // the request — here the cookie the language switcher writes (MOTIR-7951).
   const context = await browser.newContext({ locale: 'fr-FR' })
   await context.addCookies([
-    { name: 'NEXT_LOCALE', value: 'fr', url: TENANT_ORIGIN },
+    { name: 'NEXT_LOCALE', value: 'fr', url: CUSTOM_ORIGIN },
   ])
   const page = await context.newPage()
-  const response = await page.goto(`${TENANT_ORIGIN}/ACME/changelog`)
+  const response = await page.goto(`${CUSTOM_ORIGIN}/changelog`)
   expect(response?.status()).toBe(200)
   await expect(page.locator('html')).toHaveAttribute('lang', 'fr')
 
@@ -90,6 +90,6 @@ test('on a tenant host, motir.co is French and the project is not prefixed', asy
   const overview = page
     .getByRole('navigation', { name: t('fr', 'publicProject.header.navAria') })
     .getByRole('link', { name: t('fr', 'publicProject.tabs.overview') })
-  await expect(overview).toHaveAttribute('href', '/ACME')
+  await expect(overview).toHaveAttribute('href', '/')
   await context.close()
 })

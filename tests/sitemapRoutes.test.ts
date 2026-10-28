@@ -97,8 +97,8 @@ describe('the three routes', () => {
     vi.doMock('next/headers', () => ({
       headers: async () =>
         new Headers({
-          [PUBLIC_ADDRESS_KIND_HEADER]: 'workspace',
-          [PUBLIC_HOST_HEADER]: 'acme.motir.site',
+          [PUBLIC_ADDRESS_KIND_HEADER]: 'project',
+          [PUBLIC_HOST_HEADER]: 'roadmap.acme.com',
         }),
     }))
     vi.stubGlobal('fetch', async () =>
@@ -112,7 +112,7 @@ describe('the three routes', () => {
           {
             identifier: 'PROD',
             updatedAt: '2026-09-01T00:00:00.000Z',
-            primaryHost: 'acme.motir.site',
+            primaryHost: 'roadmap.acme.com',
           },
         ],
         nextCursor: null,
@@ -121,7 +121,7 @@ describe('the three routes', () => {
     const { GET } = await import('@/app/sitemap-projects.xml/route')
     const xml = await (await GET()).text()
 
-    expect(xml).toContain('<loc>https://acme.motir.site/PROD</loc>')
+    expect(xml).toContain('<loc>https://roadmap.acme.com/changelog</loc>')
     expect(xml).not.toContain('MOTIR')
   })
 })

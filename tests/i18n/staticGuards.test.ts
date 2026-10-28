@@ -11,7 +11,8 @@ import { describe, expect, it } from 'vitest'
  * page — dynamic, and the build stays green while it does. The 404 card's
  * guard (`notFoundBoundary.test.ts`) covers the boundaries; this covers the
  * whole of `app/`. The request-rendered trees are the exception, because they
- * answer a HOST: `p/**` and `w` (a tenant's public project), `host-unavailable`
+ * answer a HOST: `p/**` (a tenant's public project), `no-application` (a live
+ * workspace host with nothing deployed), `host-unavailable`
  * (the outage page), and the two tenant root files, `robots-tenant.txt` and
  * `sitemap-projects.xml`, which describe the requesting host's own pages
  * (motir.co's `robots.txt` and `sitemap.xml` are built since MOTIR-8842). `pnpm i18n:check-prerender` is the build-side half of this guard.
@@ -19,7 +20,7 @@ import { describe, expect, it } from 'vitest'
 
 const REQUEST_RENDERED = [
   /^app\/\[locale\]\/p\//,
-  /^app\/\[locale\]\/w\//,
+  /^app\/\[locale\]\/no-application\//,
   /^app\/\[locale\]\/host-unavailable\//,
   /^app\/sitemap-projects\.xml\//,
   /^app\/robots-tenant\.txt\//,

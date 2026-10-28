@@ -89,8 +89,8 @@ export const REQUEST_RENDERED_ALLOWLIST: readonly RequestRenderedRoute[] = [
     why: 'the square: reads the public API per visitor, and a topic can 404',
   },
   {
-    pattern: /^\/\[locale\]\/w$/,
-    why: 'a workspace host’s project list — answers a HOST',
+    pattern: /^\/\[locale\]\/no-application$/,
+    why: 'a live workspace host with no application yet — answers a HOST',
   },
   {
     pattern: /^\/\[locale\]\/host-unavailable$/,

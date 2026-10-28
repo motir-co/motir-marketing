@@ -139,17 +139,14 @@ describe('the tab set', () => {
     // The same tab, three addresses. `lib/publicHost.ts` owns the mapping and
     // `tests/host/publicHost.test.ts` covers it exhaustively; this asserts that
     // the tab helper DELEGATES rather than keeping its own copy of the rule.
-    const workspace = {
-      kind: 'workspace',
-      host: 'acme.motir.site',
-      origin: 'https://acme.motir.site',
-    } as const
     const project = {
       kind: 'project',
       host: 'roadmap.acme.com',
       origin: 'https://roadmap.acme.com',
     } as const
-    expect(projectTabHref(workspace, 'ACME', 'board', 'en')).toBe('/ACME/board')
+    expect(projectTabHref(SITE_HOST, 'ACME', 'board', 'en')).toBe(
+      '/p/ACME/board',
+    )
     expect(projectTabHref(project, 'ACME', 'board', 'en')).toBe('/board')
   })
 })

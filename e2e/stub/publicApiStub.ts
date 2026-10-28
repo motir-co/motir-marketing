@@ -71,29 +71,19 @@ const ROUTES: Record<string, string> = {
   '/api/public/p/MOTIR/requests/MOTIR-4051': 'request-detail.json',
   '/api/public/projects': 'projects-index.json',
   // The HOST CONTRACT (MOTIR-4220). `acme.localhost` is the lane's tenant host
-  // — `e2e/stub/origin.ts` explains why no `/etc/hosts` edit is needed — and it
-  // publishes `MOTIR`, the identifier every other fixture here is keyed by, so
-  // a tenant-host walk exercises the SAME pages the `motir.co` specs walk.
+  // — `e2e/stub/origin.ts` explains why no `/etc/hosts` edit is needed. It is a
+  // live workspace host with no application yet (MOTIR-9512), so it serves the
+  // no-application page at its root and no project anywhere.
   '/api/public/hosts/acme.localhost': 'host-workspace.json',
-  // ⚠️ A SECOND PROJECT, WHOSE PRIMARY IS THE TENANT HOST (MOTIR-4222). It has
-  // to be a different project from `MOTIR`: the primary is a property of the
-  // PROJECT, so one fixture cannot be canonical on two hosts — and a tenant-host
-  // spec walking a project whose primary is `motir.co` does not merely fail, it
-  // sends the browser to PRODUCTION, which is the cross-repository coupling
-  // `e2e/stub/origin.ts` exists to prevent. `MOTIR` stays canonical on the site
-  // and `ACME` on `acme.localhost`, so both halves of the lane are self-hosted.
-  '/api/public/p/ACME': 'project-acme.json',
-  // The one tab a tenant walk can still open on this host (MOTIR-6743): the
-  // board, items, tree and roadmap are redirects into the app and read nothing.
-  '/api/public/p/ACME/changelog': 'changelog.json',
-  // The ADDRESS MATRIX the acceptance walk needs (MOTIR-4226). Five labels
-  // under `.localhost`, so all five reach the same server with a different
+  // The ADDRESS MATRIX the acceptance walk needs (MOTIR-4226). Four labels
+  // under `.localhost`, so all four reach the same server with a different
   // `Host` header — which is the only thing the router reads. What each one IS
-  // is decided here, so the whole matrix is one fixture table rather than five
+  // is decided here, so the whole matrix is one fixture table rather than four
   // deployments.
   '/api/public/hosts/roadmap.localhost': 'host-project.json',
+  // A RETIRED name, answered with the retired never-released `alias` payload a
+  // producer a version behind might still send: the router must 404 it.
   '/api/public/hosts/old.localhost': 'host-alias.json',
-  '/api/public/hosts/empty.localhost': 'host-workspace-empty.json',
   '/api/public/p/ROAD': 'project-road.json',
   // MOTIR-6749 — a project that has written no overview, for the EMPTY state
   // the project page redrew when the read tabs left it (design MOTIR-6742).

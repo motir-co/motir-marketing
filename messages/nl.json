@@ -54,7 +54,6 @@
         "project": "We konden dit project niet laden",
         "changelog": "We konden de changelog van dit project niet laden",
         "request": "We konden dit functieverzoek niet laden",
-        "workspaceProjects": "We konden de projecten van deze werkruimte niet laden",
         "address": "We konden dit adres niet laden",
         "body": "De Motir-applicatie reageert op dit moment niet. De pagina waarop je bent werkt gewoon — deze gegevens komen van {host}, een aparte deployment. Probeer het zo opnieuw.",
         "bodyWithFeed": "De Motir-applicatie reageert op dit moment niet. De pagina waarop je bent werkt gewoon — deze gegevens komen van {host}, een aparte deployment. Probeer het zo opnieuw, of lees de changelog, die vanuit een feed wordt geleverd.",
@@ -96,12 +95,9 @@
       "askHeading": "Iets vragen",
       "requestFeature": "Een functie aanvragen ↗"
     },
-    "workspaceRoot": {
-      "heading": "Openbare projecten",
-      "empty": {
-        "title": "Hier is nog niets openbaar",
-        "body": "Deze werkruimte heeft haar adres geclaimd, maar nog geen project openbaar gemaakt. Zodra dat gebeurt, verschijnt het project hier."
-      }
+    "noApplication": {
+      "heading": "Hier staat nog geen applicatie",
+      "body": "Dit adres hoort bij {workspace}. Er is hier nog geen applicatie geïmplementeerd."
     },
     "meta": {
       "overviewFallback": "Een project dat openbaar wordt gebouwd op Motir — het overzicht, de changelog en de functieverzoeken, en het live bord in de Motir-app.",
@@ -110,8 +106,7 @@
       "tabDescription": "{label} voor {name} — openbaar op Motir.",
       "requestNewTitle": "Een functie aanvragen · {name}",
       "requestNewDescription": "Vraag het team van {name} om iets. Verzoeken zijn openbaar.",
-      "workspaceTitle": "Openbare projecten",
-      "workspaceDescription": "De openbare projecten die deze werkruimte op Motir publiceert.",
+      "noApplicationTitle": "Hier staat nog geen applicatie",
       "hostUnavailableTitle": "Tijdelijk niet beschikbaar"
     }
   },

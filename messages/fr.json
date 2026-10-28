@@ -54,7 +54,6 @@
         "project": "Impossible de charger ce projet",
         "changelog": "Impossible de charger le journal des modifications de ce projet",
         "request": "Impossible de charger cette suggestion de fonctionnalité",
-        "workspaceProjects": "Impossible de charger les projets de cet espace de travail",
         "address": "Impossible de charger cette adresse",
         "body": "L’application Motir ne répond pas pour le moment. La page sur laquelle vous êtes fonctionne : ce contenu provient de {host}, qui est un déploiement distinct. Réessayez dans un instant.",
         "bodyWithFeed": "L’application Motir ne répond pas pour le moment. La page sur laquelle vous êtes fonctionne : ce contenu provient de {host}, qui est un déploiement distinct. Réessayez dans un instant, ou lisez le journal des modifications, servi depuis un flux.",
@@ -96,12 +95,9 @@
       "askHeading": "Proposer quelque chose",
       "requestFeature": "Suggérer une fonctionnalité ↗"
     },
-    "workspaceRoot": {
-      "heading": "Projets publics",
-      "empty": {
-        "title": "Rien n’est encore public ici",
-        "body": "Cet espace de travail a réservé son adresse mais n’a encore rendu aucun projet public. Quand ce sera le cas, le projet apparaîtra ici."
-      }
+    "noApplication": {
+      "heading": "Aucune application ici pour l’instant",
+      "body": "Cette adresse appartient à {workspace}. Aucune application n’y est encore déployée."
     },
     "meta": {
       "overviewFallback": "Un projet construit publiquement sur Motir : sa vue d’ensemble, son journal des modifications et ses suggestions de fonctionnalités, ainsi que le tableau en direct dans l’application Motir.",
@@ -110,8 +106,7 @@
       "tabDescription": "{label} de {name}, public sur Motir.",
       "requestNewTitle": "Suggérer une fonctionnalité · {name}",
       "requestNewDescription": "Proposez quelque chose à l’équipe de {name}. Les suggestions sont publiques.",
-      "workspaceTitle": "Projets publics",
-      "workspaceDescription": "Les projets publics que cet espace de travail publie sur Motir.",
+      "noApplicationTitle": "Aucune application ici pour l’instant",
       "hostUnavailableTitle": "Temporairement indisponible"
     }
   },

@@ -63,8 +63,9 @@ import {
  *
  *   • a project whose primary moves to a customer domain DISAPPEARS from
  *     `motir.co/sitemap.xml` and appears in that domain's own;
- *   • a workspace subdomain's sitemap lists only that workspace's projects, at
- *     `/<identifier>` rather than `/p/<identifier>`;
+ *   • a workspace subdomain's sitemap lists NOTHING: since the address
+ *     decision MOTIR-9790 it serves no project (MOTIR-9512), and its root is a
+ *     `noindex` placeholder;
  *   • a customer domain's lists ONE project's tabs, at the host's root.
  *
  * The STATIC entries — the landing, /explore, /docs, /legal — belong to
@@ -132,6 +133,10 @@ function everyLanguage(
 export async function projectSitemapEntries(
   host: PublicHost,
 ): Promise<MetadataRoute.Sitemap> {
+  // A workspace host serves no project path (MOTIR-9512), so nothing on it is
+  // crawlable — whatever a stale index row says its canonical is.
+  if (host.kind === 'workspace') return []
+
   const origin = currentOrigin(host)
   const thisHost = currentHost(host)
 

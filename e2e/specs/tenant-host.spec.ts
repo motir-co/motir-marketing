@@ -1,5 +1,10 @@
 import { expect, test } from '@playwright/test'
-import { SITE_ORIGIN, STUB_ORIGIN, TENANT_ORIGIN } from '../stub/origin'
+import {
+  CUSTOM_ORIGIN,
+  SITE_ORIGIN,
+  STUB_ORIGIN,
+  TENANT_ORIGIN,
+} from '../stub/origin'
 
 /*
  * THE TENANT HOST, IN A REAL BROWSER (MOTIR-4220's fifth criterion).
@@ -18,7 +23,7 @@ import { SITE_ORIGIN, STUB_ORIGIN, TENANT_ORIGIN } from '../stub/origin'
  * Every wait is on an authoritative signal, per the lane's discipline.
  */
 
-test('a workspace host serves the workspace’s project list at its root', async ({
+test('a workspace host answers the no-application page at its root', async ({
   page,
 }) => {
   const response = await page.goto(`${TENANT_ORIGIN}/`)
@@ -28,74 +33,26 @@ test('a workspace host serves the workspace’s project list at its root', async
     'the tenant host did not serve a document — is the router matching?',
   ).toBe(200)
 
-  // The URL BAR IS UNCHANGED. A rewrite, not a redirect: the visitor stays on
-  // the address they typed, which is the whole point of the address.
+  // The URL BAR IS UNCHANGED. A rewrite, not a redirect.
   expect(new URL(page.url()).host).toBe(new URL(TENANT_ORIGIN).host)
 
+  // MOTIR-9512: the bare workspace host belongs to the default application;
+  // until one exists it says so, naming the workspace the CONTRACT supplied.
   await expect(
-    page.getByRole('heading', { level: 1, name: 'Public projects' }),
+    page.getByRole('heading', { level: 1, name: 'No application here yet' }),
   ).toBeVisible()
-  // ⚠️ SCOPED TO THE LANDMARK. The footer's copyright names the same company,
-  // so an unscoped match resolves to two elements — and the one that matters is
-  // the workspace name the CONTRACT supplied, not the chrome's.
+  // ⚠️ SCOPED TO THE LANDMARK. The footer's copyright names the same company.
   await expect(
     page.getByRole('main').getByText('moooon B.V.', { exact: true }),
   ).toBeVisible()
-
-  // The card links HOST-RELATIVE — `/ACME`, not `/p/ACME`. Scoped to the
-  // landmark for the same reason as above: the chrome's brand link is also
-  // named "Motir", and it points at the site root on every host.
-  await expect(
-    page.getByRole('main').getByRole('link', { name: /Acme Roadmap/ }),
-  ).toHaveAttribute('href', '/ACME')
 })
 
-test('a project renders at the workspace host, with host-relative links', async ({
+test('a project path on that host is a real 404, not a soft one', async ({
   page,
 }) => {
-  // ⚠️ `ACME`, NOT `MOTIR`, AND THE CHOICE IS LOAD-BEARING. The primary address
-  // is a property of the PROJECT (MOTIR-4222), so a project whose primary is
-  // `motir.co` answers a tenant-host request with a permanent redirect — and
-  // the browser follows it to PRODUCTION. `e2e/stub/publicApiStub.ts` gives
-  // `ACME` a primary on this host for exactly that reason; it cost one red run
-  // that passed its status assertion against the live site.
+  // The `/<identifier>` rewrite is gone: public projects live at
+  // `motir.co/p/<identifier>`.
   const response = await page.goto(`${TENANT_ORIGIN}/ACME/changelog`)
-  expect(response?.status()).toBe(200)
-
-  // The SAME page `/p/[identifier]/changelog` renders — no route is duplicated.
-  // (The changelog, not the board: the board is a redirect into the app since
-  // MOTIR-6743, asserted below.)
-  await expect(page.getByRole('navigation', { name: 'Project' })).toBeVisible()
-
-  const overview = page
-    .getByRole('navigation', { name: 'Project' })
-    .getByRole('link', { name: 'Overview' })
-  await expect(overview).toHaveAttribute('href', '/ACME')
-
-  // And nothing on the page points back at the /p/ shape.
-  const paths = await page
-    .locator('a[href^="/p/"]')
-    .evaluateAll((links) => links.map((l) => l.getAttribute('href')))
-  expect(paths, 'a /p/ link survived on a tenant host').toEqual([])
-})
-
-test('a read page on that host redirects into the app, absolutely', async ({
-  request,
-}) => {
-  // MOTIR-6743. The router rewrites `/ACME/board` onto `/p/ACME/board`, whose
-  // handler answers the permanent redirect — ON THE APP'S ORIGIN, never on the
-  // tenant host, because the view exists in the app and nowhere else.
-  const res = await request.get(`${TENANT_ORIGIN}/ACME/board`, {
-    maxRedirects: 0,
-  })
-  expect(res.status()).toBe(308)
-  expect(res.headers()['location']).toBe(`${STUB_ORIGIN}/p/ACME/board`)
-})
-
-test('an unknown project on that host is a real 404, not a soft one', async ({
-  page,
-}) => {
-  const response = await page.goto(`${TENANT_ORIGIN}/NOPE`)
 
   // ⚠️ THE STATUS, not just the DOM. A 404 page served with a 200 is what a
   // `loading.tsx` above a route that decides existence produces, and a crawler
@@ -105,6 +62,19 @@ test('an unknown project on that host is a real 404, not a soft one', async ({
   await expect(
     page.getByRole('heading', { level: 1, name: /isn’t here/ }),
   ).toBeVisible()
+})
+
+test('a read page on a customer domain redirects into the app, absolutely', async ({
+  request,
+}) => {
+  // MOTIR-6743. The router rewrites `/board` onto `/p/ROAD/board`, whose
+  // handler answers the permanent redirect — ON THE APP'S ORIGIN, never on the
+  // tenant host, because the view exists in the app and nowhere else.
+  const res = await request.get(`${CUSTOM_ORIGIN}/board`, {
+    maxRedirects: 0,
+  })
+  expect(res.status()).toBe(308)
+  expect(res.headers()['location']).toBe(`${STUB_ORIGIN}/p/ROAD/board`)
 })
 
 test('the site’s own host is untouched', async ({ page }) => {

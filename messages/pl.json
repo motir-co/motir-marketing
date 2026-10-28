@@ -54,7 +54,6 @@
         "project": "Nie udało się wczytać tego projektu",
         "changelog": "Nie udało się wczytać listy zmian tego projektu",
         "request": "Nie udało się wczytać tej prośby o funkcję",
-        "workspaceProjects": "Nie udało się wczytać projektów tego obszaru roboczego",
         "address": "Nie udało się wczytać tego adresu",
         "body": "Aplikacja Motir w tej chwili nie odpowiada. Strona, na której jesteś, działa — te dane pochodzą z {host}, który jest osobnym wdrożeniem. Spróbuj ponownie za chwilę.",
         "bodyWithFeed": "Aplikacja Motir w tej chwili nie odpowiada. Strona, na której jesteś, działa — te dane pochodzą z {host}, który jest osobnym wdrożeniem. Spróbuj ponownie za chwilę albo przeczytaj listę zmian, którą serwuje kanał.",
@@ -96,12 +95,9 @@
       "askHeading": "Poproś o coś",
       "requestFeature": "Poproś o funkcję ↗"
     },
-    "workspaceRoot": {
-      "heading": "Projekty publiczne",
-      "empty": {
-        "title": "Nic tu jeszcze nie jest publiczne",
-        "body": "Ten obszar roboczy zajął już swój adres, ale nie upublicznił jeszcze żadnego projektu. Gdy to zrobi, projekt pojawi się tutaj."
-      }
+    "noApplication": {
+      "heading": "Nie ma tu jeszcze aplikacji",
+      "body": "Ten adres należy do {workspace}. Nie wdrożono tu jeszcze żadnej aplikacji."
     },
     "meta": {
       "overviewFallback": "Projekt budowany publicznie w aplikacji Motir — jego przegląd, lista zmian i prośby o funkcje oraz tablica na żywo w aplikacji Motir.",
@@ -110,8 +106,7 @@
       "tabDescription": "{label} projektu {name} — publicznie w aplikacji Motir.",
       "requestNewTitle": "Poproś o funkcję · {name}",
       "requestNewDescription": "Poproś o coś zespół {name}. Prośby są publiczne.",
-      "workspaceTitle": "Projekty publiczne",
-      "workspaceDescription": "Projekty publiczne, które ten obszar roboczy udostępnia w aplikacji Motir.",
+      "noApplicationTitle": "Nie ma tu jeszcze aplikacji",
       "hostUnavailableTitle": "Chwilowo niedostępne"
     }
   },

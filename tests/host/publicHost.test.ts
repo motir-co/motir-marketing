@@ -60,9 +60,12 @@ describe('publicPathFor — the same page, three addresses', () => {
     expect(publicPathFor(SITE_HOST, 'ACME', '', 'en')).toBe('/p/ACME')
   })
 
-  it('drops the /p prefix on a workspace subdomain', () => {
-    expect(publicPathFor(WORKSPACE, 'ACME', 'board', 'en')).toBe('/ACME/board')
-    expect(publicPathFor(WORKSPACE, 'ACME', '', 'en')).toBe('/ACME')
+  it('takes the site’s shape on a workspace host, which serves no project (MOTIR-9512)', () => {
+    // The `/<identifier>` arm is gone with the workspace host's project
+    // rewrite: `acme.motir.site/ACME` is a 404 now, so no helper may emit it.
+    expect(publicPathFor(WORKSPACE, 'ACME', 'board', 'en')).toBe(
+      '/p/ACME/board',
+    )
   })
 
   it('drops the identifier too on a customer domain — ONE project at the root', () => {
@@ -82,7 +85,6 @@ describe('publicPathFor — the same page, three addresses', () => {
     expect(publicPathFor(SITE_HOST, 'A B', 'items', 'en')).toBe(
       '/p/A%20B/items',
     )
-    expect(publicPathFor(WORKSPACE, 'A B', 'items', 'en')).toBe('/A%20B/items')
   })
 })
 
@@ -91,9 +93,6 @@ describe('publicPathWithQuery — the no-JS pager, per host', () => {
     expect(
       publicPathWithQuery(SITE_HOST, 'ACME', 'items', { cursor: 'w9' }, 'en'),
     ).toBe('/p/ACME/items?cursor=w9')
-    expect(
-      publicPathWithQuery(WORKSPACE, 'ACME', 'items', { cursor: 'w9' }, 'en'),
-    ).toBe('/ACME/items?cursor=w9')
     expect(
       publicPathWithQuery(CUSTOM, 'ACME', 'items', { cursor: 'w9' }, 'en'),
     ).toBe('/items?cursor=w9')
@@ -104,7 +103,7 @@ describe('publicPathWithQuery — the no-JS pager, per host', () => {
     // silently jump back to the top of the tree.
     expect(
       publicPathWithQuery(
-        WORKSPACE,
+        CUSTOM,
         'ACME',
         'tree',
         {
@@ -113,7 +112,7 @@ describe('publicPathWithQuery — the no-JS pager, per host', () => {
         },
         'en',
       ),
-    ).toBe('/ACME/tree?offset=3')
+    ).toBe('/tree?offset=3')
   })
 })
 
@@ -236,12 +235,9 @@ describe('publicPathFor keeps the page’s locale on the site, and only there (M
     ).toBe('/fr/p/ACME/changelog?cursor=w9')
   })
 
-  it('leaves the workspace and project arms EXACTLY as they were', () => {
+  it('leaves the project arm EXACTLY as it was', () => {
     // One unprefixed URL serves every language on a tenant host (MOTIR-7951).
     for (const locale of ['en', 'fr', 'ja'] as const) {
-      expect(publicPathFor(WORKSPACE, 'ACME', 'board', locale)).toBe(
-        '/ACME/board',
-      )
       expect(publicPathFor(CUSTOM, 'ACME', 'board', locale)).toBe('/board')
       expect(publicPathFor(CUSTOM, 'ACME', '', locale)).toBe('/')
     }

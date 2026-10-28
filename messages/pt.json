@@ -54,7 +54,6 @@
         "project": "Não conseguimos carregar este projeto",
         "changelog": "Não conseguimos carregar o registro de alterações deste projeto",
         "request": "Não conseguimos carregar esta solicitação de recurso",
-        "workspaceProjects": "Não conseguimos carregar os projetos deste espaço de trabalho",
         "address": "Não conseguimos carregar este endereço",
         "body": "O aplicativo Motir não está respondendo agora. A página em que você está funciona normalmente — este conteúdo vem de {host}, que é uma implantação separada. Tente novamente em instantes.",
         "bodyWithFeed": "O aplicativo Motir não está respondendo agora. A página em que você está funciona normalmente — este conteúdo vem de {host}, que é uma implantação separada. Tente novamente em instantes ou leia o registro de alterações, que é servido por um feed.",
@@ -96,12 +95,9 @@
       "askHeading": "Peça algo",
       "requestFeature": "Solicitar um recurso ↗"
     },
-    "workspaceRoot": {
-      "heading": "Projetos públicos",
-      "empty": {
-        "title": "Nada é público aqui ainda",
-        "body": "Este espaço de trabalho já reservou seu endereço, mas ainda não tornou nenhum projeto público. Quando fizer isso, o projeto aparece aqui."
-      }
+    "noApplication": {
+      "heading": "Ainda não há nenhuma aplicação aqui",
+      "body": "Este endereço pertence a {workspace}. Ainda não há nenhuma aplicação implantada aqui."
     },
     "meta": {
       "overviewFallback": "Um projeto construído em público no Motir — sua visão geral, seu registro de alterações e suas solicitações de recursos, e o quadro ao vivo no app do Motir.",
@@ -110,8 +106,7 @@
       "tabDescription": "{label} de {name} — público no Motir.",
       "requestNewTitle": "Solicitar um recurso · {name}",
       "requestNewDescription": "Peça algo à equipe de {name}. As solicitações são públicas.",
-      "workspaceTitle": "Projetos públicos",
-      "workspaceDescription": "Os projetos públicos que este espaço de trabalho publica no Motir.",
+      "noApplicationTitle": "Ainda não há nenhuma aplicação aqui",
       "hostUnavailableTitle": "Temporariamente indisponível"
     }
   },

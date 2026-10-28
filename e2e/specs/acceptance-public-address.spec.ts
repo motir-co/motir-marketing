@@ -5,9 +5,7 @@ import {
   ALIAS_ORIGIN,
   BROKEN_ORIGIN,
   CUSTOM_ORIGIN,
-  EMPTY_ORIGIN,
   SITE_ORIGIN,
-  STUB_ORIGIN,
   TENANT_ORIGIN,
 } from '../stub/origin'
 
@@ -16,6 +14,12 @@ import {
  * arrives on a tenant subdomain and on a customer domain, reads the project,
  * follows links and STAYS on that host; a request on a non-primary address
  * lands on the primary. PACED FOR A PERSON TO WATCH.
+ *
+ * ⚠️ AMENDED BY MOTIR-9512 (Story MOTIR-4528, the address decision MOTIR-9790).
+ * The bare workspace host now belongs to the workspace's default application
+ * and serves no project: until an application exists it answers a
+ * no-application page at its root and a 404 everywhere else. A retired name
+ * answers the same 404 as an unknown host — nothing redirects any more.
  *
  * This is MOTIR-3878's public-half receipt, and it follows
  * `acceptance-public-project.spec.ts` exactly — same `beat()`, same measured
@@ -27,17 +31,16 @@ import {
  * ── ⚠️ FIVE HOSTS, ONE SERVER, NO `/etc/hosts` ────────────────────────────
  *
  * Chromium resolves every label under `.localhost` to loopback, so
- * `acme.localhost`, `roadmap.localhost`, `old.localhost`, `empty.localhost` and
- * `broken.localhost` all reach the same standalone server with a DIFFERENT
+ * `acme.localhost`, `roadmap.localhost`, `old.localhost` and `broken.localhost`
+ * all reach the same standalone server with a DIFFERENT
  * `Host` header — which is the only thing `proxy.ts` reads. What each host IS is
  * decided by `e2e/stub/publicApiStub.ts`, so the whole address matrix is one
- * fixture table. `e2e/stub/origin.ts` owns the five constants.
+ * fixture table. `e2e/stub/origin.ts` owns the constants.
  *
  * ── ⚠️ THE PRIMARY IS A PROPERTY OF THE PROJECT, WHICH SHAPES THE FIXTURES ─
  *
- * `ACME`'s primary is the workspace subdomain and `ROAD`'s is the customer
- * domain, because one project cannot be canonical at two addresses. That is
- * also the trap this lane already sprang once: a tenant-host spec walking a
+ * `ROAD`'s primary is the customer domain, because one project cannot be
+ * canonical at two addresses. That is also the trap this lane already sprang once: a tenant-host spec walking a
  * project whose primary is `motir.co` does not merely fail — the redirect sends
  * the browser to PRODUCTION, and it answers 200.
  */
@@ -74,72 +77,43 @@ test('a project at its own address, as MOTIR-3878 asks to be accepted', async ({
   page,
 }) => {
   // ── 1 · THE WORKSPACE'S OWN ADDRESS ─────────────────────────────────────
-  chapter('Arrive on the workspace subdomain')
+  chapter('Arrive on the workspace subdomain — no application yet')
   const arrival = await page.goto(`${TENANT_ORIGIN}/`)
   expect(arrival?.status(), 'the tenant host did not serve a document').toBe(
     200,
   )
 
-  // The URL bar is UNCHANGED — a rewrite, not a redirect. That is the whole
-  // point of an address of your own.
+  // The URL bar is UNCHANGED — a rewrite, not a redirect.
   expect(new URL(page.url()).host).toBe(new URL(TENANT_ORIGIN).host)
   await expect(
-    page.getByRole('heading', { level: 1, name: 'Public projects' }),
+    page.getByRole('heading', { level: 1, name: 'No application here yet' }),
   ).toBeVisible()
   await expect(
     page.getByRole('main').getByText('moooon B.V.', { exact: true }),
   ).toBeVisible()
-  await beat(page)
-
-  // ── 2 · THE PROJECT, AT THE FIRST PATH SEGMENT ──────────────────────────
-  chapter('Open the project from the workspace list')
-  await page
-    .getByRole('main')
-    .getByRole('link', { name: 'Acme Roadmap' })
-    .click()
-  await page.waitForURL(`${TENANT_ORIGIN}/ACME`)
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-
-  const nav = page.getByRole('navigation', { name: 'Project' })
-  await expect(nav.getByRole('link', { name: 'Overview' })).toHaveAttribute(
-    'href',
-    '/ACME',
+  // A placeholder, not content: a crawler is told not to keep it.
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    'content',
+    /noindex/,
   )
-  // The Board is the app's since MOTIR-6745: a plain link on the app origin
-  // (the stub, in this lane), never a path on this host.
-  await expect(nav.getByRole('link', { name: /^Board/ })).toHaveAttribute(
-    'href',
-    `${STUB_ORIGIN}/p/ACME/board`,
-  )
-  await beat(page)
-
-  // ── 3 · A TAB ON THIS HOST, AND A READ PAGE THAT MOVED ──────────────────
-  // ⚠️ AMENDED BY MOTIR-6743. The Board, Items, Tree and Roadmap are permanent
-  // redirects into the app now, so the tab walk opens the Changelog — the tab
-  // that is still a page here — and checks the Board's redirect by its answer.
-  chapter('Walk a tab — the navigation stays on the host')
-  await nav.getByRole('link', { name: 'Changelog' }).click()
-  await page.waitForURL(`${TENANT_ORIGIN}/ACME/changelog`)
-  await expect(page.getByRole('main')).toBeVisible()
-
-  // Nothing anywhere on the page points back at the `/p/` shape.
+  // It lists no projects — they live at motir.co/p/<identifier>.
   expect(
-    await page
-      .locator('a[href^="/p/"]')
-      .evaluateAll((links) => links.map((l) => l.getAttribute('href'))),
-    'a /p/ link survived on a tenant host',
-  ).toEqual([])
+    await page.getByRole('main').locator('a[href]').count(),
+    'the no-application page links no project',
+  ).toBe(0)
   await beat(page)
 
-  chapter('A read page on this host answers a redirect into the app')
-  const board = await page.request.get(`${TENANT_ORIGIN}/ACME/board`, {
-    maxRedirects: 0,
-  })
-  expect(board.status()).toBe(308)
-  expect(board.headers()['location']).toBe(`${STUB_ORIGIN}/p/ACME/board`)
+  // ── 2 · A PROJECT PATH ON IT IS A 404 ───────────────────────────────────
+  chapter('An old project link on the workspace subdomain is a 404')
+  const oldLink = await page.goto(`${TENANT_ORIGIN}/ACME/changelog`)
+  expect(oldLink?.status()).toBe(404)
+  expect(oldLink?.request().redirectedFrom()).toBeNull()
+  await expect(
+    page.getByRole('heading', { level: 1, name: /isn’t here/ }),
+  ).toBeVisible()
   await beat(page)
 
-  // ── 4 · A CUSTOMER DOMAIN, WITH THE PROJECT AT ITS ROOT ─────────────────
+  // ── 3 · A CUSTOMER DOMAIN, WITH THE PROJECT AT ITS ROOT ─────────────────
   chapter('A customer domain serves one project at its root')
   const custom = await page.goto(`${CUSTOM_ORIGIN}/`)
   expect(custom?.status()).toBe(200)
@@ -163,34 +137,25 @@ test('a project at its own address, as MOTIR-3878 asks to be accepted', async ({
   )
   await beat(page)
 
-  // ── 5 · A NON-PRIMARY ADDRESS LANDS ON THE PRIMARY ──────────────────────
-  chapter('A non-primary address redirects to the primary')
-  // `ROAD` is published by the workspace AND has its primary on the customer
-  // domain, so the subdomain's path for it is an alternate — the ADR §7 case.
-  const moved = await page.goto(`${TENANT_ORIGIN}/ROAD`)
-  expect(moved?.status()).toBe(200)
-  expect(page.url(), 'the path must survive the redirect').toBe(
-    `${CUSTOM_ORIGIN}/`,
-  )
+  // ── 3 · A NON-PRIMARY ADDRESS LANDS ON THE PRIMARY ──────────────────────
+  chapter('motir.co redirects to the primary, once it has moved')
+  const moved = await page.goto(`${SITE_ORIGIN}/p/ROAD`)
+  expect(page.url()).toBe(`${CUSTOM_ORIGIN}/`)
   // Asserted from the response CHAIN, not merely from where we ended up.
   const chain = moved?.request().redirectedFrom()
   expect(chain, 'no redirect happened at all').not.toBeNull()
   expect((await chain!.response())?.status()).toBe(308)
   await beat(page)
 
-  chapter('motir.co redirects too, once the primary has moved')
-  await page.goto(`${SITE_ORIGIN}/p/ROAD`)
-  expect(page.url()).toBe(`${CUSTOM_ORIGIN}/`)
-  await beat(page)
-
-  // ── 6 · A RETIRED SUBDOMAIN KEEPS ITS PROMISE ───────────────────────────
-  chapter('A retired subdomain 301s to the live one, path preserved')
+  // ── 4 · A RETIRED NAME STOPS ANSWERING ──────────────────────────────────
+  // ADR §8 Amendment 3 rule 2. The stub still answers this host with the
+  // retired `alias` payload, the case of a producer a version behind: the
+  // router must 404 it like any unknown host, and redirect nowhere.
+  chapter('A retired subdomain is a 404 — it redirects nowhere')
   const alias = await page.goto(`${ALIAS_ORIGIN}/ACME/changelog`)
-  expect(alias?.status()).toBe(200)
-  expect(page.url()).toBe(`${TENANT_ORIGIN}/ACME/changelog`)
-
-  const aliasHop = alias?.request().redirectedFrom()
-  expect((await aliasHop!.response())?.status()).toBe(301)
+  expect(alias?.status()).toBe(404)
+  expect(alias?.request().redirectedFrom()).toBeNull()
+  expect(new URL(page.url()).host).toBe(new URL(ALIAS_ORIGIN).host)
   await beat(page)
 })
 
@@ -198,12 +163,11 @@ test('the crawl surface belongs to the host that asks for it', async ({
   request,
 }) => {
   // ⚠️ ONE SENTENCE IS THE RULE: a sitemap may only list URLs on its own host.
+  // A workspace host serves no project (MOTIR-9512), so its sitemap is empty.
   const tenant = await (
     await request.get(`${TENANT_ORIGIN}/sitemap.xml`)
   ).text()
-  expect(tenant).toContain(`${TENANT_ORIGIN}/ACME</loc>`)
-  expect(tenant).not.toContain('ROAD')
-  expect(tenant).not.toContain('/explore')
+  expect(tenant).not.toContain('<loc>')
 
   const custom = await (
     await request.get(`${CUSTOM_ORIGIN}/sitemap.xml`)
@@ -225,12 +189,11 @@ test('the crawl surface belongs to the host that asks for it', async ({
 })
 
 test('the three states a tenant address can be in', async ({ page }) => {
-  // EMPTY — a workspace that holds its address but publishes nothing. It is a
-  // real state, not a 404: the address is real and the visitor followed a valid
-  // link.
-  const empty = await page.goto(`${EMPTY_ORIGIN}/`)
-  expect(empty?.status()).toBe(200)
-  await expect(page.getByText('Nothing is public here yet')).toBeVisible()
+  // NO APPLICATION — a live workspace host with nothing deployed (MOTIR-9512).
+  // It is a real state, not a 404: the address is real.
+  const live = await page.goto(`${TENANT_ORIGIN}/`)
+  expect(live?.status()).toBe(200)
+  await expect(page.getByText('No application here yet')).toBeVisible()
 
   // ERROR — the contract is unreachable. ⚠️ NEVER a 404: a crawler acts on a
   // 404 and would drop every customer's domain the moment app.motir.co

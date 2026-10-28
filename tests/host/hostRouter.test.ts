@@ -41,9 +41,8 @@ type NextRequestType = InstanceType<typeof NextRequest>
 const WORKSPACE: HostRead = {
   status: 'ok',
   data: {
-    kind: 'workspace',
+    kind: 'no_application',
     workspace: { name: 'Acme' },
-    projects: [{ identifier: 'PROD', name: 'Prod' }],
   },
 }
 const CUSTOM: HostRead = {
@@ -53,10 +52,6 @@ const CUSTOM: HostRead = {
     project: { identifier: 'PROD', name: 'Prod' },
     primary: true,
   },
-}
-const ALIAS: HostRead = {
-  status: 'ok',
-  data: { kind: 'alias', redirectTo: 'acme.localhost' },
 }
 
 function request(
@@ -104,12 +99,12 @@ describe('the site’s own host', () => {
     // same internal host — and the site branch above would swallow all of them.
     resolveHost.mockResolvedValue(WORKSPACE)
     const res = await proxy(
-      request('https://motir.co/PROD/board', {
+      request('https://motir.co/', {
         'x-forwarded-host': 'ACME.motir.site',
       }),
     )
     expect(resolveHost).toHaveBeenCalledWith('acme.motir.site')
-    expect(rewriteOf(res)).toBe('/en/p/PROD/board')
+    expect(rewriteOf(res)).toBe('/en/no-application')
   })
 })
 
@@ -245,13 +240,13 @@ describe('a host with NO resolution is `unresolved`, not silent', () => {
   })
 })
 
-describe('a workspace subdomain', () => {
+describe('a live workspace host with no application', () => {
   beforeEach(() => resolveHost.mockResolvedValue(WORKSPACE))
 
-  it('rewrites a project path onto the shipped tree, carrying host and kind', async () => {
-    const res = await proxy(request('https://acme.motir.site/PROD/board'))
+  it('answers the no-application page at the root, carrying host and kind', async () => {
+    const res = await proxy(request('https://acme.motir.site/'))
 
-    expect(rewriteOf(res)).toBe('/en/p/PROD/board')
+    expect(rewriteOf(res)).toBe('/en/no-application')
     expect(forwarded(res, 'x-motir-address-kind')).toBe('workspace')
     expect(forwarded(res, 'x-motir-public-host')).toBe('acme.motir.site')
     // Scheme AND port, from what the proxy in front of us said — the crawl
@@ -277,10 +272,13 @@ describe('a workspace subdomain', () => {
     )
   })
 
-  it('serves the workspace’s project list at the root', async () => {
-    const res = await proxy(request('https://acme.motir.site/'))
-    expect(rewriteOf(res)).toBe('/en/w')
-    expect(forwarded(res, 'x-motir-address-kind')).toBe('workspace')
+  it('serves NO project path — a published /<identifier> link is the 404 room', async () => {
+    // MOTIR-9790 / MOTIR-9512: public projects live at motir.co/p/<identifier>,
+    // and the bare workspace host belongs to the default application.
+    for (const path of ['/PROD', '/PROD/board', '/w']) {
+      const res = await proxy(request(`https://acme.motir.site${path}`))
+      expect(rewriteOf(res), path).toBe('/_host-unknown')
+    }
   })
 
   it('OVERWRITES a client-supplied kind rather than honouring it', async () => {
@@ -294,7 +292,7 @@ describe('a workspace subdomain', () => {
     expect(forwarded(res, 'x-motir-public-host')).toBe('acme.motir.site')
   })
 
-  it('404s a path that is not one of this workspace’s projects', async () => {
+  it('404s any other path', async () => {
     const res = await proxy(request('https://acme.motir.site/OTHER'))
     expect(rewriteOf(res)).toBe('/_host-unknown')
   })
@@ -302,8 +300,8 @@ describe('a workspace subdomain', () => {
   it('CARRIES the host into the 404 room, because it HOLDS the resolution', async () => {
     /*
      * MOTIR-4430, and the branch its reproduction takes:
-     * `hey.motir.site/explore` is a workspace address serving a path that is
-     * not one of its projects. The host is known and only the PATH is not, so
+     * `hey.motir.site/explore` is a live workspace address serving a path it
+     * does not have. The host is known and only the PATH is not, so
      * the room is told the real kind rather than `unresolved` — and it is told
      * anything at all, which is the defect. Until this card the branch went
      * through a header-less `rewriteTo`, so the room rendered `motir.co`'s
@@ -325,7 +323,9 @@ describe('the router’s own rewrite, coming back around', () => {
     // again rather than assumed to have survived, so the page reads them
     // whichever pass produced the request it renders.
     resolveHost.mockResolvedValue(WORKSPACE)
-    const res = await proxy(request('https://acme.motir.site/en/p/PROD/board'))
+    const res = await proxy(
+      request('https://acme.motir.site/en/no-application'),
+    )
 
     expect(res.headers.get('x-middleware-rewrite')).toBeNull()
     expect(res.headers.get('x-middleware-next')).toBe('1')
@@ -348,66 +348,16 @@ describe('a customer domain', () => {
 })
 
 describe('a retired subdomain', () => {
-  it('301s to the live host with the path AND query preserved', async () => {
-    // ADR §8's never-released promise, made observable to a visitor. A link
-    // somebody published to a deep page must land on that page.
-    resolveHost.mockResolvedValue(ALIAS)
+  it('is the 404 room like any unknown host — nothing redirects (ADR §8 Amendment 3 rule 2)', async () => {
+    // The contract answers a renamed or released name the same 404 as an
+    // unknown host, so there is no redirect branch left to take.
+    resolveHost.mockResolvedValue({ status: 'not-found' })
     const res = await proxy(
       request('https://old.motir.site/PROD/items?cursor=w9'),
     )
-
-    expect(res.status).toBe(301)
-    const location = new URL(res.headers.get('location')!)
-    expect(location.host).toBe('acme.localhost')
-    expect(location.pathname).toBe('/PROD/items')
-    expect(location.search).toBe('?cursor=w9')
-  })
-
-  it('takes the scheme and port from the VISITOR, in both environments', async () => {
-    // ⚠️ ONE TABLE, ONE FUNCTION, TWO ENVIRONMENTS (MOTIR-4447), and that is
-    // the point rather than a style choice: the two rows are the two readings
-    // of "the port the visitor reached us on", and the defect was that they
-    // disagree while `request.nextUrl` answers only one of them. Split into two
-    // tests, either could be made green by breaking the other — which is
-    // exactly what shipped, because the browser lane covers only the second row
-    // and covers it BECAUSE the app really is on that port there.
-    //
-    // Live counterfactual, 2026-09-04, before this fix:
-    //   curl -sI https://tak.motir.site/MOTIR
-    //   → 301, location: https://hey.motir.site:8080/MOTIR   (chain dead, 1 hop)
-    const cases: {
-      what: string
-      url: string
-      headers: Record<string, string>
-      expected: string
-    }[] = [
-      {
-        what: 'behind a proxy that terminates TLS (Fly: 443 in, 8080 on)',
-        // What the machine actually receives: the internal address, on the
-        // internal port, over http — with the visitor's own address forwarded.
-        url: 'http://motir-marketing.internal:8080/PROD/items?cursor=w9',
-        headers: {
-          'x-forwarded-host': 'old.motir.site',
-          'x-forwarded-proto': 'https',
-        },
-        expected: 'https://acme.localhost/PROD/items?cursor=w9',
-      },
-      {
-        what: 'a local run or the browser lane, where nothing is forwarded',
-        // `e2e/stub/origin.ts`'s ALIAS_ORIGIN shape: the app really IS on 4318,
-        // so the port must survive or the browser is sent to :80.
-        url: 'http://old.localhost:4318/PROD/items?cursor=w9',
-        headers: {},
-        expected: 'http://acme.localhost:4318/PROD/items?cursor=w9',
-      },
-    ]
-
-    for (const { what, url, headers, expected } of cases) {
-      resolveHost.mockResolvedValue(ALIAS)
-      const res = await proxy(request(url, headers))
-      expect(res.status, what).toBe(301)
-      expect(res.headers.get('location'), what).toBe(expected)
-    }
+    expect(res.status).not.toBe(301)
+    expect(res.headers.get('location')).toBeNull()
+    expect(rewriteOf(res)).toBe('/_host-unknown')
   })
 })
 
@@ -443,11 +393,9 @@ describe('the router targets the English tree, and recognises it coming back', (
     return { to, second }
   }
 
-  it('a workspace host’s project tab → /en/p/<id>/…, then forward', async () => {
-    resolveHost.mockResolvedValue(WORKSPACE)
-    const { to, second } = await twoPasses(
-      'https://acme.motir.site/PROD/changelog',
-    )
+  it('a customer domain’s tab → /en/p/<id>/…, then forward', async () => {
+    resolveHost.mockResolvedValue(CUSTOM)
+    const { to, second } = await twoPasses('https://roadmap.acme.com/changelog')
     expect(to).toBe('/en/p/PROD/changelog')
     expect(rewriteOf(second!)).toBeNull()
     expect(second!.headers.get('x-middleware-next')).toBe('1')
@@ -460,17 +408,17 @@ describe('the router targets the English tree, and recognises it coming back', (
     expect(second!.headers.get('x-middleware-next')).toBe('1')
   })
 
-  it('a workspace root → /en/w, then forward', async () => {
+  it('a workspace root → /en/no-application, then forward', async () => {
     resolveHost.mockResolvedValue(WORKSPACE)
     const { to, second } = await twoPasses('https://acme.motir.site/')
-    expect(to).toBe('/en/w')
+    expect(to).toBe('/en/no-application')
     expect(second!.headers.get('x-middleware-next')).toBe('1')
     expect(forwarded(second!, 'x-motir-address-kind')).toBe('workspace')
   })
 
   it('a FORGED /en/p/OTHER is still the 404 room, never another project', async () => {
     resolveHost.mockResolvedValue(WORKSPACE)
-    for (const path of ['/en/p/OTHER', '/de/p/OTHER/board']) {
+    for (const path of ['/en/p/OTHER', '/de/p/OTHER/board', '/en/p/PROD']) {
       const res = await proxy(request(`https://acme.motir.site${path}`))
       expect(rewriteOf(res), path).toBe('/_host-unknown')
     }
@@ -581,14 +529,12 @@ describe('the first-visit language', () => {
   it('rewrites a workspace host onto the chosen tree, address unchanged', async () => {
     resolveHost.mockResolvedValue(WORKSPACE)
     const fr = { 'accept-language': 'fr' }
-    const tab = await ask('https://acme.motir.site/PROD/changelog', fr)
-    expect(tab.headers.get('location')).toBeNull()
-    expect(rewriteOf(tab)).toBe('/fr/p/PROD/changelog')
-    expect(tab.headers.get('vary')).toMatch(/Accept-Language/)
     const root = await ask('https://acme.motir.site/', fr)
-    expect(rewriteOf(root)).toBe('/fr/w')
+    expect(root.headers.get('location')).toBeNull()
+    expect(rewriteOf(root)).toBe('/fr/no-application')
+    expect(root.headers.get('vary')).toMatch(/Accept-Language/)
 
-    const second = await ask('https://acme.motir.site/fr/p/PROD/changelog', fr)
+    const second = await ask('https://acme.motir.site/fr/no-application', fr)
     expect(rewriteOf(second)).toBeNull()
     expect(second.headers.get('x-middleware-next')).toBe('1')
   })

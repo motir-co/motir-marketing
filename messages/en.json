@@ -54,7 +54,6 @@
         "project": "We could not load this project",
         "changelog": "We could not load this project's changelog",
         "request": "We could not load this feature request",
-        "workspaceProjects": "We could not load this workspace’s projects",
         "address": "We could not load this address",
         "body": "The Motir application is not answering right now. The page you are on is fine — this reads from {host}, which is a separate deployment. Try again in a moment.",
         "bodyWithFeed": "The Motir application is not answering right now. The page you are on is fine — this reads from {host}, which is a separate deployment. Try again in a moment, or read the changelog, which is served from a feed.",
@@ -96,12 +95,9 @@
       "askHeading": "Ask for something",
       "requestFeature": "Request a feature ↗"
     },
-    "workspaceRoot": {
-      "heading": "Public projects",
-      "empty": {
-        "title": "Nothing is public here yet",
-        "body": "This workspace has claimed its address but has not made a project public. When it does, the project appears here."
-      }
+    "noApplication": {
+      "heading": "No application here yet",
+      "body": "This address belongs to {workspace}. No application is deployed here yet."
     },
     "meta": {
       "overviewFallback": "A project built in public on Motir — its overview, changelog and feature requests, and the live board in the Motir app.",
@@ -110,8 +106,7 @@
       "tabDescription": "{label} for {name} — public on Motir.",
       "requestNewTitle": "Request a feature · {name}",
       "requestNewDescription": "Ask the {name} team for something. Requests are public.",
-      "workspaceTitle": "Public projects",
-      "workspaceDescription": "The public projects this workspace publishes on Motir.",
+      "noApplicationTitle": "No application here yet",
       "hostUnavailableTitle": "Temporarily unavailable"
     }
   },

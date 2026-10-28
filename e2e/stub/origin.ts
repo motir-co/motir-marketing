@@ -47,33 +47,28 @@ export const SITE_ORIGIN = `http://127.0.0.1:${SITE_PORT}`
  * own specs are untouched.
  *
  * The stub answers `/api/public/hosts/acme.localhost` from
- * `e2e/fixtures/host-workspace.json`, which publishes the `MOTIR` project every
- * other fixture is keyed by.
+ * `e2e/fixtures/host-workspace.json`: a live workspace host with no application
+ * yet (MOTIR-9512), which serves no project.
  */
 export const TENANT_HOST = 'acme.localhost'
 
 export const TENANT_ORIGIN = `http://${TENANT_HOST}:${SITE_PORT}`
 
 /**
- * The other four addresses the acceptance walk needs (MOTIR-4226) — a customer
- * domain, a retired subdomain, a workspace with nothing public yet, and a host
- * whose resolution FAILS.
+ * The other three addresses the acceptance walk needs (MOTIR-4226) — a
+ * customer domain, a retired subdomain, and a host whose resolution FAILS.
  *
- * All five are labels under `.localhost`, so all five reach the same server with
+ * All four are labels under `.localhost`, so all five reach the same server with
  * a different `Host` header, which is the only thing the router reads. The stub
  * decides what each one IS (`e2e/stub/publicApiStub.ts`), so the whole address
- * matrix is one fixture table rather than five deployments.
+ * matrix is one fixture table rather than four deployments.
  */
 export const CUSTOM_HOST = 'roadmap.localhost'
 export const CUSTOM_ORIGIN = `http://${CUSTOM_HOST}:${SITE_PORT}`
 
-/** A retired subdomain — it 301s to `TENANT_HOST`. */
+/** A retired subdomain — a 404 like any unknown host; it redirects nowhere. */
 export const ALIAS_HOST = 'old.localhost'
 export const ALIAS_ORIGIN = `http://${ALIAS_HOST}:${SITE_PORT}`
-
-/** A workspace that holds its address but publishes nothing. */
-export const EMPTY_HOST = 'empty.localhost'
-export const EMPTY_ORIGIN = `http://${EMPTY_HOST}:${SITE_PORT}`
 
 /** A host whose resolution answers 500 — the OUTAGE, which is never a 404. */
 export const BROKEN_HOST = 'broken.localhost'

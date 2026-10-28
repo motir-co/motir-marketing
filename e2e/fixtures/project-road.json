@@ -3,7 +3,7 @@
   "name": "Acme Roadmap",
   "identifier": "ROAD",
   "workspaceName": "moooon B.V.",
-  "publicOverviewMd": "## What Motir is\n\nDescribe what you want to build in chat, and Motir drafts the issue tree.\n\n## How it is built\n\n- Open core: the whole project-management tool is GPL-3.0.\n- Agents do design, decisions and content \u2014 not only code.",
+  "publicOverviewMd": "## What Motir is\n\nDescribe what you want to build in chat, and Motir drafts the issue tree.\n\n## How it is built\n\n- Open core: the whole project-management tool is GPL-3.0.\n- Agents do design, decisions and content — not only code.",
   "publicTagline": "What Acme is building, in the open.",
   "publicTags": ["developer-tools", "project-management", "open-source"],
   "stats": {
@@ -17,9 +17,6 @@
   "viewerCanManage": false,
   "addresses": {
     "primary": "http://roadmap.localhost:4318",
-    "alternates": [
-      "http://acme.localhost:4318/ROAD",
-      "http://127.0.0.1:4318/p/ROAD"
-    ]
+    "alternates": ["http://127.0.0.1:4318/p/ROAD"]
   }
 }
