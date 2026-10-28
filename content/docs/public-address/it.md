@@ -1,20 +1,29 @@
 ---
-source: b6adcdeabaad
+source: 410c4c87d2ef
 ---
 
-Un progetto pubblico è raggiungibile a un indirizzo che scegli tu. Ogni area di lavoro può richiedere un proprio indirizzo, e un progetto può rispondere anche su un dominio che possiedi già.
+Un progetto pubblico risponde al proprio indirizzo su `motir.co`, e può rispondere anche su un dominio che possiedi già. A parte questo, un’area di lavoro può richiedere un proprio nome sotto `motir.site`.
 
 ## Il tuo indirizzo Motir {#your-motir-address}
 
-Un’area di lavoro richiede un solo sottodominio, e ogni progetto pubblico al suo interno risponde sotto di esso: così `acme` ti dà `acme.motir.site/ROADMAP` per un progetto con chiave `ROADMAP`. A richiederlo è un proprietario o un amministratore dell’area di lavoro, nelle Impostazioni del progetto sotto _Indirizzo pubblico_.
+Ogni progetto pubblico risponde a `motir.co/p/ROADMAP` per un progetto con chiave `ROADMAP`. Non c’è nulla da richiedere: l’indirizzo deriva dalla chiave del progetto ed è incluso in ogni piano.
 
-Un’etichetta è composta da lettere minuscole, cifre e trattini, da tre a sessantatré caratteri. Un piccolo insieme di nomi è riservato agli host di Motir e a nomi che un lettore potrebbe scambiare per uno di essi.
+## Il nome della tua area di lavoro {#your-workspace-name}
 
-Puoi rinominarlo un numero limitato di volte, e il pannello mostra quante ridenominazioni ti restano. **Il vecchio indirizzo continua a funzionare in seguito e non viene mai rilasciato.** Reindirizza in modo permanente a quello nuovo e nessun altro può richiederlo, nemmeno tu in futuro. È voluto: un link che qualcuno ha già condiviso non deve un giorno portare in un posto che non hai scelto.
+Un’area di lavoro può richiedere un nome sotto `motir.site`: così `acme` ti dà `acme.motir.site`. Sotto quel nome rispondono le applicazioni che Motir ospita per la tua area di lavoro: l’indirizzo da solo mostra l’applicazione predefinita dell’area di lavoro, oppure una pagina che dice che qui non c’è ancora nessuna applicazione. **I progetti pubblici non rispondono mai sotto di esso**: un progetto resta al suo indirizzo `motir.co`.
+
+A richiedere il nome è un proprietario o un amministratore dell’area di lavoro, nelle _Impostazioni dell’area di lavoro_ sotto _Indirizzo pubblico_. Le Impostazioni del progetto lo mostrano in sola lettura, con un link a quella pagina.
+
+Un nome è composto da lettere minuscole, cifre e trattini singoli, da tre a sessantatré caratteri. Un piccolo insieme di nomi è riservato agli host di Motir e a nomi che un lettore potrebbe scambiare per uno di essi.
+
+Un’area di lavoro ha un nome o nessuno. **Non ci sono alias e niente reindirizza:** quando rinomini o rilasci il nome, il vecchio indirizzo smette subito di rispondere, e i link già condivisi verso di esso smettono di funzionare.
+
+- **Una modifica ogni 30 giorni.** Una ridenominazione e un rilascio contano ciascuno come una modifica, quindi rilasciare e richiedere di nuovo non aggira il limite. Finché una modifica non è ancora consentita, il pannello mostra la data da cui lo sarà.
+- **Un nome che lasci andare viene trattenuto, a meno che tu non l’abbia appena richiesto.** Un nome tenuto per meno di 24 ore torna subito disponibile. Un nome tenuto per 24 ore o più viene trattenuto per 90 giorni, così nessun altro può ereditare link che puntavano a te; la finestra di conferma indica la data esatta in cui torna libero.
 
 ## Collegare il tuo dominio {#connecting-your-own-domain}
 
-Collegare un dominio che possiedi è disponibile nei piani a pagamento: vedi [i nostri piani](/). Il sottodominio della tua area di lavoro è incluso in ogni piano e continua a funzionare in entrambi i casi.
+Collegare un dominio che possiedi è disponibile nei piani a pagamento: vedi [i nostri piani](/). Il tuo indirizzo `motir.co` è incluso in ogni piano e continua a funzionare in entrambi i casi.
 
 Un dominio collegato serve _un solo_ progetto, alla sua radice: `roadmap.acme.com/` è la pagina di quel progetto e `roadmap.acme.com/changelog` il suo changelog. La Bacheca dal vivo, gli elementi di lavoro e la roadmap si trovano nell’app Motir, e i link che li riguardano portano lì.
 

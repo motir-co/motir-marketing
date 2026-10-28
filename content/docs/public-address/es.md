@@ -1,20 +1,29 @@
 ---
-source: b6adcdeabaad
+source: 410c4c87d2ef
 ---
 
-Un proyecto público es accesible en una dirección que tú eliges. Cada espacio de trabajo puede reclamar una dirección propia, y un proyecto puede responder además en un dominio que ya tengas.
+Un proyecto público responde en su propia dirección en `motir.co`, y además puede responder en un dominio que ya tengas. Aparte de eso, un espacio de trabajo puede reclamar un nombre propio en `motir.site`.
 
 ## Tu dirección de Motir {#your-motir-address}
 
-Un espacio de trabajo reclama un único subdominio, y todos los proyectos públicos que contiene responden por debajo de él: así, `acme` te da `acme.motir.site/ROADMAP` para un proyecto con la clave `ROADMAP`. Lo reclama un propietario o administrador del espacio de trabajo, en la configuración del proyecto, en _Dirección pública_.
+Todo proyecto público responde en `motir.co/p/ROADMAP` para un proyecto con la clave `ROADMAP`. No hay nada que reclamar: la dirección se deriva de la clave del proyecto y está incluida en todos los planes.
 
-Una etiqueta son letras minúsculas, dígitos y guiones, de tres a sesenta y tres caracteres. Se reserva un pequeño conjunto de nombres para los propios hosts de Motir y para nombres que un lector podría confundir con uno de ellos.
+## El nombre de tu espacio de trabajo {#your-workspace-name}
 
-Puedes renombrarla un número limitado de veces, y el panel muestra cuántos cambios de nombre te quedan. **La dirección antigua sigue funcionando después y nunca se libera.** Redirige a la nueva de forma permanente y nadie más puede reclamarla, ni siquiera tú más adelante. Es deliberado: un enlace que alguien ya ha compartido no debe llevar un día a un sitio que tú no elegiste.
+Un espacio de trabajo puede reclamar un nombre en `motir.site`: así, `acme` te da `acme.motir.site`. En ese nombre responden las aplicaciones que Motir aloja para tu espacio de trabajo: la dirección sola muestra la aplicación predeterminada del espacio de trabajo, o una página que indica que aquí todavía no hay ninguna aplicación. **Los proyectos públicos nunca responden en él**: un proyecto se queda en su dirección de `motir.co`.
+
+Un propietario o administrador del espacio de trabajo reclama el nombre en _Configuración del espacio de trabajo_, en _Dirección pública_. La configuración del proyecto lo muestra en solo lectura, con un enlace hasta allí.
+
+Un nombre son letras minúsculas, dígitos y guiones sueltos, de tres a sesenta y tres caracteres. Se reserva un pequeño conjunto de nombres para los propios hosts de Motir y para nombres que un lector podría confundir con uno de ellos.
+
+Un espacio de trabajo tiene un nombre o ninguno. **No hay alias y nada redirige:** cuando cambias el nombre o lo liberas, la dirección antigua deja de responder al instante, y los enlaces ya compartidos a ella dejan de funcionar.
+
+- **Un cambio cada 30 días.** Un cambio de nombre y una liberación cuentan cada uno como un cambio, así que liberar y volver a reclamar no lo evita. Mientras un cambio aún no esté permitido, el panel muestra la fecha a partir de la cual lo estará.
+- **Un nombre que sueltas queda retenido, salvo que acabes de reclamarlo.** Un nombre que tuviste menos de 24 horas vuelve al momento a estar disponible. Un nombre que tuviste 24 horas o más queda retenido 90 días, para que nadie más pueda quedarse con enlaces que apuntaban a ti; el diálogo de confirmación indica la fecha exacta en que vuelve a estar libre.
 
 ## Conecta tu propio dominio {#connecting-your-own-domain}
 
-Conectar un dominio propio está disponible en los planes de pago; consulta [nuestros planes](/). El subdominio de tu espacio de trabajo se incluye en todos los planes y sigue funcionando en cualquier caso.
+Conectar un dominio propio está disponible en los planes de pago; consulta [nuestros planes](/). Tu dirección de `motir.co` se incluye en todos los planes y sigue funcionando en cualquier caso.
 
 Un dominio conectado sirve _un_ proyecto, en su raíz: `roadmap.acme.com/` es la página de ese proyecto y `roadmap.acme.com/changelog` su registro de cambios. El tablero en vivo, los elementos de trabajo y la hoja de ruta están en la aplicación de Motir, y sus enlaces allí llevan hasta ellos.
 
