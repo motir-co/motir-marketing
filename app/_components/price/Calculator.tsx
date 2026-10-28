@@ -30,6 +30,7 @@ import {
   MIN_SHARE,
   SHARES_TOTAL,
 } from './calculatorShares'
+import { exampleModels } from './modelExamples'
 
 /*
  * THE CALCULATOR ISLAND (MOTIR-8382 · MOTIR-9685; design/price/price.mock.html
@@ -394,10 +395,10 @@ export function Calculator() {
                       {empty
                         ? words.categoryEmpty
                         : format(words.categoryExamples, {
-                            models: category.models
-                              .slice(0, CATEGORY_MODEL_EXAMPLES)
-                              .map((m) => m.id)
-                              .join(', '),
+                            models: exampleModels(
+                              category.models.map((m) => m.id),
+                              CATEGORY_MODEL_EXAMPLES,
+                            ).join(', '),
                           })}
                     </span>
                     {on && share ? (
