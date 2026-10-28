@@ -94,6 +94,7 @@ describe('the anchors are explicit, and the rendered ids are exactly them', () =
     ],
     'public-address': [
       'your-motir-address',
+      'your-workspace-name',
       'connecting-your-own-domain',
       'point-the-domain-at-us',
       'prove-the-domain-is-yours',

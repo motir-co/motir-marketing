@@ -1,20 +1,29 @@
 ---
-source: b6adcdeabaad
+source: 410c4c87d2ef
 ---
 
-Ein öffentliches Projekt ist unter einer Adresse erreichbar, die Sie selbst wählen. Jeder Arbeitsbereich kann eine eigene Adresse beanspruchen, und ein Projekt kann zusätzlich unter einer Domain antworten, die Ihnen bereits gehört.
+Ein öffentliches Projekt antwortet unter seiner eigenen Adresse auf `motir.co` und kann zusätzlich unter einer Domain antworten, die Ihnen bereits gehört. Unabhängig davon kann ein Arbeitsbereich einen eigenen Namen unter `motir.site` beanspruchen.
 
 ## Ihre Motir-Adresse {#your-motir-address}
 
-Ein Arbeitsbereich beansprucht eine einzige Subdomain, und jedes öffentliche Projekt darin antwortet darunter – aus `acme` wird also `acme.motir.site/ROADMAP` für ein Projekt mit dem Schlüssel `ROADMAP`. Ein Inhaber oder Administrator des Arbeitsbereichs beansprucht sie, in den Projekteinstellungen unter _Öffentliche Adresse_.
+Jedes öffentliche Projekt antwortet unter `motir.co/p/ROADMAP` für ein Projekt mit dem Schlüssel `ROADMAP`. Es gibt nichts zu beanspruchen: Die Adresse ergibt sich aus dem Schlüssel des Projekts und ist in jedem Plan enthalten.
 
-Ein Label besteht aus Kleinbuchstaben, Ziffern und Bindestrichen und ist drei bis dreiundsechzig Zeichen lang. Eine kleine Menge von Namen ist für die eigenen Hosts von Motir reserviert, ebenso Namen, die ein Leser damit verwechseln könnte.
+## Der Name Ihres Arbeitsbereichs {#your-workspace-name}
 
-Sie können sie begrenzt oft umbenennen, und der Bereich zeigt an, wie viele Umbenennungen Ihnen bleiben. **Die alte Adresse funktioniert danach weiter und wird nie freigegeben.** Sie leitet dauerhaft auf die neue weiter und kann von niemand anderem beansprucht werden – auch später nicht von Ihnen. Das ist Absicht: Ein Link, den jemand bereits weitergegeben hat, darf nicht eines Tages an einen Ort führen, den Sie nicht gewählt haben.
+Ein Arbeitsbereich kann einen Namen unter `motir.site` beanspruchen – aus `acme` wird also `acme.motir.site`. Unter diesem Namen antworten die Anwendungen, die Motir für Ihren Arbeitsbereich hostet: Die Adresse selbst zeigt die Standardanwendung des Arbeitsbereichs oder eine Seite, die sagt, dass es hier noch keine Anwendung gibt. **Öffentliche Projekte antworten nie darunter** – ein Projekt bleibt unter seiner `motir.co`-Adresse.
+
+Ein Inhaber oder Administrator des Arbeitsbereichs beansprucht den Namen in den _Einstellungen des Arbeitsbereichs_ unter _Öffentliche Adresse_. Die Projekteinstellungen zeigen ihn schreibgeschützt an, mit einem Link dorthin.
+
+Ein Name besteht aus Kleinbuchstaben, Ziffern und einzelnen Bindestrichen und ist drei bis dreiundsechzig Zeichen lang. Eine kleine Menge von Namen ist für die eigenen Hosts von Motir reserviert, ebenso Namen, die ein Leser damit verwechseln könnte.
+
+Ein Arbeitsbereich hat einen Namen oder keinen. **Es gibt keine Aliase, und nichts leitet weiter:** Wenn Sie den Namen umbenennen oder freigeben, antwortet die alte Adresse sofort nicht mehr, und bereits geteilte Links darauf funktionieren nicht mehr.
+
+- **Eine Änderung alle 30 Tage.** Eine Umbenennung und eine Freigabe zählen jeweils als eine Änderung, freigeben und neu beanspruchen umgeht die Grenze also nicht. Solange eine Änderung noch nicht erlaubt ist, zeigt der Bereich das Datum, ab dem sie es ist.
+- **Ein Name, den Sie aufgeben, wird zurückgehalten – außer Sie haben ihn gerade erst beansprucht.** Ein Name, den Sie weniger als 24 Stunden hatten, geht sofort zurück in den Pool. Ein Name, den Sie 24 Stunden oder länger hatten, wird 90 Tage zurückgehalten, damit niemand sonst Links übernehmen kann, die auf Sie zeigten; der Bestätigungsdialog nennt das genaue Datum, ab dem er wieder frei ist.
 
 ## Eigene Domain verbinden {#connecting-your-own-domain}
 
-Eine eigene Domain zu verbinden ist in den kostenpflichtigen Plänen möglich – siehe [unsere Pläne](/). Die Subdomain Ihres Arbeitsbereichs ist in jedem Plan enthalten und funktioniert in beiden Fällen weiter.
+Eine eigene Domain zu verbinden ist in den kostenpflichtigen Plänen möglich – siehe [unsere Pläne](/). Ihre `motir.co`-Adresse ist in jedem Plan enthalten und funktioniert in beiden Fällen weiter.
 
 Eine verbundene Domain stellt _ein_ Projekt unter ihrem Stamm bereit: `roadmap.acme.com/` ist die Seite dieses Projekts und `roadmap.acme.com/changelog` sein Changelog. Das Live-Board, die Arbeitselemente und die Roadmap befinden sich in der Motir-App, und die dortigen Links führen hierher.
 

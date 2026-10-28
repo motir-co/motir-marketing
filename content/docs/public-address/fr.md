@@ -1,20 +1,29 @@
 ---
-source: b6adcdeabaad
+source: 410c4c87d2ef
 ---
 
-Un projet public est accessible à l’adresse de votre choix. Chaque espace de travail peut réserver une adresse qui lui est propre, et un projet peut en plus répondre sur un domaine que vous possédez déjà.
+Un projet public répond à sa propre adresse sur `motir.co`, et peut en plus répondre sur un domaine que vous possédez déjà. Par ailleurs, un espace de travail peut réserver un nom qui lui est propre sous `motir.site`.
 
 ## Votre adresse Motir {#your-motir-address}
 
-Un espace de travail réserve un seul sous-domaine, et chaque projet public qu’il contient répond en dessous — ainsi `acme` vous donne `acme.motir.site/ROADMAP` pour un projet dont la clé est `ROADMAP`. Un propriétaire ou un administrateur de l’espace de travail la réserve, dans les paramètres du projet, sous _Adresse publique_.
+Chaque projet public répond à `motir.co/p/ROADMAP` pour un projet dont la clé est `ROADMAP`. Il n’y a rien à réserver : l’adresse découle de la clé du projet, et elle est incluse dans toutes les offres.
 
-Un libellé se compose de lettres minuscules, de chiffres et de tirets, de trois à soixante-trois caractères. Un petit ensemble de noms est mis de côté pour les hôtes de Motir et pour les noms qu’un lecteur pourrait prendre pour l’un d’eux.
+## Le nom de votre espace de travail {#your-workspace-name}
 
-Vous pouvez la renommer un nombre limité de fois, et le volet indique combien de renommages il vous reste. **L’ancienne adresse continue de fonctionner ensuite, et n’est jamais libérée.** Elle redirige définitivement vers la nouvelle et ne peut être réservée par personne d’autre — vous compris, plus tard. C’est voulu : un lien que quelqu’un a déjà partagé ne doit pas mener un jour ailleurs que là où vous l’avez choisi.
+Un espace de travail peut réserver un nom sous `motir.site` — ainsi `acme` vous donne `acme.motir.site`. C’est sous ce nom que répondent les applications que Motir héberge pour votre espace de travail : l’adresse seule affiche l’application par défaut de l’espace de travail, ou une page indiquant qu’il n’y a pas encore d’application ici. **Les projets publics n’y répondent jamais** — un projet reste à son adresse `motir.co`.
+
+Un propriétaire ou un administrateur de l’espace de travail réserve le nom dans les _Paramètres de l’espace de travail_, sous _Adresse publique_. Les paramètres du projet l’affichent en lecture seule, avec un lien vers cet endroit.
+
+Un nom se compose de lettres minuscules, de chiffres et de tirets isolés, de trois à soixante-trois caractères. Un petit ensemble de noms est mis de côté pour les hôtes de Motir et pour les noms qu’un lecteur pourrait prendre pour l’un d’eux.
+
+Un espace de travail a un nom ou aucun. **Il n’y a pas d’alias, et rien ne redirige :** quand vous renommez ou libérez le nom, l’ancienne adresse cesse aussitôt de répondre, et les liens déjà partagés vers elle ne fonctionnent plus.
+
+- **Un changement tous les 30 jours.** Un renommage et une libération comptent chacun pour un changement : libérer puis réserver à nouveau ne permet donc pas de contourner la règle. Tant qu’un changement n’est pas encore permis, le volet indique la date à partir de laquelle il le sera.
+- **Un nom que vous abandonnez est retenu, sauf si vous venez de le réserver.** Un nom détenu moins de 24 heures retourne immédiatement dans le pool. Un nom détenu 24 heures ou plus est mis de côté pendant 90 jours, pour que personne d’autre ne récupère des liens qui pointaient vers vous ; la boîte de confirmation indique la date exacte à laquelle il redevient libre.
 
 ## Connecter votre propre domaine {#connecting-your-own-domain}
 
-Connecter un domaine que vous possédez est disponible avec les offres payantes — voir [nos offres](/). Le sous-domaine de votre espace de travail est inclus dans toutes les offres et continue de fonctionner dans tous les cas.
+Connecter un domaine que vous possédez est disponible avec les offres payantes — voir [nos offres](/). Votre adresse `motir.co` est incluse dans toutes les offres et continue de fonctionner dans tous les cas.
 
 Un domaine connecté sert _un_ projet, à sa racine : `roadmap.acme.com/` est la page de ce projet et `roadmap.acme.com/changelog` son journal des modifications. Le tableau en direct, les éléments de travail et la roadmap se trouvent dans l’application Motir, et leurs liens y mènent.
 
