@@ -1,10 +1,5 @@
 import { expect, test } from '@playwright/test'
-import {
-  CUSTOM_ORIGIN,
-  SITE_ORIGIN,
-  STUB_ORIGIN,
-  TENANT_ORIGIN,
-} from '../stub/origin'
+import { CUSTOM_ORIGIN, SITE_ORIGIN, TENANT_ORIGIN } from '../stub/origin'
 
 /*
  * THE TENANT HOST, IN A REAL BROWSER (MOTIR-4220's fifth criterion).
@@ -64,17 +59,17 @@ test('a project path on that host is a real 404, not a soft one', async ({
   ).toBeVisible()
 })
 
-test('a read page on a customer domain redirects into the app, absolutely', async ({
+test('a read page on a customer domain is the 404 room — it redirects nowhere', async ({
   request,
 }) => {
-  // MOTIR-6743. The router rewrites `/board` onto `/p/ROAD/board`, whose
-  // handler answers the permanent redirect — ON THE APP'S ORIGIN, never on the
-  // tenant host, because the view exists in the app and nowhere else.
+  // MOTIR-9528 (Story MOTIR-4533) retired MOTIR-6743's redirect here: a
+  // customer's own domain belongs to its workspace's application, answered at
+  // Motir's edge, so this site serves it no project path and sends it nowhere.
   const res = await request.get(`${CUSTOM_ORIGIN}/board`, {
     maxRedirects: 0,
   })
-  expect(res.status()).toBe(308)
-  expect(res.headers()['location']).toBe(`${STUB_ORIGIN}/p/ROAD/board`)
+  expect(res.status()).toBe(404)
+  expect(res.headers()['location']).toBeUndefined()
 })
 
 test('the site’s own host is untouched', async ({ page }) => {

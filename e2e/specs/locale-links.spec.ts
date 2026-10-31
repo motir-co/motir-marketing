@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { CUSTOM_ORIGIN, SITE_ORIGIN } from '../stub/origin'
-import { t } from '../support/catalogue'
+import { SITE_ORIGIN } from '../stub/origin'
 import { HEADER_LADDER } from '../../i18n/routing'
 
 /*
@@ -68,28 +67,4 @@ test('the docs rail marks the current page under a prefix', async ({
     .locator('a[href^="/docs"]')
     .evaluateAll((links) => links.map((l) => l.getAttribute('href')))
   expect(english).toEqual([])
-})
-
-test('on a tenant host, motir.co is French and the project is not prefixed', async ({
-  browser,
-}) => {
-  // The tenant host has no address prefix; the reader's language arrives with
-  // the request — here the cookie the language switcher writes (MOTIR-7951).
-  const context = await browser.newContext({ locale: 'fr-FR' })
-  await context.addCookies([
-    { name: 'NEXT_LOCALE', value: 'fr', url: CUSTOM_ORIGIN },
-  ])
-  const page = await context.newPage()
-  const response = await page.goto(`${CUSTOM_ORIGIN}/changelog`)
-  expect(response?.status()).toBe(200)
-  await expect(page.locator('html')).toHaveAttribute('lang', 'fr')
-
-  const footerDocs = page.locator('footer a[href$="/docs"]')
-  await expect(footerDocs).toHaveAttribute('href', 'https://motir.co/fr/docs')
-
-  const overview = page
-    .getByRole('navigation', { name: t('fr', 'publicProject.header.navAria') })
-    .getByRole('link', { name: t('fr', 'publicProject.tabs.overview') })
-  await expect(overview).toHaveAttribute('href', '/')
-  await context.close()
 })

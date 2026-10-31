@@ -6,7 +6,7 @@ import { CUSTOM_ORIGIN, SITE_ORIGIN, STUB_ORIGIN } from '../stub/origin'
  * ⚠️ THE ACCEPTANCE WALK FOR STORY MOTIR-6171 (MOTIR-6749) — motir.co's read
  * pages moved into the app. A reader on the project page reads what watching
  * live costs BEFORE the click, follows a tab and an old board link into the
- * app, sees the same on a customer-owned address, then requests a feature and
+ * app, then requests a feature and
  * reaches a request's upvote and comment hand-offs — with no request board
  * anywhere. PACED FOR A PERSON TO WATCH.
  *
@@ -195,33 +195,17 @@ test('every old read path on motir.co answers 308 into the app', async ({
   }
 })
 
-test('the same on a customer-owned address, and its app tabs point at the app', async ({
+test('a customer-owned address has no read link to move — it is the 404 room', async ({
   page,
 }) => {
-  // A customer domain only: a workspace host serves no project since
-  // MOTIR-9512, so it has no read link to move.
+  // A workspace host serves no project since MOTIR-9512, and a customer domain
+  // serves none since MOTIR-9528 (Story MOTIR-4533): an old board link there is
+  // not this site's to redirect, so it answers the one 404 room in place.
   const res = await page.request.get(`${CUSTOM_ORIGIN}/board`, {
     maxRedirects: 0,
   })
-  expect(res.status()).toBe(308)
-  expect(res.headers()['location']).toBe(`${APP}/p/ROAD/board`)
-
-  await page.goto(`${CUSTOM_ORIGIN}/`)
-  const nav = page.getByRole('navigation', { name: 'Project' })
-  await expect(nav.getByRole('link', { name: /^Board/ })).toHaveAttribute(
-    'href',
-    `${APP}/p/ROAD/board`,
-  )
-  await expect(nav.getByRole('link', { name: /^Roadmap/ })).toHaveAttribute(
-    'href',
-    `${APP}/p/ROAD/roadmap`,
-  )
-  await expect(nav.getByRole('link', { name: 'Changelog' })).toHaveAttribute(
-    'href',
-    '/changelog',
-  )
-  await expectWatchSentence(page)
-  expect(await sameHostReadLinks(page)).toEqual([])
+  expect(res.status()).toBe(404)
+  expect(res.headers()['location']).toBeUndefined()
 })
 
 test('the changelog’s items link straight into the app', async ({ page }) => {

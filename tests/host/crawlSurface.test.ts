@@ -149,7 +149,7 @@ describe('the sitemap on a customer domain', () => {
     const urls = entries.map((e) => e.url)
 
     expect(urls).toContain('https://motir.co/p/MOTIR')
-    expect(urls.some((u) => u.includes('roadmap.acme.com'))).toBe(false)
+    expect(urls.map((u) => new URL(u).host)).not.toContain('roadmap.acme.com')
   })
 })
 

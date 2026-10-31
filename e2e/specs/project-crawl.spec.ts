@@ -78,19 +78,16 @@ test('and OMITS one whose canonical has moved to a tenant host', async ({
   expect(xml).not.toContain('/p/ROAD')
 })
 
-test('the tenant host’s sitemap lists ITS project, at its own paths', async ({
+test('a customer domain has no sitemap here — it is not this site’s', async ({
   request,
 }) => {
-  const xml = await (await request.get(`${CUSTOM_ORIGIN}/sitemap.xml`)).text()
+  // MOTIR-9528 (Story MOTIR-4533): a customer's own domain belongs to its
+  // workspace's application, answered at Motir's edge, so this site lists
+  // nothing for it — its `/sitemap.xml` is the one 404 room.
+  const res = await request.get(`${CUSTOM_ORIGIN}/sitemap.xml`)
 
-  expect(xml).toContain(`${CUSTOM_ORIGIN}/</loc>`)
-  expect(xml).toContain(`${CUSTOM_ORIGIN}/changelog</loc>`)
-  expect(xml).not.toContain(`${CUSTOM_ORIGIN}/board</loc>`)
-  // Not `/p/ROAD`, and none of the marketing site's own pages: a tenant host is
-  // a project's address, not a copy of motir.co.
-  expect(xml).not.toContain('/p/ROAD')
-  expect(xml).not.toContain('/explore')
-  expect(xml).not.toContain('MOTIR')
+  expect(res.status()).toBe(404)
+  expect(await res.text()).not.toContain('<loc>')
 })
 
 test('a workspace host’s sitemap lists nothing — it serves no project', async ({

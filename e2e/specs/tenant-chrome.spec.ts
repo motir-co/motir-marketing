@@ -1,7 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import {
   BROKEN_ORIGIN,
-  CUSTOM_ORIGIN,
   SITE_ORIGIN,
   SITE_PORT,
   TENANT_ORIGIN,
@@ -87,14 +86,14 @@ function hrefsOf(page: Page): Promise<string[]> {
  * The `expect(status).toBe(200)` in each test is what keeps that mistake
  * legible rather than mysterious.
  *
- * `ROAD`'s primary IS the customer domain, so its URL does not take
- * `redirectIfNotPrimary`'s 308 to somewhere else. The workspace host serves no
- * project since MOTIR-9512, so its row walks the page it does serve: the
- * no-application page at its root, in the same chrome.
+ * The workspace host serves no project since MOTIR-9512, so its row walks the
+ * page it does serve: the no-application page at its root, in the same chrome.
+ * The customer-domain row is gone with MOTIR-9528 (Story MOTIR-4533): a
+ * customer's own domain is answered at Motir's edge, and this site serves it
+ * only the 404 room.
  */
 for (const [label, url] of [
   ['a workspace subdomain', `${TENANT_ORIGIN}/`],
-  ['a customer domain', `${CUSTOM_ORIGIN}/`],
 ] as const) {
   test(`${label} — its page takes ZERO responses at 400 or above`, async ({
     page,
