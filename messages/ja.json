@@ -2587,7 +2587,7 @@
       "cadenceLabel": "請求サイクル",
       "monthly": "月払い",
       "annual": "年払い",
-      "saveBadge": "約 33% お得",
+      "saveBadge": "{pct} お得",
       "recommended": "おすすめ",
       "perMoEquiv": "月額 ${n}",
       "annualSub": "年払い · 年額 ${yr}",

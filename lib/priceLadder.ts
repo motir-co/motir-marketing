@@ -143,3 +143,38 @@ function parsePlan(raw: unknown): LadderPlan | null {
   if (Object.keys(prices).length === 0) return null
   return { key, name, monthlyCredits, priceUsdByCadence: prices }
 }
+
+/** The share of a year at the monthly price that a plan's annual price saves. */
+export interface AnnualSaving {
+  /** The smallest saving across the plans, as a fraction (`0.33` is 33%). */
+  low: number
+  /** The largest. Equal to `low` when every plan saves the same. */
+  high: number
+}
+
+/**
+ * What paying annually saves across `plans`, from their own prices (MOTIR-10156):
+ * the Annual toggle's badge states this, so a re-price moves it with the cards.
+ *
+ * Each plan offered on both cadences saves `1 − annual / (12 × monthly)`; a plan on
+ * one cadence, or one whose annual price saves nothing, takes no part. Each
+ * fraction is rounded DOWN to a whole percent, so the badge never states more than
+ * a card saves. `null` when no plan saves anything — the badge then shows nothing.
+ */
+export function annualSaving(
+  plans: readonly LadderPlan[],
+): AnnualSaving | null {
+  const savings: number[] = []
+  for (const { priceUsdByCadence: price } of plans) {
+    const { monthly, annual } = price
+    if (monthly === undefined || annual === undefined || monthly <= 0) continue
+    const year = monthly * 12
+    if (annual >= year) continue
+    // A whole percent, rounded down. The epsilon keeps an exact share (0.29 is
+    // 28.999… in floating point) from losing a point to representation.
+    const percent = Math.floor(((year - annual) / year) * 100 + 1e-9)
+    if (percent > 0) savings.push(percent / 100)
+  }
+  if (savings.length === 0) return null
+  return { low: Math.min(...savings), high: Math.max(...savings) }
+}

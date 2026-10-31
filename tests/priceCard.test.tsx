@@ -3,14 +3,17 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { render } from '@/tests/helpers/withCopy'
 import { PriceCard } from '@/app/_components/price/PriceCard'
-import { englishCopy, format } from '@/lib/copy'
+import { englishCopy, format, getCopy } from '@/lib/copy'
+import { LOCALE_BCP47, type Locale } from '@/i18n/routing'
 import { PLANS_SIGN_UP } from '@/lib/destinations'
 import {
+  annualSaving,
   PLAN_LADDER_PATH,
   PLAN_LADDER_REVALIDATE_S,
   parsePlanLadder,
   planLadderRevalidate,
   readPlanLadder,
+  type LadderPlan,
   type PlanLadder,
 } from '@/lib/priceLadder'
 import { TRACKER_SEAT_FEE_USD_PER_MONTH } from '@/lib/seatFee'
@@ -31,6 +34,54 @@ vi.mock('next/navigation', () => ({
 const copy = englishCopy.pricePage.plans
 const ladder = parsePlanLadder(recorded) as PlanLadder
 const n = (v: number) => new Intl.NumberFormat('en-US').format(v)
+
+type Priced = { priceUsdByCadence: { monthly?: number; annual?: number } }
+
+/**
+ * The badge a ladder should carry, worked out here from the fixture's prices on
+ * their own: each two-cadence plan's saving, rounded down to a whole percent.
+ */
+function savingBadgeOf(
+  plans: readonly Priced[],
+  locale: Locale = 'en',
+  words = copy,
+): string {
+  const percents = plans.flatMap(
+    ({ priceUsdByCadence: { monthly, annual } }) =>
+      monthly && annual !== undefined && annual < monthly * 12
+        ? [Math.floor(((monthly * 12 - annual) * 100) / (monthly * 12))]
+        : [],
+  )
+  const pct = new Intl.NumberFormat(LOCALE_BCP47[locale], {
+    style: 'percent',
+    maximumFractionDigits: 0,
+  })
+  const low = Math.min(...percents) / 100
+  const high = Math.max(...percents) / 100
+  return format(words.saveBadge, {
+    pct: low === high ? pct.format(low) : pct.formatRange(low, high),
+  })
+}
+
+/** The recorded ladder with every plan's annual price re-set by `annual(monthly)`. */
+function repriced(annual: (monthly: number, i: number) => number): PlanLadder {
+  return {
+    ...ladder,
+    plans: ladder.plans.map((plan, i) => ({
+      ...plan,
+      priceUsdByCadence: {
+        ...plan.priceUsdByCadence,
+        annual: annual(plan.priceUsdByCadence.monthly!, i),
+      },
+    })),
+  }
+}
+
+async function showAnnual() {
+  await userEvent
+    .setup()
+    .click(screen.getByRole('button', { name: copy.annual }))
+}
 
 const jsonResponse = (body: unknown, init: ResponseInit = {}) =>
   new Response(JSON.stringify(body), {
@@ -275,20 +326,87 @@ describe('the price card', () => {
     ).toBeInTheDocument()
   })
 
-  it('switches cadence with the toggle, and shows Save ~33% only on Annual', async () => {
+  it('switches cadence with the toggle, and shows the saving badge only on Annual', async () => {
     const user = userEvent.setup()
     const { container } = render(<PriceCard ladder={ladder} />)
     const wrapper = container.querySelector('[data-cadence]')!
+    const badge = savingBadgeOf(recorded.plans)
     expect(wrapper).toHaveAttribute('data-cadence', 'monthly')
-    expect(screen.queryByText(copy.saveBadge)).toBeNull()
+    expect(screen.queryByText(badge)).toBeNull()
     expect(
       screen.getByRole('group', { name: copy.cadenceLabel }),
     ).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: copy.annual }))
     expect(wrapper).toHaveAttribute('data-cadence', 'annual')
-    expect(screen.getByText(copy.saveBadge)).toBeInTheDocument()
+    expect(screen.getByText(badge)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: copy.monthly }))
     expect(wrapper).toHaveAttribute('data-cadence', 'monthly')
+  })
+
+  describe('the Annual saving badge follows the ladder (MOTIR-10156)', () => {
+    it('moves with a re-price: a new saving replaces the recorded one', async () => {
+      const cheaper = repriced((monthly) => monthly * 12 * 0.8)
+      render(<PriceCard ladder={cheaper} />)
+      await showAnnual()
+      expect(savingBadgeOf(cheaper.plans)).not.toBe(
+        savingBadgeOf(recorded.plans),
+      )
+      expect(screen.getByText(savingBadgeOf(cheaper.plans))).toBeInTheDocument()
+      expect(screen.queryByText(savingBadgeOf(recorded.plans))).toBeNull()
+    })
+
+    it('states the range when the cards save different shares', async () => {
+      // The first plan saves a tenth, every other one a quarter.
+      const mixed = repriced(
+        (monthly, i) => monthly * 12 * (i === 0 ? 0.9 : 0.75),
+      )
+      render(<PriceCard ladder={mixed} />)
+      await showAnnual()
+      const badge = savingBadgeOf(mixed.plans)
+      expect(badge).toBe(
+        format(copy.saveBadge, {
+          pct: new Intl.NumberFormat('en', {
+            style: 'percent',
+            maximumFractionDigits: 0,
+          }).formatRange(0.1, 0.25),
+        }),
+      )
+      expect(screen.getByText(badge)).toBeInTheDocument()
+    })
+
+    it('shows no badge when no card saves anything on Annual', async () => {
+      const noSaving = repriced((monthly) => monthly * 12)
+      const { container } = render(<PriceCard ladder={noSaving} />)
+      await showAnnual()
+      expect(container.querySelector('[data-cadence]')).toHaveAttribute(
+        'data-cadence',
+        'annual',
+      )
+      expect(screen.queryByText(/%/)).toBeNull()
+    })
+
+    it.each(['de', 'fr', 'ja'] as const)(
+      'is worded and formatted for %s',
+      async (locale) => {
+        const messages = await getCopy(locale)
+        render(<PriceCard ladder={ladder} />, { locale, messages })
+        await userEvent.setup().click(
+          screen.getByRole('button', {
+            name: messages.pricePage.plans.annual,
+          }),
+        )
+        expect(
+          screen.getByText(
+            // `getByText` collapses the no-break space a locale puts before `%`.
+            savingBadgeOf(
+              recorded.plans,
+              locale,
+              messages.pricePage.plans,
+            ).replace(/\s+/g, ' '),
+          ),
+        ).toBeInTheDocument()
+      },
+    )
   })
 
   it('states the seat block, per-organisation and invoice lines', () => {
@@ -329,3 +447,51 @@ describe('the price card when the ladder cannot be read', () => {
     expect(refresh).toHaveBeenCalled()
   })
 })
+
+describe('annualSaving', () => {
+  const plan = (monthly?: number, annual?: number): LadderPlan => ({
+    key: 'k',
+    name: 'K',
+    monthlyCredits: 1,
+    priceUsdByCadence: {
+      ...(monthly !== undefined ? { monthly } : {}),
+      ...(annual !== undefined ? { annual } : {}),
+    },
+  })
+
+  it('is the smallest and largest whole-percent saving across the two-cadence plans', () => {
+    expect(annualSaving(ladder.plans)).toEqual({
+      low: Math.floor(savingPercent(recorded.plans[0]!)) / 100,
+      high: Math.floor(savingPercent(recorded.plans[0]!)) / 100,
+    })
+    expect(annualSaving([plan(10, 90), plan(10, 108)])).toEqual({
+      low: 0.1,
+      high: 0.25,
+    })
+  })
+
+  it('never rounds a saving up, and keeps an exact one exact', () => {
+    // 1 − 801/1200 = 33.25%: stated as 33%, never 34%.
+    expect(annualSaving([plan(100, 801)])).toEqual({ low: 0.33, high: 0.33 })
+    // 1 − 852/1200 = 29% exactly, which floating point reads as 28.999…
+    expect(annualSaving([plan(100, 852)])).toEqual({ low: 0.29, high: 0.29 })
+  })
+
+  it('leaves out a plan on one cadence, a free one, and one annual does not save on', () => {
+    expect(
+      annualSaving([plan(undefined, 240), plan(10), plan(0, 0), plan(10, 120)]),
+    ).toBeNull()
+    expect(annualSaving([plan(10, 130), plan(10, 90)])).toEqual({
+      low: 0.25,
+      high: 0.25,
+    })
+    // A saving under one whole percent states nothing rather than 0%.
+    expect(annualSaving([plan(100, 1199)])).toBeNull()
+    expect(annualSaving([])).toBeNull()
+  })
+})
+
+function savingPercent(p: Priced): number {
+  const { monthly, annual } = p.priceUsdByCadence
+  return ((monthly! * 12 - annual!) * 100) / (monthly! * 12)
+}

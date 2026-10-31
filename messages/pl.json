@@ -2607,7 +2607,7 @@
       "cadenceLabel": "Cykl rozliczeń",
       "monthly": "Miesięcznie",
       "annual": "Rocznie",
-      "saveBadge": "Oszczędź ok. 33%",
+      "saveBadge": "Oszczędź {pct}",
       "recommended": "Zalecany",
       "perMoEquiv": "${n} / mies.",
       "annualSub": "rozliczane rocznie · ${yr} / rok",

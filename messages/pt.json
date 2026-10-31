@@ -2614,7 +2614,7 @@
       "cadenceLabel": "Periodicidade de cobrança",
       "monthly": "Mensal",
       "annual": "Anual",
-      "saveBadge": "Economize ~33%",
+      "saveBadge": "Economize {pct}",
       "recommended": "Recomendado",
       "perMoEquiv": "${n} / mês",
       "annualSub": "cobrado anualmente · ${yr} / ano",

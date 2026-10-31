@@ -51,3 +51,36 @@ export function leaves(locale: string): Map<string, string> {
   walk(catalogue(locale), '')
   return out
 }
+
+type Priced = { priceUsdByCadence: { monthly?: number; annual?: number } }
+
+/**
+ * The Annual toggle's badge for a recorded ladder, in one locale (MOTIR-10156):
+ * worked out here from the fixture's prices — each two-cadence plan's saving,
+ * rounded down to a whole percent; one figure, or the range when they differ —
+ * and worded by the catalogue. Whitespace is collapsed, as `getByText` reads it.
+ */
+export function saveBadge(
+  locale: string,
+  bcp47: string,
+  plans: readonly Priced[],
+): string {
+  const percents = plans.flatMap(
+    ({ priceUsdByCadence: { monthly, annual } }) =>
+      monthly && annual !== undefined && annual < monthly * 12
+        ? [Math.floor(((monthly * 12 - annual) * 100) / (monthly * 12))]
+        : [],
+  )
+  const pct = new Intl.NumberFormat(bcp47, {
+    style: 'percent',
+    maximumFractionDigits: 0,
+  })
+  const low = Math.min(...percents) / 100
+  const high = Math.max(...percents) / 100
+  return t(locale, 'pricePage.plans.saveBadge')
+    .replace(
+      '{pct}',
+      low === high ? pct.format(low) : pct.formatRange(low, high),
+    )
+    .replace(/\s+/g, ' ')
+}

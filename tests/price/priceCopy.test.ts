@@ -50,6 +50,13 @@ describe.each(LOCALES)('the price copy in %s', (locale) => {
     }
   })
 
+  it('words the Annual saving badge around the computed figure, with none of its own (MOTIR-10156)', async () => {
+    // Read from the locale's own catalogue, so an English fallback cannot pass it.
+    const own = (await getCopy(locale)).pricePage.plans.saveBadge
+    expect(own).toContain('{pct}')
+    expect(own.replace('{pct}', '')).not.toMatch(/[\d%％]/)
+  })
+
   it('carries the nav and footer Price entries', async () => {
     const copy = await getCopy(locale)
     expect(copy.nav.price.length).toBeGreaterThan(0)

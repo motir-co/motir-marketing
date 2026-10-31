@@ -12,8 +12,16 @@ import type { Cadence } from '@/lib/priceLadder'
  * markup; the toggle only writes `data-cadence` on the wrapper, and each block
  * shows itself under `group-data-[cadence=…]/cadence:`. So the page's figures
  * render without JavaScript, at the design's default of Monthly (panel 2).
+ * The Annual badge's wording arrives computed from the ladder (MOTIR-10156).
  */
-export function PriceCadence({ children }: { children: ReactNode }) {
+export function PriceCadence({
+  saveBadge,
+  children,
+}: {
+  /** What annual saves, already worded from the ladder's prices; `null` shows no badge. */
+  saveBadge: string | null
+  children: ReactNode
+}) {
   const words = useCopy().pricePage.plans
   const [cadence, setCadence] = useState<Cadence>('monthly')
   return (
@@ -28,9 +36,9 @@ export function PriceCadence({ children }: { children: ReactNode }) {
             { value: 'annual', label: words.annual },
           ]}
         />
-        {cadence === 'annual' ? (
+        {cadence === 'annual' && saveBadge !== null ? (
           <Pill className="border-transparent bg-(--el-tint-mint) text-(--el-text-strong)">
-            {words.saveBadge}
+            {saveBadge}
           </Pill>
         ) : null}
       </div>

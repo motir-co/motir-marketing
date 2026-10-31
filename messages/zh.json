@@ -2537,7 +2537,7 @@
       "cadenceLabel": "计费周期",
       "monthly": "按月",
       "annual": "按年",
-      "saveBadge": "约省 33%",
+      "saveBadge": "省 {pct}",
       "recommended": "推荐",
       "perMoEquiv": "${n} / 月",
       "annualSub": "按年计费 · ${yr} / 年",

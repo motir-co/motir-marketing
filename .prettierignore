@@ -2,3 +2,6 @@
 node_modules
 pnpm-lock.yaml
 LICENSE
+# motir-core's pinned calculator vector, carried byte for byte (MOTIR-10156); the seam lane
+# compares it with motir-core's copy, so a formatter run here would break the identity.
+tests/fixtures/calculator/pinned-vector.json

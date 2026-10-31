@@ -2580,7 +2580,7 @@
       "cadenceLabel": "Billing cadence",
       "monthly": "Monthly",
       "annual": "Annual",
-      "saveBadge": "Save ~33%",
+      "saveBadge": "Save {pct}",
       "recommended": "Recommended",
       "perMoEquiv": "${n} / mo",
       "annualSub": "billed annually · ${yr} / yr",

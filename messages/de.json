@@ -2603,7 +2603,7 @@
       "cadenceLabel": "Abrechnungsintervall",
       "monthly": "Monatlich",
       "annual": "Jährlich",
-      "saveBadge": "Ca. 33 % sparen",
+      "saveBadge": "{pct} sparen",
       "recommended": "Empfohlen",
       "perMoEquiv": "${n} / Monat",
       "annualSub": "jährliche Abrechnung · ${yr} / Jahr",

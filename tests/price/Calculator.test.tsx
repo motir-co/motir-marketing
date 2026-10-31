@@ -357,6 +357,49 @@ describe('the non-happy states — each with its message and no number', () => {
     },
   )
 
+  it('refuses 0–0 in both ranges on both fields, before any request (MOTIR-10156)', async () => {
+    const user = await setUp()
+    await fill(user, ['0', '0'], ['0', '0'])
+    await pick(user, 'balanced')
+    await submit(user)
+    // Both fields carry the refusal: every low and high box is marked invalid…
+    const [plannedSet, runSet] = screen
+      .getAllByRole('group')
+      .filter((g) => g.tagName === 'FIELDSET')
+    for (const set of [plannedSet!, runSet!]) {
+      expect(within(set).getByLabelText(words.lowLabel)).toHaveAttribute(
+        'aria-invalid',
+        'true',
+      )
+      expect(within(set).getByLabelText(words.highLabel)).toHaveAttribute(
+        'aria-invalid',
+        'true',
+      )
+    }
+    // …under the one both-zero sentence, announced, and no field's own sentence.
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      words.errors.rangeBothZero,
+    )
+    expect(screen.queryByText(words.errors.rangeOrder)).toBeNull()
+    // The page decided it alone: no estimate request left the browser.
+    expect(bodies).toHaveLength(0)
+    const calls = vi.mocked(fetch).mock.calls.map(([url]) => String(url))
+    expect(
+      calls.some((url) => url.endsWith('/v1/public/calculator/estimate')),
+    ).toBe(false)
+    expect(screen.queryByTestId('calculator-credits')).toBeNull()
+  })
+
+  it('still asks when only one range is 0–0 (the both-zero refusal needs both)', async () => {
+    const user = await setUp()
+    await fill(user, ['0', '0'], ['1', '2'])
+    await pick(user, 'balanced')
+    await submit(user)
+    await screen.findByTestId('calculator-credits')
+    expect(bodies).toHaveLength(1)
+    expect(screen.queryByText(words.errors.rangeBothZero)).toBeNull()
+  })
+
   it('places the engine’s own refusal on its field', async () => {
     const user = await setUp()
     estimate = () => json(rangeOrder, 400)

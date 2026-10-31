@@ -2537,7 +2537,7 @@
       "cadenceLabel": "計費週期",
       "monthly": "按月",
       "annual": "按年",
-      "saveBadge": "約省 33%",
+      "saveBadge": "省 {pct}",
       "recommended": "推薦",
       "perMoEquiv": "${n} / 月",
       "annualSub": "按年計費 · ${yr} / 年",
