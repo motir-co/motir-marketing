@@ -89,37 +89,36 @@ describe('a recorded workspace resolution, driven through the router', () => {
     if (read.status !== 'ok') return
 
     const { routeForHost } = await import('@/lib/hostResolution')
-    expect(routeForHost(read.data, '/')).toEqual({
+    expect(routeForHost('/')).toEqual({
       action: 'no-application',
       path: '/en/no-application',
     })
-    expect(routeForHost(read.data, '/ACME/board')).toEqual({
+    expect(routeForHost('/ACME/board')).toEqual({
       action: 'not-found',
     })
   })
 })
 
-describe('a recorded customer-domain resolution, driven to a rendered tab page', () => {
-  it('produces host-relative hrefs AND the canonical in ONE pass', async () => {
+describe('a recorded customer-domain resolution, driven through the router', () => {
+  it('is the 404 — the router serves no customer domain (MOTIR-9527)', async () => {
+    // A customer domain is the certificate edge's. The retired `project` shape
+    // is a kind this router does not know, so it never reaches a page.
     resetHostResolutionCache()
     vi.stubGlobal('fetch', async () =>
       Response.json(CUSTOM_PAYLOAD, {
         headers: { 'cache-control': 'public, max-age=30' },
       }),
     )
-
-    // 1. the ROUTER's read of the real contract shape
-    const read = await resolveHost('roadmap.acme.com')
-    expect(read.status).toBe('ok')
-    if (read.status !== 'ok') return
-
-    const { routeForHost } = await import('@/lib/hostResolution')
-    expect(routeForHost(read.data, '/changelog')).toEqual({
-      action: 'rewrite',
-      path: '/en/p/ACME/changelog',
+    expect(await resolveHost('roadmap.acme.com')).toEqual({
+      status: 'not-found',
     })
+  })
+})
 
-    // 2. the headers the router would then forward, read back as a page does
+describe('a project-kind host, driven to a rendered tab page', () => {
+  it('produces host-relative hrefs AND the canonical in ONE pass', async () => {
+    // 1. the headers a page reads back — the page-side reader of the `project`
+    // kind is MOTIR-9528's to retire, not the router's.
     const host = readPublicHost(
       new Headers({
         [PUBLIC_ADDRESS_KIND_HEADER]: 'project',

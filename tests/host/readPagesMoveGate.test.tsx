@@ -98,19 +98,18 @@ const CUSTOM: HostCase = {
   },
   primary: 'https://roadmap.acme.com',
 }
-// A workspace host serves no project since MOTIR-9512, so it has no read
-// links to move; its refusals are asserted below.
+// A workspace host serves no project since MOTIR-9512, and the router serves
+// no customer domain since MOTIR-9527 (the certificate edge answers it), so
+// motir.co is the one host whose read links the router still routes; both
+// refusals are asserted below. The custom-domain case still RENDERS the pages
+// with the `project` headers: that page-side reader is MOTIR-9528's to retire.
+const ROUTED_HOSTS = [SITE]
 const HOSTS = [SITE, CUSTOM]
 
 const HOST_READS: Record<string, unknown> = {
   'acme.motir.site': {
     kind: 'no_application',
     workspace: { name: 'Acme' },
-  },
-  'roadmap.acme.com': {
-    kind: 'project',
-    project: { identifier: 'ACME', name: 'Acme Roadmap' },
-    primary: true,
   },
   'old.motir.site': { kind: 'alias', redirectTo: 'acme.motir.site' },
 }
@@ -223,28 +222,31 @@ async function handle(path: string): Promise<Response> {
 
 const READ_PATHS = ['board', 'items', 'tree', 'roadmap', 'items/ACME-42']
 
-describe.each(HOSTS)('$label — every old read link lands in the app', (h) => {
-  it.each(READ_PATHS)(
-    '%s → 308 to the same view on APP_ORIGIN',
-    async (view) => {
-      const url = `${h.origin}${h.path(view)}`
-      const reached = await route(url)
-      expect(reached).toBe(`/en/p/ACME/${view}`)
+describe.each(ROUTED_HOSTS)(
+  '$label — every old read link lands in the app',
+  (h) => {
+    it.each(READ_PATHS)(
+      '%s → 308 to the same view on APP_ORIGIN',
+      async (view) => {
+        const url = `${h.origin}${h.path(view)}`
+        const reached = await route(url)
+        expect(reached).toBe(`/en/p/ACME/${view}`)
 
-      const res = await handle(reached)
-      expect(res.status, url).toBe(308)
-      expect(res.headers.get('location'), url).toBe(`${APP}/p/ACME/${view}`)
-    },
-  )
-})
+        const res = await handle(reached)
+        expect(res.status, url).toBe(308)
+        expect(res.headers.get('location'), url).toBe(`${APP}/p/ACME/${view}`)
+      },
+    )
+  },
+)
 
-describe('the matrix is ten cases, not fewer', () => {
-  it('two host kinds × five read paths', () => {
-    expect(HOSTS.length * READ_PATHS.length).toBe(10)
+describe('the matrix is five cases, not fewer', () => {
+  it('one routed host × five read paths', () => {
+    expect(ROUTED_HOSTS.length * READ_PATHS.length).toBe(5)
   })
 
   it('and no case read the contract for anything but a HOST', async () => {
-    for (const h of HOSTS) {
+    for (const h of ROUTED_HOSTS) {
       for (const view of READ_PATHS) {
         await handle(await route(`${h.origin}${h.path(view)}`))
       }
@@ -276,6 +278,15 @@ describe('the router still refuses what it refused before', () => {
     expect(res.status).not.toBe(301)
     expect(res.headers.get('location')).toBeNull()
     expect(rewriteOf(res)).toBe(ROUTER_PATHS.notFound)
+  })
+
+  it('a custom domain’s old read link → not-found, without asking the contract (MOTIR-9527)', async () => {
+    for (const view of READ_PATHS) {
+      const res = await proxy(request(`${CUSTOM.origin}${CUSTOM.path(view)}`))
+      expect(rewriteOf(res), view).toBe(ROUTER_PATHS.notFound)
+      expect(res.headers.get('location'), view).toBeNull()
+    }
+    expect(asked).toEqual([])
   })
 
   it('the tenant base domain → not-found, without asking the contract', async () => {

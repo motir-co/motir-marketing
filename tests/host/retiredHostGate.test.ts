@@ -21,6 +21,13 @@ import {
  * motir-core's gate.
  */
 
+// The production base domain, so `acme.motir.site` is inside the namespace the
+// router resolves (MOTIR-9527); the dev default is `localhost`.
+vi.mock('@/lib/tenantDomain', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/tenantDomain')>()),
+  TENANT_DOMAIN: 'motir.site',
+}))
+
 const { proxy } = await import('@/proxy')
 const { NextRequest } = await import('next/server')
 

@@ -45,14 +45,6 @@ const WORKSPACE: HostRead = {
     workspace: { name: 'Acme' },
   },
 }
-const CUSTOM: HostRead = {
-  status: 'ok',
-  data: {
-    kind: 'project',
-    project: { identifier: 'MOTIR', name: 'Motir' },
-    primary: true,
-  },
-}
 
 const NON_ENGLISH = LOCALES.filter((l) => l !== 'en')
 
@@ -206,18 +198,12 @@ describe('never moved', () => {
 /*
  * A tenant address keeps its shape in every language: the visitor's choice
  * picks the TREE it is rewritten onto, and the URL in the bar never changes.
+ * A customer host is not one (MOTIR-9527): the certificate edge answers it.
  */
 describe.each([
   ['a workspace host', WORKSPACE, 'https://acme.motir.site'],
-  ['a customer host', CUSTOM, 'https://roadmap.acme.com'],
 ] as const)('%s', (_label, read, origin) => {
-  const workspace = read === WORKSPACE
-  const cases = workspace
-    ? ([['/', (l: string) => `/${l}/no-application`]] as const)
-    : ([
-        ['/changelog', (l: string) => `/${l}/p/MOTIR/changelog`],
-        ['/', (l: string) => `/${l}/p/MOTIR`],
-      ] as const)
+  const cases = [['/', (l: string) => `/${l}/no-application`]] as const
 
   describe.each([
     ['by browser', (l: string) => ({ 'accept-language': l })],
@@ -254,9 +240,9 @@ describe.each([
 })
 
 describe('the rewrite and the render, joined', () => {
-  it('a French visitor on a customer host reads fr.json’s tab label', async () => {
-    resolveHost.mockResolvedValue(CUSTOM)
-    const res = await ask('https://roadmap.acme.com/changelog', {
+  it('a French visitor on a tenant host reads fr.json’s tab label', async () => {
+    resolveHost.mockResolvedValue(WORKSPACE)
+    const res = await ask('https://acme.motir.site/', {
       'accept-language': 'fr',
     })
     // The locale the proxy chose is the first segment of the tree it picked —

@@ -46,26 +46,28 @@ export interface PublicHostNoApplication {
   readonly workspace: { readonly name: string }
 }
 
-/** A customer domain with an issued certificate: ONE project, at the root. */
-export interface PublicHostProject {
-  readonly kind: 'project'
-  readonly project: { readonly identifier: string; readonly name: string }
-  /** Whether THIS address is the project's canonical one (ADR §7). */
-  readonly primary: boolean
-}
-
-export type PublicHostResolution = PublicHostNoApplication | PublicHostProject
+/**
+ * Every answer this router serves — a workspace host, and nothing else.
+ *
+ * ⚠️ THERE IS NO CUSTOMER-DOMAIN SHAPE, AND THAT IS THE DECISION, NOT A GAP
+ * (MOTIR-9521 · MOTIR-9527). An issued customer domain is answered by the
+ * certificate edge, `motir-edge`, which forwards it to the application it names
+ * or renders its own page. This repository neither resolves nor routes one: the
+ * proxy turns away every host outside its own namespace before it asks, and a
+ * `project`, `application` or `members_only_application` answer that reaches
+ * {@link resolveHost} anyway lands on the unknown-kind 404 below.
+ */
+export type PublicHostResolution = PublicHostNoApplication
 
 /** The kinds this router understands; anything else is a 404, never a guess. */
 const KNOWN_KINDS: ReadonlySet<string> = new Set<PublicHostResolution['kind']>([
   'no_application',
-  'project',
 ])
 
 /**
  * The same THREE outcomes `lib/publicProject.ts` splits, for the same reason and
  * with higher stakes: collapsing `failed` into `not-found` would 404 every
- * customer's domain for as long as `app.motir.co` is restarting, and a 404 is
+ * workspace host for as long as `app.motir.co` is restarting, and a 404 is
  * what a crawler acts on.
  */
 export type HostRead =
@@ -245,7 +247,7 @@ export const ROUTER_PATHS = {
 
 /**
  * A router page target inside one locale's tree (MOTIR-7948) — `/en/no-application`,
- * `/en/host-unavailable`, `/en/p/<id>/…`.
+ * `/en/host-unavailable`.
  *
  * Every PAGE lives under `app/[locale]` now, so a rewrite onto an unprefixed
  * `/p/<id>` would reach no route at all. The locale is a parameter rather than
@@ -287,7 +289,10 @@ export type HostRoute =
    * Forwarding nothing meant they answered as `motir.co` on every tenant host.
    */
   | { action: 'forward' }
-  /** Rewrite onto the shipped `/<locale>/p/*` tree, with the visitor's URL unchanged. */
+  /**
+   * Rewrite one of the router's own pages onto the visitor's locale tree, with
+   * the visitor's URL unchanged — a bare `/host-unavailable` typed on the host.
+   */
   | { action: 'rewrite'; path: string }
   /**
    * A live workspace host's ROOT while it has no application to serve — the
@@ -301,15 +306,15 @@ export type HostRoute =
  * A path that belongs to the SITE rather than to a project — `/motir-mark.svg`,
  * `/favicon.ico`, `/robots.txt`.
  *
- * ⚠️ IT EXISTS BECAUSE THE CHROME IS THE SAME CHROME. A tenant host wears
- * `SiteHeader` and `SiteFooter`, whose logo is `/motir-mark.svg` at the ROOT —
- * so a router that rewrote every path under a customer domain onto `/p/<id>/…`
- * would rewrite the logo to a 404 and the page would render with a hole in it.
+ * ⚠️ IT EXISTS BECAUSE THE CHROME IS THE SAME CHROME. A workspace host's
+ * `/no-application` page wears `SiteHeader` and `SiteFooter`, whose logo is
+ * `/motir-mark.svg` at the ROOT — so a router that 404'd every path but `/`
+ * would 404 the logo and the page would render with a hole in it.
  *
  * ONE segment, containing a dot. A project's tab paths are two segments or more
- * (`/ACME/changelog.xml` on a workspace host), and a project identifier cannot
- * contain a dot — so the test is unambiguous in both directions. `/_next/*` never
- * reaches here at all; `config.matcher` in `proxy.ts` excludes it.
+ * (`/ACME/changelog.xml`), and a project identifier cannot contain a dot — so
+ * the test is unambiguous in both directions. `/_next/*` never reaches here at
+ * all; `config.matcher` in `proxy.ts` excludes it.
  */
 export function isSiteAssetPath(pathname: string): boolean {
   const segments = pathname.split('/').filter(Boolean)
@@ -317,48 +322,32 @@ export function isSiteAssetPath(pathname: string): boolean {
 }
 
 /**
- * Every project identifier a host may serve — a customer domain's one, and
- * none on a workspace host, whose projects live at `motir.co/p/<identifier>`.
- */
-function identifiersOf(resolution: PublicHostResolution): readonly string[] {
-  return resolution.kind === 'project' ? [resolution.project.identifier] : []
-}
-
-/**
  * ⚠️ THE ROUTER SEES ITS OWN REWRITE, AND THIS IS WHERE THAT IS HANDLED.
  *
  * MEASURED, not assumed. Next 16 dispatches an internal `NextResponse.rewrite`
- * back through the proxy, so one request to `acme.motir.site/MOTIR/board`
- * arrives here TWICE — first as `/MOTIR/board`, then as the `/p/MOTIR/board`
- * this function just produced. Without this branch the second pass reads `p` as
- * a project identifier the workspace does not publish and answers 404, so every
- * tenant page 404s while every unit test over a single pass stays green. It
- * cost one confusing red in the browser lane, which is where it was found.
+ * back through the proxy, so one request to `acme.motir.site/` arrives here
+ * TWICE — first as `/`, then as the `/en/no-application` this function just
+ * produced. Without this branch the second pass is a locale-prefixed path the
+ * host does not serve and answers 404, while every unit test over a single pass
+ * stays green.
  *
  * ⚠️ AND IT IS RECOGNISED BY SHAPE, NOT BY A MARKER HEADER. A header saying
- * "the router already ran" would be settable by any caller, and trusting it
- * would let a crafted request serve ANY project at ANY tenant address. This
- * asks instead whether the path is one this HOST could have produced — the
- * identifier must be one the contract just named — so a forged `/p/OTHER` is
- * still a 404 and there is nothing to forge.
+ * "the router already ran" would be settable by any caller. The router's own
+ * pages are the only targets it recognises, and each is one a visitor may
+ * request directly anyway, so there is nothing to forge.
  *
- * The visible consequence, stated: a tenant host serves BOTH `/MOTIR/board` and
- * `/p/MOTIR/board` for its own projects. That is a duplicate URL rather than a
- * leak, and MOTIR-4222 is the card that gives every duplicate a 301 to the
- * primary.
+ * ⚠️ NO `/p/<identifier>` PATH IS EVER ONE OF THEM ANY MORE (MOTIR-9527). The
+ * customer-domain arm that rewrote onto the project tree is gone, so `/p/…` on a
+ * workspace host — bare or under a locale — is the one 404 like any other path.
  */
-function alreadyRouted(
-  resolution: PublicHostResolution,
-  pathname: string,
-  locale: Locale,
-): HostRoute | null {
+function alreadyRouted(pathname: string, locale: Locale): HostRoute | null {
   if (pathname === ROUTER_PATHS.notFound) return { action: 'forward' }
 
-  // ⚠️ THE ROUTER'S OWN TARGETS NOW CARRY A LOCALE (MOTIR-7948), so the
-  // second pass arrives as `/en/p/MOTIR/board`. A path WITHOUT one is still
-  // recognised — a visitor can type `/p/MOTIR/board` on their own host, which
-  // was a duplicate URL before this card — but it is rewritten onto the
-  // locale's tree rather than forwarded, because no route serves it bare.
+  // ⚠️ THE ROUTER'S OWN TARGETS CARRY A LOCALE (MOTIR-7948), so the second
+  // pass arrives as `/en/no-application`. A path WITHOUT one is still
+  // recognised — a visitor can type `/host-unavailable` on the host — but it is
+  // rewritten onto the locale's tree rather than forwarded, because no route
+  // serves it bare.
   const split = splitLocale(pathname)
   const bare = split ? split[1] : pathname
   const own = (route: string): HostRoute =>
@@ -366,48 +355,29 @@ function alreadyRouted(
       ? { action: 'forward' }
       : { action: 'rewrite', path: localisedPath(route, locale) }
 
-  if (bare === ROUTER_PATHS.unavailable) return own(bare)
-  if (bare === ROUTER_PATHS.noApplication) {
-    return resolution.kind === 'no_application'
-      ? own(bare)
-      : { action: 'not-found' }
-  }
-  if (!bare.startsWith('/p/')) {
-    // A locale-prefixed path that is none of the router's targets — `/en/` or
-    // `/de/explore` on a tenant host — is not an address this host serves.
-    return split ? { action: 'not-found' } : null
-  }
-
-  const identifier = bare.split('/')[2] ?? ''
-  return identifiersOf(resolution).includes(identifier)
-    ? own(bare)
-    : { action: 'not-found' }
+  if (bare === ROUTER_PATHS.unavailable || bare === ROUTER_PATHS.noApplication)
+    return own(bare)
+  // A locale-prefixed path that is none of the router's targets — `/en/`,
+  // `/de/explore` or `/en/p/ACME` on a workspace host — is not an address this
+  // host serves.
+  return split ? { action: 'not-found' } : null
 }
 
 /**
- * The router's decision, given what the contract said and where the visitor
+ * The router's decision for a resolved workspace host, given where the visitor
  * asked to go. PURE — every arm is a unit test, and the proxy is the thin shell
  * that turns this into a `NextResponse`.
+ *
+ * ⚠️ IT TAKES NO RESOLUTION, ON PURPOSE (MOTIR-9527). The contract has one
+ * shape this router serves, so a parameter could carry only one value — and a
+ * one-valued parameter invites the next reader to restore the arm it implies.
  */
 export function routeForHost(
-  resolution: PublicHostResolution,
   pathname: string,
   locale: Locale = DEFAULT_LOCALE,
 ): HostRoute {
-  const routed = alreadyRouted(resolution, pathname, locale)
+  const routed = alreadyRouted(pathname, locale)
   if (routed) return routed
-
-  if (resolution.kind === 'project') {
-    if (isSiteAssetPath(pathname)) return { action: 'forward' }
-    // ONE project at the root (ADR Q3): the whole path hangs below `/p/<id>`.
-    return {
-      action: 'rewrite',
-      path: localisedPath(
-        `/p/${encodeURIComponent(resolution.project.identifier)}${pathname === '/' ? '' : pathname}`,
-        locale,
-      ),
-    }
-  }
 
   // A live workspace host with no application yet. Its ROOT says so; every
   // other path is a 404 except a site asset the shared chrome needs. It serves

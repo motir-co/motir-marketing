@@ -45,14 +45,6 @@ const WORKSPACE: HostRead = {
     workspace: { name: 'Acme' },
   },
 }
-const CUSTOM: HostRead = {
-  status: 'ok',
-  data: {
-    kind: 'project',
-    project: { identifier: 'PROD', name: 'Prod' },
-    primary: true,
-  },
-}
 
 function request(
   url: string,
@@ -113,22 +105,19 @@ describe('a tenant host’s robots.txt and sitemap.xml (MOTIR-8842)', () => {
   // motir.co. A tenant host must name ITS OWN host and sitemap, which only a
   // request render can do — so the router sends it to `app/robots-tenant.txt`,
   // with the host headers set, once the host has resolved.
-  it.each([
-    ['a workspace subdomain', WORKSPACE, 'https://acme.motir.site'],
-    ['a customer domain', CUSTOM, 'https://roadmap.acme.com'],
-  ])('rewrites %s onto the tenant route', async (_label, read, origin) => {
-    resolveHost.mockResolvedValue(read)
-    const res = await proxy(request(`${origin}/robots.txt`))
+  it.each([['a workspace subdomain', WORKSPACE, 'https://acme.motir.site']])(
+    'rewrites %s onto the tenant route',
+    async (_label, read, origin) => {
+      resolveHost.mockResolvedValue(read)
+      const res = await proxy(request(`${origin}/robots.txt`))
 
-    expect(rewriteOf(res)).toBe('/robots-tenant.txt')
-    expect(forwarded(res, 'x-motir-public-origin')).toBe(origin)
-    expect(forwarded(res, 'x-motir-public-host')).toBe(new URL(origin).host)
-  })
+      expect(rewriteOf(res)).toBe('/robots-tenant.txt')
+      expect(forwarded(res, 'x-motir-public-origin')).toBe(origin)
+      expect(forwarded(res, 'x-motir-public-host')).toBe(new URL(origin).host)
+    },
+  )
 
-  it.each([
-    ['a workspace subdomain', WORKSPACE, 'https://acme.motir.site'],
-    ['a customer domain', CUSTOM, 'https://roadmap.acme.com'],
-  ])(
+  it.each([['a workspace subdomain', WORKSPACE, 'https://acme.motir.site']])(
     'rewrites %s’s sitemap.xml onto its project half',
     async (_label, read, origin) => {
       resolveHost.mockResolvedValue(read)
@@ -198,16 +187,23 @@ describe('a host with NO resolution is `unresolved`, not silent', () => {
       null,
     ],
     [
+      'a host outside the tenant namespace',
+      'https://roadmap.acme.com/board',
+      'roadmap.acme.com',
+      '/_host-unknown',
+      null,
+    ],
+    [
       'a host the contract does not know',
-      'https://nope.example/',
-      'nope.example',
+      'https://nope.motir.site/',
+      'nope.motir.site',
       '/_host-unknown',
       { status: 'not-found' } as HostRead,
     ],
     [
       'a host the contract did not answer for',
-      'https://roadmap.acme.com/board',
-      'roadmap.acme.com',
+      'https://acme.motir.site/board',
+      'acme.motir.site',
       '/en/host-unavailable',
       { status: 'failed' } as HostRead,
     ],
@@ -219,6 +215,8 @@ describe('a host with NO resolution is `unresolved`, not silent', () => {
       const res = await proxy(request(url))
 
       expect(rewriteOf(res)).toBe(path)
+      // Neither the base domain nor a host outside it costs a network hop.
+      if (!read) expect(resolveHost).not.toHaveBeenCalled()
       expect(forwarded(res, 'x-motir-address-kind')).toBe('unresolved')
       expect(forwarded(res, 'x-motir-public-host')).toBe(host)
       expect(forwarded(res, 'x-motir-public-origin')).toBe(`https://${host}`)
@@ -334,16 +332,24 @@ describe('the router’s own rewrite, coming back around', () => {
   })
 })
 
-describe('a customer domain', () => {
-  it('puts the project at the root and keeps the query', async () => {
-    resolveHost.mockResolvedValue(CUSTOM)
-    const res = await proxy(request('https://roadmap.acme.com/items?cursor=w9'))
-    expect(rewriteOf(res)).toBe('/en/p/PROD/items')
-    expect(
-      new URL(res.headers.get('x-middleware-rewrite')!).search,
-      'the pager coordinate must survive the rewrite',
-    ).toBe('?cursor=w9')
-    expect(forwarded(res, 'x-motir-address-kind')).toBe('project')
+describe('a customer domain is not this router’s (MOTIR-9527)', () => {
+  it('is the 404 room as `unresolved`, with NO contract call', async () => {
+    // An issued customer domain is answered by the certificate edge. One whose
+    // DNS still points here must not be resolved: the contract would answer
+    // `no_application` for it, and this router would draw Motir's own page on
+    // the customer's domain.
+    resolveHost.mockResolvedValue(WORKSPACE)
+    for (const url of [
+      'https://roadmap.acme.com/',
+      'https://roadmap.acme.com/items?cursor=w9',
+      'https://roadmap.acme.com/robots.txt',
+      'https://notmotir.site/',
+    ]) {
+      const res = await proxy(request(url))
+      expect(rewriteOf(res), url).toBe('/_host-unknown')
+      expect(forwarded(res, 'x-motir-address-kind'), url).toBe('unresolved')
+    }
+    expect(resolveHost).not.toHaveBeenCalled()
   })
 })
 
@@ -364,7 +370,7 @@ describe('a retired subdomain', () => {
 describe('the two failures stay apart', () => {
   it('an unknown host is the site’s not-found page', async () => {
     resolveHost.mockResolvedValue({ status: 'not-found' })
-    const res = await proxy(request('https://nope.example/'))
+    const res = await proxy(request('https://nope.motir.site/'))
     expect(rewriteOf(res)).toBe('/_host-unknown')
   })
 
@@ -372,7 +378,7 @@ describe('the two failures stay apart', () => {
     // A crawler acts on a 404. Answering one while app.motir.co restarts would
     // tell it every customer domain had been deleted.
     resolveHost.mockResolvedValue({ status: 'failed' })
-    const res = await proxy(request('https://roadmap.acme.com/board'))
+    const res = await proxy(request('https://acme.motir.site/board'))
     expect(rewriteOf(res)).toBe('/en/host-unavailable')
   })
 })
@@ -392,21 +398,6 @@ describe('the router targets the English tree, and recognises it coming back', (
       : null
     return { to, second }
   }
-
-  it('a customer domain’s tab → /en/p/<id>/…, then forward', async () => {
-    resolveHost.mockResolvedValue(CUSTOM)
-    const { to, second } = await twoPasses('https://roadmap.acme.com/changelog')
-    expect(to).toBe('/en/p/PROD/changelog')
-    expect(rewriteOf(second!)).toBeNull()
-    expect(second!.headers.get('x-middleware-next')).toBe('1')
-  })
-
-  it('a customer domain’s root → /en/p/<id>, then forward', async () => {
-    resolveHost.mockResolvedValue(CUSTOM)
-    const { to, second } = await twoPasses('https://roadmap.acme.com/')
-    expect(to).toBe('/en/p/PROD')
-    expect(second!.headers.get('x-middleware-next')).toBe('1')
-  })
 
   it('a workspace root → /en/no-application, then forward', async () => {
     resolveHost.mockResolvedValue(WORKSPACE)
@@ -539,19 +530,19 @@ describe('the first-visit language', () => {
     expect(second.headers.get('x-middleware-next')).toBe('1')
   })
 
-  it('lets a customer domain’s cookie beat the browser', async () => {
-    resolveHost.mockResolvedValue(CUSTOM)
-    const res = await ask('https://roadmap.acme.com/', {
+  it('lets a workspace host’s cookie beat the browser', async () => {
+    resolveHost.mockResolvedValue(WORKSPACE)
+    const res = await ask('https://acme.motir.site/', {
       cookie: 'NEXT_LOCALE=ja',
       'accept-language': 'de',
     })
-    expect(rewriteOf(res)).toBe('/ja/p/PROD')
+    expect(rewriteOf(res)).toBe('/ja/no-application')
   })
 
   it('puts the outage on the chosen tree, and leaves the 404 unprefixed', async () => {
     const fr = { 'accept-language': 'fr' }
     resolveHost.mockResolvedValue({ status: 'failed' })
-    expect(rewriteOf(await ask('https://roadmap.acme.com/board', fr))).toBe(
+    expect(rewriteOf(await ask('https://acme.motir.site/board', fr))).toBe(
       '/fr/host-unavailable',
     )
     resolveHost.mockResolvedValue({ status: 'not-found' })
