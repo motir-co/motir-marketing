@@ -2596,7 +2596,7 @@
       "cadenceLabel": "Factuurfrequentie",
       "monthly": "Maandelijks",
       "annual": "Jaarlijks",
-      "saveBadge": "Bespaar ~33%",
+      "saveBadge": "Bespaar {pct}",
       "recommended": "Aanbevolen",
       "perMoEquiv": "${n} per maand",
       "annualSub": "jaarlijks gefactureerd · ${yr} per jaar",

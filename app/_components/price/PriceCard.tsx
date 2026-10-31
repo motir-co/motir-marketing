@@ -3,6 +3,7 @@ import { LOCALE_BCP47 } from '@/i18n/routing'
 import { format, formatIcu, useCopy, usePageLocale } from '@/lib/copy'
 import { PLANS_SIGN_UP } from '@/lib/destinations'
 import {
+  annualSaving,
   RECOMMENDED_PLAN_KEY,
   type LadderPlan,
   type PlanLadderRead,
@@ -68,9 +69,25 @@ export function PriceCard({ ladder }: { ladder: PlanLadderRead }) {
 
   const { plans, topUp } = ladder
   const largest = plans[plans.length - 1]
+  // The Annual badge's figure is the cards' own saving (MOTIR-10156), never a
+  // percentage written into the copy: one figure when every card saves the same,
+  // the range when they differ, and no badge when none saves anything.
+  const saving = annualSaving(plans)
+  const percent = new Intl.NumberFormat(LOCALE_BCP47[locale], {
+    style: 'percent',
+    maximumFractionDigits: 0,
+  })
+  const saveBadge = saving
+    ? format(copy.saveBadge, {
+        pct:
+          saving.low === saving.high
+            ? percent.format(saving.low)
+            : percent.formatRange(saving.low, saving.high),
+      })
+    : null
   return (
     <div className="grid gap-4">
-      <PriceCadence>
+      <PriceCadence saveBadge={saveBadge}>
         <div
           role="list"
           aria-label={pageCopy.plansLabel}

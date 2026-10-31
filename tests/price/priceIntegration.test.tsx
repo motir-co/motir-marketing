@@ -1,12 +1,14 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render } from '@/tests/helpers/withCopy'
 import { PricePage } from '@/app/_components/PricePage'
 import { PriceCard } from '@/app/_components/price/PriceCard'
 import { Calculator } from '@/app/_components/price/Calculator'
+import { categoryLabel } from '@/app/_components/price/calculatorOutput'
+import type { Estimate } from '@/app/_components/price/calculatorApi'
 import { LOCALES, type Locale } from '@/i18n/routing'
 import { format, getCopy, type Copy } from '@/lib/copy'
 import { PLAN_LADDER_PATH, readPlanLadder } from '@/lib/priceLadder'
@@ -19,6 +21,7 @@ import categories from '@/tests/fixtures/calculator/categories.json'
 import pro from '@/tests/fixtures/calculator/estimate-pro.json'
 import proTwo from '@/tests/fixtures/calculator/estimate-pro-two.json'
 import maxX2 from '@/tests/fixtures/calculator/estimate-maxx2-topup.json'
+import pinned from '@/tests/fixtures/calculator/pinned-vector.json'
 import larger from '@/tests/fixtures/calculator/estimate-larger.json'
 import emptyCategory from '@/tests/fixtures/calculator/estimate-empty-category.json'
 import rangeOrder from '@/tests/fixtures/calculator/problem-range-order.json'
@@ -407,39 +410,154 @@ describe('an estimate the page cannot read', () => {
   }
 })
 
-describe('parity with the billing tab: the answer is rendered, not recomputed', () => {
-  it.each(['annual', 'monthly'] as const)('%s', async (cadence) => {
-    const answer = { ...maxX2, cadence }
-    estimateReply = () => json(answer)
+describe('parity with the billing tab: the shared record, sent and rendered (MOTIR-10156)', () => {
+  // motir-core's PINNED CROSS-SURFACE VECTOR, carried byte for byte
+  // (`tests/fixtures/calculator/pinned-vector.json`; the seam lane checks it
+  // against motir-core's copy). The billing tab's `CalculatorAnswer.test.tsx`
+  // drives its tab to this request and renders this answer; this does the same
+  // with the page, so the two surfaces are compared on one recorded exchange.
+  const request = pinned.request
+  const answer = JSON.parse(pinned.estimateRawBody) as Estimate & {
+    version: number
+  }
+
+  async function askThePinnedRequest(
+    user: ReturnType<typeof userEvent.setup>,
+    messages: Copy,
+  ) {
+    const w = messages.pricePage.calculator
+    const [planned, run] = within(calcSection())
+      .getAllByRole('group')
+      .filter((g) => g.tagName === 'FIELDSET')
+    const typeRange = async (
+      set: HTMLElement,
+      range: { low: number; high: number },
+    ) => {
+      for (const [label, value] of [
+        [w.lowLabel, range.low],
+        [w.highLabel, range.high],
+      ] as const) {
+        await user.clear(within(set).getByLabelText(label))
+        await user.type(within(set).getByLabelText(label), String(value))
+      }
+    }
+    await typeRange(planned!, request.plannedPerMonth)
+    await typeRange(run!, request.runPerMonth)
+    for (const key of request.categories) {
+      await user.click(
+        screen.getByRole('checkbox', {
+          name: new RegExp(`^${categoryLabel(key)},`),
+        }),
+      )
+    }
+    // Every share but the last is set; the last takes the remainder.
+    const sliders = within(calcSection()).getByTestId('calculator-shares')
+    for (const key of request.categories.slice(0, -1)) {
+      fireEvent.change(within(sliders).getByLabelText(categoryLabel(key)), {
+        target: {
+          value: String(request.shares[key as keyof typeof request.shares]),
+        },
+      })
+    }
+    await user.click(
+      within(calcSection()).getByRole('button', { name: w.submit }),
+    )
+    return within(calcSection()).findByTestId('calculator-estimate')
+  }
+
+  it('carries motir-core’s record unchanged — a recording of the live engine with its provenance', () => {
+    expect(pinned.basis.endpoint).toBe('POST /v1/public/calculator/estimate')
+    expect(pinned.basis.host).toMatch(/^https:\/\/\S+$/)
+    expect(Number.isNaN(Date.parse(pinned.basis.recordedAt))).toBe(false)
+    expect(pinned.$comment).toMatch(/record-calculator-pinned-vector\.mjs/)
+    expect(answer.kind).toBe('estimate')
+    expect(answer.version).toBe(pinned.basis.engineVersion)
+    expect(answer.plannedPerMonth).toStrictEqual(request.plannedPerMonth)
+    expect(answer.runPerMonth).toStrictEqual(request.runPerMonth)
+  })
+
+  it('sends exactly the recorded request, and renders the recorded answer’s figures', async () => {
+    categoriesReply = () =>
+      new Response(pinned.categoriesRawBody, {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    estimateReply = () =>
+      new Response(pinned.estimateRawBody, {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
     const user = userEvent.setup()
     const { messages } = await renderPage()
     const w = messages.pricePage.calculator
-    if (cadence === 'monthly') {
-      await user.click(
-        within(
-          within(calcSection()).getByRole('group', {
-            name: messages.pricePage.plans.cadenceLabel,
-          }),
-        ).getByRole('button', { name: messages.pricePage.plans.monthly }),
-      )
-    }
-    await estimateWith(user, messages)
-    const out = await within(calcSection()).findByTestId('calculator-estimate')
+    // The page's default cadence is the record's, so the toggle is left alone.
+    expect(request.cadence).toBe('annual')
+    const out = await askThePinnedRequest(user, messages)
+
+    const posted = captured.filter((c) => c.method === 'POST')
+    expect(posted).toHaveLength(1)
+    expect(posted[0]!.body).toStrictEqual(request)
+
     const n = numberIn('en')
-    expect(within(out).getByTestId('calculator-plan')).toHaveTextContent(
-      answer.recommendation.planName,
+    const pct = new Intl.NumberFormat('en', {
+      style: 'percent',
+      maximumFractionDigits: 0,
+    })
+    expect(out).toHaveTextContent(
+      format(w.priced, {
+        plannedLow: n(answer.plannedPerMonth.low),
+        plannedHigh: n(answer.plannedPerMonth.high),
+        runLow: n(answer.runPerMonth.low),
+        runHigh: n(answer.runPerMonth.high),
+      }),
+    )
+    expect(out).toHaveTextContent(
+      format(w.splitShares, {
+        shares: answer.split.categories
+          .map((c) => `${categoryLabel(c.key)} ${pct.format(c.weight)}`)
+          .join(' · '),
+      }),
     )
     expect(within(out).getByTestId('calculator-credits')).toHaveTextContent(
       `${n(answer.credits.low)} – ${n(answer.credits.high)}`,
     )
+    expect(within(out).getByTestId('calculator-plan')).toHaveTextContent(
+      answer.recommendation.planName!,
+    )
     expect(within(out).getByTestId('calculator-topup')).toHaveTextContent(
       `${format(w.bundleCredits, { n: n(answer.topUp.low.credits) })} – ${format(w.bundleCredits, { n: n(answer.topUp.high.credits) })}`,
     )
-    const posted = captured.filter((c) => c.method === 'POST').at(-1)!.body as {
-      cadence: string
-    }
-    expect(posted.cadence).toBe(cadence)
   })
+
+  it.each(['annual', 'monthly'] as const)(
+    'renders the answer at %s rather than recomputing it',
+    async (cadence) => {
+      const scratch = { ...answer, cadence }
+      estimateReply = () => json(scratch)
+      const user = userEvent.setup()
+      const { messages } = await renderPage()
+      if (cadence === 'monthly') {
+        await user.click(
+          within(
+            within(calcSection()).getByRole('group', {
+              name: messages.pricePage.plans.cadenceLabel,
+            }),
+          ).getByRole('button', { name: messages.pricePage.plans.monthly }),
+        )
+      }
+      await estimateWith(user, messages)
+      const out = await within(calcSection()).findByTestId(
+        'calculator-estimate',
+      )
+      const n = numberIn('en')
+      expect(within(out).getByTestId('calculator-credits')).toHaveTextContent(
+        `${n(scratch.credits.low)} – ${n(scratch.credits.high)}`,
+      )
+      const posted = captured.filter((c) => c.method === 'POST').at(-1)!
+        .body as { cadence: string }
+      expect(posted.cadence).toBe(cadence)
+    },
+  )
 })
 
 describe('the non-happy paths in two non-English locales', () => {

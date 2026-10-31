@@ -2547,7 +2547,7 @@
       "cadenceLabel": "결제 주기",
       "monthly": "월간",
       "annual": "연간",
-      "saveBadge": "약 33% 절약",
+      "saveBadge": "{pct} 절약",
       "recommended": "권장",
       "perMoEquiv": "월 ${n}",
       "annualSub": "연간 청구 · 연 ${yr}",

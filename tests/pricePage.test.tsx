@@ -8,7 +8,14 @@ import { PricePage } from '@/app/_components/PricePage'
 import { englishCopy as copy, getCopy } from '@/lib/copy'
 import { PRICE, SITE_PATHS } from '@/lib/destinations'
 import { SITE_HOST, type PublicHost } from '@/lib/publicHost'
-import { LOCALES } from '@/i18n/routing'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import {
+  DEFAULT_LOCALE,
+  LOCALE_BCP47,
+  LOCALES,
+  type Locale,
+} from '@/i18n/routing'
 import { siteUrl } from '@/lib/siteOrigin'
 import { generateMetadata } from '@/app/[locale]/price/page'
 
@@ -29,6 +36,12 @@ const WORKSPACE: PublicHost = {
   host: 'acme.motir.site',
   origin: 'https://acme.motir.site',
 }
+
+/** One locale's catalogue file as committed, with no English fallback merged in. */
+const readCatalogue = (locale: Locale) =>
+  JSON.parse(
+    readFileSync(join(process.cwd(), 'messages', `${locale}.json`), 'utf8'),
+  ) as { pricePage?: { metaTitle?: string; metaDescription?: string } }
 
 const bar = () =>
   screen.getAllByRole('navigation', { name: copy.nav.ariaLabel })[0]
@@ -115,20 +128,38 @@ describe('the page', () => {
     expect(document.getElementById('calculator')).not.toBeNull()
   })
 
-  it.each(['en', 'ja', 'nl'] as const)(
-    'carries its own canonical and the thirteen alternates in %s',
+  // Every supported locale, read from the locale list (MOTIR-10156): a missing or
+  // wrong title, description, canonical or alternate in any one of them is caught.
+  it.each(LOCALES)(
+    'carries its own title, description, canonical and the thirteen alternates in %s',
     async (locale) => {
       const metadata = await generateMetadata({
         params: Promise.resolve({ locale }),
       })
-      const messages = await getCopy(locale)
-      const own = locale === 'en' ? '/price' : `/${locale}/price`
-      expect(metadata.title).toBe(messages.pricePage.metaTitle)
-      expect(metadata.description).toBe(messages.pricePage.metaDescription)
-      expect(metadata.alternates?.canonical).toBe(siteUrl(own))
+      // The locale's OWN catalogue, not the merged copy: a key missing there would
+      // fall back to English through `getCopy` and still match it.
+      const own = readCatalogue(locale).pricePage
+      expect(own?.metaTitle).toEqual(expect.any(String))
+      expect(own?.metaDescription).toEqual(expect.any(String))
+      expect(metadata.title).toBe(own!.metaTitle)
+      expect(metadata.description).toBe(own!.metaDescription)
+      // The product name is never translated (scripts/i18n/README.md), so a
+      // title that lost it is not this page's title in any language.
+      expect(metadata.title).toContain('Motir AI')
+      expect(own!.metaDescription!.trim().length).toBeGreaterThan(0)
+      if (locale !== DEFAULT_LOCALE) {
+        expect(metadata.title).not.toBe(copy.pricePage.metaTitle)
+        expect(metadata.description).not.toBe(copy.pricePage.metaDescription)
+      }
+      const path = (l: Locale) =>
+        l === DEFAULT_LOCALE ? '/price' : `/${l}/price`
+      expect(metadata.alternates?.canonical).toBe(siteUrl(path(locale)))
       const languages = metadata.alternates?.languages as Record<string, string>
-      expect(Object.keys(languages)).toHaveLength(13)
-      expect(languages['x-default']).toBe(siteUrl('/price'))
+      const expected: Record<string, string> = {}
+      for (const l of LOCALES) expected[LOCALE_BCP47[l]] = siteUrl(path(l))
+      expected['x-default'] = siteUrl('/price')
+      expect(languages).toStrictEqual(expected)
+      expect(Object.keys(languages)).toHaveLength(LOCALES.length + 1)
     },
   )
 })

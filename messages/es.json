@@ -2621,7 +2621,7 @@
       "cadenceLabel": "Frecuencia de facturación",
       "monthly": "Mensual",
       "annual": "Anual",
-      "saveBadge": "Ahorra ~33 %",
+      "saveBadge": "Ahorra {pct}",
       "recommended": "Recomendado",
       "perMoEquiv": "${n} / mes",
       "annualSub": "facturado anualmente · ${yr} / año",

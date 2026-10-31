@@ -1800,7 +1800,7 @@
   "pricePage.plans.cadenceLabel": "Billing cadence",
   "pricePage.plans.monthly": "Monthly",
   "pricePage.plans.annual": "Annual",
-  "pricePage.plans.saveBadge": "Save ~33%",
+  "pricePage.plans.saveBadge": "Save {pct}",
   "pricePage.plans.recommended": "Recommended",
   "pricePage.plans.perMoEquiv": "${n} / mo",
   "pricePage.plans.annualSub": "billed annually · ${yr} / yr",
