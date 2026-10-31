@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, test, type Page } from '@playwright/test'
 import { SITE_ORIGIN, STUB_ORIGIN } from '../stub/origin'
-import { t } from '../support/catalogue'
+import { saveBadge, t } from '../support/catalogue'
 import { TRACKER_SEAT_FEE_USD_PER_MONTH } from '../../lib/seatFee'
 
 /*
@@ -154,7 +154,7 @@ test('a prospect reads the plans, toggles annual and estimates their usage, as M
     .focus()
   await page.keyboard.press('Enter')
   await expect(
-    page.getByText(t('en', 'pricePage.plans.saveBadge')),
+    page.getByText(saveBadge('en', 'en', ladder.plans)),
   ).toBeVisible()
   for (const [i, plan] of ladder.plans.entries()) {
     await expect(cards.nth(i).locator('[data-price="annual"]')).toBeVisible()

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, test } from '@playwright/test'
 import { STUB_ORIGIN } from '../stub/origin'
-import { t } from '../support/catalogue'
+import { saveBadge, t } from '../support/catalogue'
 import { LOCALES, LOCALE_BCP47 } from '../../i18n/routing'
 import { TRACKER_SEAT_FEE_USD_PER_MONTH } from '../../lib/seatFee'
 
@@ -85,7 +85,7 @@ for (const locale of ['ja', 'nl'] as const) {
       .getByRole('button', { name: t(locale, 'pricePage.plans.annual') })
       .click()
     await expect(
-      page.getByText(t(locale, 'pricePage.plans.saveBadge')),
+      page.getByText(saveBadge(locale, LOCALE_BCP47[locale], ladder.plans)),
     ).toBeVisible()
     const calc = page.locator('#calculator')
     await expect(
