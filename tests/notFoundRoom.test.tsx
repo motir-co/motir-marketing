@@ -196,13 +196,12 @@ describe('the room, given a host', () => {
 
   it.each([
     ['a workspace subdomain', 'workspace', 'acme.motir.site'],
-    ['a customer domain', 'project', 'roadmap.acme.com'],
     ['an unresolved host', 'unresolved', 'roadmap.acme.com'],
   ])('spells every path absolutely on %s', (_label, kind, host) => {
     const { container } = render(
       <NotFoundRoom
         host={{
-          kind: kind as 'workspace' | 'project' | 'unresolved',
+          kind: kind as 'workspace' | 'unresolved',
           host,
           origin: `https://${host}`,
         }}

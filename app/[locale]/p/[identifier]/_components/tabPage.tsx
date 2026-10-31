@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation'
 import { loadProject, type PublicProjectOverviewDto } from '@/lib/publicProject'
 import {
   publicUrlFor,
-  redirectIfNotPrimary,
   requestPublicHost,
   type PublicHost,
 } from '@/lib/publicHost'
@@ -58,13 +57,6 @@ export async function renderTabPage({
   }
 
   const project = read.data
-
-  // ⚠️ ONE CALL, IN THE SHELL, SO EVERY TAB INHERITS IT (MOTIR-4222). A project
-  // now answers at several addresses and exactly one of them is canonical; a
-  // request on any other lands here and is carried to it. Placed AFTER the read
-  // because the primary is a property of the project — and after the 404 arm,
-  // because a project that does not exist has no address to be redirected to.
-  await redirectIfNotPrimary(project, host, current)
   return (
     <>
       <ProjectHeader project={project} current={current} host={host} />
@@ -97,9 +89,9 @@ export async function tabMetadata({
   // ⚠️ THE CURSOR IS DROPPED. Deep pages of one list are the same document to a
   // crawler, so they consolidate onto page one — the rule `/explore` already
   // follows for its own cursor.
-  // ⚠️ `metadataBase` stays `SITE_ORIGIN` and is not consulted here: an
-  // ABSOLUTE canonical overrides it, which is the only way one document served
-  // at three hosts can name one address.
+  // ⚠️ `metadataBase` stays `SITE_ORIGIN` and is not consulted here: the
+  // canonical is ABSOLUTE, built by `publicUrlFor` from the project's own
+  // address, so every locale's copy of the page names the same one.
   const alternates = projectAlternates(locale, publicUrlFor(project, segment))
   const url = alternates.canonical as string
   return {

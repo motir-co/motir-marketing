@@ -5,7 +5,6 @@ import { actHref, loadProject } from '@/lib/publicProject'
 import {
   publicPathFor,
   publicUrlFor,
-  redirectIfNotPrimary,
   requestPublicHost,
   SITE_HOST,
 } from '@/lib/publicHost'
@@ -82,7 +81,6 @@ export default async function RequestIntakePage({
     return <ErrorState title={copy.states.error.project} host={host} />
 
   const project = read.data
-  await redirectIfNotPrimary(project, host, 'requests/new')
 
   // ⚠️ TWO PATHS TO THE SAME TAB, AND THEY ARE NOT INTERCHANGEABLE — one
   // variable used to serve both, which was correct only while `motir.co` was

@@ -53,11 +53,6 @@ const WORKSPACE: PublicHost = {
   host: 'acme.motir.site',
   origin: 'https://acme.motir.site',
 }
-const CUSTOM: PublicHost = {
-  kind: 'project',
-  host: 'roadmap.acme.com',
-  origin: 'https://roadmap.acme.com',
-}
 /*
  * THE FOURTH SHAPE (MOTIR-4430) — a host that is neither this site nor a tenant
  * the contract resolved: the base domain itself, a host nobody has claimed, and
@@ -110,7 +105,6 @@ describe('on the site, the chrome is EXACTLY what it has always been', () => {
 
 describe.each([
   ['a workspace subdomain', WORKSPACE],
-  ['a customer domain', CUSTOM],
   ['an UNRESOLVED host', UNRESOLVED],
 ])('on %s', (_label, host) => {
   it('emits every site path ABSOLUTELY, on the site origin', async () => {
@@ -184,7 +178,7 @@ describe('siteLinkFor', () => {
   it('is a no-op on the site and absolute everywhere else', () => {
     for (const path of [SITE_ROOT, EXPLORE, DOCS, DESIGN, '/legal/terms']) {
       expect(siteLinkFor(SITE_HOST, path, 'en')).toBe(path)
-      for (const host of [WORKSPACE, CUSTOM, UNRESOLVED]) {
+      for (const host of [WORKSPACE, UNRESOLVED]) {
         expect(siteLinkFor(host, path, 'en')).toBe(
           new URL(path, `${SITE_ORIGIN}/`).toString(),
         )
@@ -203,7 +197,7 @@ describe('siteLinkFor', () => {
      * says the override is honoured.
      */
     expect(siteLinkFor(WORKSPACE, EXPLORE, 'en')).toBe(siteUrl(EXPLORE))
-    expect(siteLinkFor(CUSTOM, SITE_ROOT, 'en')).toBe(siteUrl(SITE_ROOT))
+    expect(siteLinkFor(UNRESOLVED, SITE_ROOT, 'en')).toBe(siteUrl(SITE_ROOT))
   })
 })
 
@@ -216,7 +210,6 @@ describe('siteLinkFor', () => {
 describe.each([
   ['the site', SITE_HOST],
   ['a workspace subdomain', WORKSPACE],
-  ['a customer domain', CUSTOM],
   ['an UNRESOLVED host', UNRESOLVED],
 ])('under fr, on %s', (_label, host) => {
   it('emits every site path and product link in French', async () => {
@@ -257,7 +250,7 @@ describe('siteLinkFor carries the locale', () => {
 
   it('off the site, absolute AND prefixed', () => {
     expect(siteLinkFor(WORKSPACE, DOCS, 'fr')).toBe(`${SITE_ORIGIN}/fr/docs`)
-    expect(siteLinkFor(CUSTOM, DOCS, 'ja')).toBe(`${SITE_ORIGIN}/ja/docs`)
+    expect(siteLinkFor(WORKSPACE, DOCS, 'ja')).toBe(`${SITE_ORIGIN}/ja/docs`)
     expect(siteLinkFor(UNRESOLVED, DOCS, 'en')).toBe(`${SITE_ORIGIN}/docs`)
     expect(siteLinkFor(UNRESOLVED, SITE_ROOT, 'fr')).toBe(`${SITE_ORIGIN}/fr`)
   })
@@ -273,7 +266,6 @@ describe('siteLinkFor carries the locale', () => {
  */
 describe.each([
   ['a workspace subdomain', WORKSPACE, '/ACME/changelog'],
-  ['a customer domain', CUSTOM, '/changelog'],
   ['an UNRESOLVED host', UNRESOLVED, '/somewhere'],
 ])('on %s, the open language list', (_label, host, path) => {
   it('points every entry at this same address and nowhere else', async () => {

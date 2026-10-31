@@ -135,19 +135,21 @@ describe('the tab set', () => {
     )
   })
 
-  it('takes the shape of the host it is given (MOTIR-4220)', () => {
-    // The same tab, three addresses. `lib/publicHost.ts` owns the mapping and
-    // `tests/host/publicHost.test.ts` covers it exhaustively; this asserts that
-    // the tab helper DELEGATES rather than keeping its own copy of the rule.
-    const project = {
-      kind: 'project',
-      host: 'roadmap.acme.com',
-      origin: 'https://roadmap.acme.com',
+  it('spells the site path whichever host it is given (MOTIR-9528)', () => {
+    // `lib/publicHost.ts` owns the mapping and `tests/host/publicHost.test.ts`
+    // covers it; this asserts that the tab helper DELEGATES rather than keeping
+    // its own copy of the rule. A project is served on motir.co alone now.
+    const workspace = {
+      kind: 'workspace',
+      host: 'acme.motir.site',
+      origin: 'https://acme.motir.site',
     } as const
     expect(projectTabHref(SITE_HOST, 'ACME', 'board', 'en')).toBe(
       '/p/ACME/board',
     )
-    expect(projectTabHref(project, 'ACME', 'board', 'en')).toBe('/board')
+    expect(projectTabHref(workspace, 'ACME', 'board', 'en')).toBe(
+      '/p/ACME/board',
+    )
   })
 })
 

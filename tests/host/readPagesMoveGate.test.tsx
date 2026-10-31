@@ -2,11 +2,6 @@ import { readFileSync } from 'node:fs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import { render } from '@/tests/helpers/withCopy'
-import {
-  PUBLIC_ADDRESS_KIND_HEADER,
-  PUBLIC_HOST_HEADER,
-  PUBLIC_ORIGIN_HEADER,
-} from '@/lib/publicHost'
 
 /*
  * THE STORY'S motir-marketing GATE (MOTIR-6747, Story MOTIR-6171).
@@ -91,20 +86,25 @@ const CUSTOM: HostCase = {
   label: 'a custom domain',
   origin: 'https://roadmap.acme.com',
   path: (view) => (view ? `/${view}` : '/'),
-  headers: {
-    [PUBLIC_ADDRESS_KIND_HEADER]: 'project',
-    [PUBLIC_HOST_HEADER]: 'roadmap.acme.com',
-    [PUBLIC_ORIGIN_HEADER]: 'https://roadmap.acme.com',
-  },
+  headers: {},
   primary: 'https://roadmap.acme.com',
 }
 // A workspace host serves no project since MOTIR-9512, and the router serves
 // no customer domain since MOTIR-9527 (the certificate edge answers it), so
 // motir.co is the one host whose read links the router still routes; both
-// refusals are asserted below. The custom-domain case still RENDERS the pages
-// with the `project` headers: that page-side reader is MOTIR-9528's to retire.
+// refusals are asserted below.
 const ROUTED_HOSTS = [SITE]
-const HOSTS = [SITE, CUSTOM]
+// ⚠️ A PROJECT WHOSE PRIMARY IS ANOTHER HOST STILL RENDERS ON motir.co
+// (MOTIR-9528). Its `addresses.primary` names the customer's own domain, and
+// the page used to redirect there; that redirect retired with the customer
+// domain leaving this repository, so the page now renders in place — a thrown
+// NEXT_REDIRECT would fail every case below.
+const PRIMARY_ELSEWHERE: HostCase = {
+  ...SITE,
+  label: 'motir.co, for a project whose primary is another host',
+  primary: CUSTOM.primary,
+}
+const HOSTS = [SITE, PRIMARY_ELSEWHERE]
 
 const HOST_READS: Record<string, unknown> = {
   'acme.motir.site': {

@@ -13,11 +13,6 @@ const WORKSPACE: PublicHost = {
   host: 'acme.motir.site',
   origin: 'https://acme.motir.site',
 }
-const CUSTOM: PublicHost = {
-  kind: 'project',
-  host: 'roadmap.acme.com',
-  origin: 'https://roadmap.acme.com',
-}
 
 describe('switchHref — on motir.co the address is the language', () => {
   it.each([
@@ -32,13 +27,13 @@ describe('switchHref — on motir.co the address is the language', () => {
 })
 
 describe('switchHref — a tenant address never carries a prefix', () => {
-  it.each([
-    ['a workspace subdomain', WORKSPACE, '/MOTIR/changelog'],
-    ['a customer domain', CUSTOM, '/changelog'],
-  ])('on %s the entry is the same path', (_label, host, path) => {
-    expect(switchHref(host, path, 'fr')).toBe(path)
-    expect(switchHref(host, path, 'en')).toBe(path)
-  })
+  it.each([['a workspace subdomain', WORKSPACE, '/MOTIR/changelog']])(
+    'on %s the entry is the same path',
+    (_label, host, path) => {
+      expect(switchHref(host, path, 'fr')).toBe(path)
+      expect(switchHref(host, path, 'en')).toBe(path)
+    },
+  )
 })
 
 describe('localeCookie', () => {

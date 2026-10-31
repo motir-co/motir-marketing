@@ -1,19 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { screen, within } from '@testing-library/react'
-import { render } from '@/tests/helpers/withCopy'
 import {
-  isOnPrimaryHost,
   publicUrlFor,
-  readPublicHost,
-  SITE_HOST,
   PUBLIC_ADDRESS_KIND_HEADER,
   PUBLIC_HOST_HEADER,
   PUBLIC_ORIGIN_HEADER,
 } from '@/lib/publicHost'
 import { resetHostResolutionCache, resolveHost } from '@/lib/hostResolution'
-import { ProjectHeader } from '@/app/[locale]/p/[identifier]/_components/ProjectHeader'
-import { ProjectJsonLd } from '@/app/[locale]/p/[identifier]/_components/JsonLd'
-import type { PublicProjectOverviewDto } from '@/lib/publicProject'
 
 /*
  * THE STORY'S SEAMS (MOTIR-4224) — the joins the two code cards' own units mock.
@@ -46,26 +38,6 @@ const CUSTOM_PAYLOAD = {
 }
 /** The retired never-released outcome a stale producer might still send. */
 const ALIAS_PAYLOAD = { kind: 'alias', redirectTo: 'acme.motir.site' }
-
-const project = (primary: string): PublicProjectOverviewDto => ({
-  id: 'proj_1',
-  name: 'Acme Roadmap',
-  identifier: 'ACME',
-  workspaceName: 'moooon B.V.',
-  publicOverviewMd: null,
-  publicTagline: null,
-  publicTags: [],
-  stats: {
-    publicRequests: 1,
-    upvotes: 2,
-    planned: 3,
-    shipped: 4,
-    inProgress: 5,
-  },
-  links: {},
-  viewerCanManage: false,
-  addresses: { primary, alternates: [] },
-})
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -115,39 +87,6 @@ describe('a recorded customer-domain resolution, driven through the router', () 
   })
 })
 
-describe('a project-kind host, driven to a rendered tab page', () => {
-  it('produces host-relative hrefs AND the canonical in ONE pass', async () => {
-    // 1. the headers a page reads back — the page-side reader of the `project`
-    // kind is MOTIR-9528's to retire, not the router's.
-    const host = readPublicHost(
-      new Headers({
-        [PUBLIC_ADDRESS_KIND_HEADER]: 'project',
-        [PUBLIC_HOST_HEADER]: 'roadmap.acme.com',
-        [PUBLIC_ORIGIN_HEADER]: 'https://roadmap.acme.com',
-      }),
-    )
-
-    // 3. the RENDERED page — links and canonical together, which is the join
-    const subject = project('https://roadmap.acme.com')
-    render(<ProjectHeader project={subject} current="changelog" host={host} />)
-    const { container } = render(
-      <ProjectJsonLd project={subject} fallbackDescription="" />,
-    )
-
-    const nav = screen.getAllByRole('navigation', { name: 'Project' })[0]!
-    expect(within(nav).getByRole('link', { name: 'Overview' })).toHaveAttribute(
-      'href',
-      '/',
-    )
-    expect(
-      within(nav).getByRole('link', { name: 'Changelog' }),
-    ).toHaveAttribute('href', '/changelog')
-
-    const graph = JSON.parse(container.querySelector('script')!.innerHTML)
-    expect(graph['@id']).toBe('https://roadmap.acme.com')
-  })
-})
-
 /* ── seam (b): the index's primaryHost → the sitemap ──────────────────────── */
 
 describe('the crawl index’s primaryHost, driven into the sitemap', () => {
@@ -179,34 +118,25 @@ describe('the crawl index’s primaryHost, driven into the sitemap', () => {
     return entries.map((e) => e.url)
   }
 
-  it('includes on the host that owns the canonical and omits on the one that does not', async () => {
-    // ⚠️ ONE ROW, TWO HOSTS, AND IT MUST APPEAR IN EXACTLY ONE. Asserted as a
-    // pair rather than as two independent cases, because the failure that
-    // matters is "in both" or "in neither" — either of which passes a
-    // single-host test.
+  it('lists on motir.co only the projects whose canonical is motir.co', async () => {
+    // A row whose primary is a customer's own domain is not listed anywhere
+    // Motir serves (MOTIR-9528): that domain is the certificate edge's, and
+    // motir.co is not its canonical.
     const onSite = await sitemapAs({})
-    const onTenant = await sitemapAs({
-      [PUBLIC_ADDRESS_KIND_HEADER]: 'project',
-      [PUBLIC_HOST_HEADER]: 'roadmap.acme.com',
-      [PUBLIC_ORIGIN_HEADER]: 'https://roadmap.acme.com',
-    })
-
-    expect(onSite.some((u) => u.includes('ACME'))).toBe(false)
-    expect(onTenant).toContain('https://roadmap.acme.com/')
 
     expect(onSite).toContain('https://motir.co/p/MOTIR')
-    expect(onTenant.some((u) => u.includes('MOTIR'))).toBe(false)
+    expect(onSite.some((u) => u.includes('ACME'))).toBe(false)
   })
 
-  it('and a host the contract knows nothing about lists nothing at all', async () => {
-    // The arm neither code card's units reach: a sitemap asked as a host with
-    // no projects. Empty is the answer — NOT this site's static pages, which
-    // would attribute motir.co's content to somebody else's domain.
+  it('and a workspace host lists nothing at all', async () => {
+    // Empty is the answer — NOT this site's static pages, which would
+    // attribute motir.co's content to another host, and not a project, which
+    // a workspace host does not serve (MOTIR-9512).
     expect(
       await sitemapAs({
-        [PUBLIC_ADDRESS_KIND_HEADER]: 'project',
-        [PUBLIC_HOST_HEADER]: 'stranger.example',
-        [PUBLIC_ORIGIN_HEADER]: 'https://stranger.example',
+        [PUBLIC_ADDRESS_KIND_HEADER]: 'workspace',
+        [PUBLIC_HOST_HEADER]: 'acme.motir.site',
+        [PUBLIC_ORIGIN_HEADER]: 'https://acme.motir.site',
       }),
     ).toEqual([])
   })
@@ -240,7 +170,7 @@ describe('a recorded alias resolution, driven through the router', () => {
 /* ── the branch the cards' own units left ─────────────────────────────────── */
 
 describe('a subject DTO from a motir-core that predates `addresses`', () => {
-  it('renders with today’s canonical and redirects NOWHERE', async () => {
+  it('renders with today’s canonical', async () => {
     // ⚠️ A ROLLING DEPLOY IS A REAL STATE, not a hypothetical: the two
     // repositories deploy separately by decision (AMENDMENT 2 §E), so for the
     // length of one release this renderer talks to a motir-core that does not
@@ -250,8 +180,5 @@ describe('a subject DTO from a motir-core that predates `addresses`', () => {
 
     expect(publicUrlFor(legacy)).toBe('https://motir.co/p/ACME')
     expect(publicUrlFor(legacy, 'board')).toBe('https://motir.co/p/ACME/board')
-    // Absent means "this host is canonical", so nothing redirects — a
-    // missing-field redirect would send visitors somewhere chosen by a bug.
-    expect(isOnPrimaryHost(legacy, SITE_HOST)).toBe(true)
   })
 })

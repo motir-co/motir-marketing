@@ -10,9 +10,10 @@ import {
  * `app/robots.ts`, asked as three different hosts.
  *
  * ⚠️ ONE SENTENCE IS THE WHOLE RULE: a sitemap may only list URLs on its own
- * host. Everything below is that rule at three addresses — so a project whose
- * canonical has moved DISAPPEARS from `motir.co`'s sitemap and appears in its
- * own, rather than being duplicated across both or dropped from both.
+ * host. Everything below is that rule at each address — so a project whose
+ * canonical has moved DISAPPEARS from `motir.co`'s sitemap. Since MOTIR-9528
+ * motir.co is the only host here that lists a project: a workspace host serves
+ * none, and a customer domain is the certificate edge's, not this repository's.
  *
  * ⚠️ THE HOST IS SUPPLIED THROUGH `next/headers`, WHICH IS THE REAL SEAM. These
  * routes are functions with no arguments; the only thing that tells them which
@@ -65,10 +66,6 @@ async function crawlSurfaceAs(headers: Record<string, string>) {
 const asWorkspace = {
   [PUBLIC_ADDRESS_KIND_HEADER]: 'workspace',
   [PUBLIC_HOST_HEADER]: 'acme.motir.site',
-}
-const asCustom = {
-  [PUBLIC_ADDRESS_KIND_HEADER]: 'project',
-  [PUBLIC_HOST_HEADER]: 'roadmap.acme.com',
 }
 
 afterEach(() => {
@@ -140,15 +137,19 @@ describe('the sitemap on a workspace subdomain', () => {
 })
 
 describe('the sitemap on a customer domain', () => {
-  it('lists ONE project’s page and changelog, at the host’s root', async () => {
-    const { entries } = await crawlSurfaceAs(asCustom)
+  it('is not this repository’s — a retired `project` header reads as motir.co (MOTIR-9528)', async () => {
+    // A customer domain is answered by the certificate edge, so no request
+    // from one reaches these routes. A stale `project` header is the one way
+    // the kind could still arrive, and it reads as the site: motir.co's own
+    // projects, never a sitemap rooted on the customer's host.
+    const { entries } = await crawlSurfaceAs({
+      [PUBLIC_ADDRESS_KIND_HEADER]: 'project',
+      [PUBLIC_HOST_HEADER]: 'roadmap.acme.com',
+    })
     const urls = entries.map((e) => e.url)
 
-    expect(urls).toContain('https://roadmap.acme.com/')
-    expect(urls).toContain('https://roadmap.acme.com/changelog')
-    // The overview and the changelog, and nothing else: the read views are
-    // redirects into the app (MOTIR-6743).
-    expect(urls).toHaveLength(2)
+    expect(urls).toContain('https://motir.co/p/MOTIR')
+    expect(urls.some((u) => u.includes('roadmap.acme.com'))).toBe(false)
   })
 })
 
@@ -174,13 +175,10 @@ describe('robots names THIS host’s sitemap', () => {
     ).not.toMatch(/\/(board|items|tree|roadmap)\b/)
   })
 
-  it.each([
-    ['a workspace subdomain', asWorkspace, 'https://acme.motir.site'],
-    ['a customer domain', asCustom, 'https://roadmap.acme.com'],
-  ])(
+  it.each([['a workspace subdomain', asWorkspace, 'https://acme.motir.site']])(
     '%s gets its own, from the tenant route',
     async (_label, headers, origin) => {
-      // A customer domain whose robots.txt pointed at motir.co/sitemap.xml would
+      // A tenant host whose robots.txt pointed at motir.co/sitemap.xml would
       // hand a crawler a document listing URLs on a host it did not ask about —
       // which the sitemap protocol refuses outright.
       const { tenantRobotsText } = await crawlSurfaceAs(headers)
@@ -217,10 +215,10 @@ describe('a failed index read', () => {
 
   it('and leaves a tenant host an EMPTY sitemap, not the site’s pages', async () => {
     // Short is recoverable — a crawler re-reads it. Emitting motir.co's pages
-    // under a customer's host would not be.
+    // under a tenant's host would not be.
     vi.resetModules()
     vi.doMock('next/headers', () => ({
-      headers: async () => new Headers(asCustom),
+      headers: async () => new Headers(asWorkspace),
     }))
     vi.stubGlobal('fetch', async () => {
       throw new Error('ECONNREFUSED')

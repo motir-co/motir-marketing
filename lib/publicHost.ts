@@ -6,18 +6,13 @@ import type { Locale } from '@/i18n/routing'
  * THE ONE PLACE THAT KNOWS WHAT A LINK LOOKS LIKE ON THIS HOST
  * (Story MOTIR-3878 · MOTIR-4220).
  *
- * The same project page is served at two shapes of address, and the path
- * to a given tab is different at each:
- *
- *   • `motir.co`            — `/p/ACME/board`   (the site; the shape that shipped)
- *   • `roadmap.acme.com`    — `/board`          (a customer domain; ADR Q3 puts
- *                                                ONE project at the host's root)
- *
- * `proxy.ts` rewrites both onto the SAME `app/p/[identifier]/**` tree, so
- * no page is duplicated — but a page that emitted `/p/ACME/board` on a customer
- * domain would send the visitor to a path that host does not serve. Every href
- * under `app/p/**` therefore goes through {@link publicPathFor}, and a grep for
- * a `/p/` string literal in that tree finds none.
+ * A project page has ONE shape of address, the site's: `motir.co/p/ACME/board`,
+ * under a locale prefix where the page is not English. A customer's own domain
+ * is answered by the certificate edge (`motir-edge`, decision MOTIR-9521), never
+ * by this repository, and a workspace host serves no project (MOTIR-9790). Every
+ * href under `app/p/**` still goes through {@link publicPathFor}, so the locale
+ * prefix is spelled in one place and a grep for a `/p/` string literal in that
+ * tree finds none.
  *
  * ── ⚠️ THE HOST IS A PROP, NOT AN AMBIENT READ, AND THAT IS DELIBERATE ────
  *
@@ -43,9 +38,10 @@ import type { Locale } from '@/i18n/routing'
 /**
  * Which SHAPE of address this request arrived on.
  *
- * `site` is `motir.co` itself. `workspace` and `project` mirror the two tenant
- * cases of `motir-core`'s `PublicHostResolutionDto` — an `alias` never reaches
- * a page, because the router answers it with a 301.
+ * `site` is `motir.co` itself. `workspace` is a live workspace subdomain
+ * (`acme.motir.site`), the one tenant case the router serves. There is no
+ * customer-domain kind (MOTIR-9528): a customer's own domain is the certificate
+ * edge's, and this repository answers it with the one 404 as `unresolved`.
  *
  * ── ⚠️ `unresolved` IS THE FOURTH SHAPE, AND IT IS NOT A TENANT (MOTIR-4430) ─
  *
@@ -57,8 +53,11 @@ import type { Locale } from '@/i18n/routing'
  *     construction and is answered without a hop;
  *   • a host the contract says it does NOT know (`read.status === 'not-found'`);
  *   • a host the contract did not ANSWER for (`read.status === 'failed'`) — the
- *     outage, which is precisely a real customer's domain while `app.motir.co`
- *     restarts.
+ *     outage, while `app.motir.co` restarts.
+ *
+ * A host outside the tenant namespace — a customer's domain whose DNS still
+ * points here — is answered the same way as the base domain, without a hop
+ * (MOTIR-9527).
  *
  * Before this kind existed those three rendered the 404 room and
  * `/host-unavailable` as {@link SITE_HOST}, so the shared chrome spelled
@@ -75,7 +74,7 @@ import type { Locale } from '@/i18n/routing'
  * than from the contract, so an unresolvable host has them exactly as a resolved
  * one does.
  */
-export type PublicAddressKind = 'site' | 'workspace' | 'project' | 'unresolved'
+export type PublicAddressKind = 'site' | 'workspace' | 'unresolved'
 
 /** The request's address, as the router resolved it. */
 export interface PublicHost {
@@ -149,7 +148,6 @@ export const PUBLIC_ORIGIN_HEADER = 'x-motir-public-origin'
 const KINDS: ReadonlySet<string> = new Set<PublicAddressKind>([
   'site',
   'workspace',
-  'project',
   'unresolved',
 ])
 
@@ -175,22 +173,27 @@ export function normaliseHost(raw: string | null | undefined): string | null {
 }
 
 /**
- * The path of one public-project page ON THIS HOST.
+ * The path of one public-project page.
  *
  * `path` is the suffix BELOW the project root, already URL-encoded and with no
  * leading slash — `''` for the overview, `'board'`, `'items/ACME-42'`,
- * `'changelog.xml'`. The identifier is encoded here, because on two of the three
- * host kinds it is a path segment this function alone emits.
+ * `'changelog.xml'`. The identifier is encoded here, because it is a path
+ * segment this function alone emits.
  *
- * ⚠️ THE LOCALE IS A REQUIRED PARAMETER, AND ONLY THE SITE ARM USES IT
- * (MOTIR-7971). On motir.co a project page has twelve addresses — `/p/ACME` and
- * `/fr/p/ACME` and the rest — and a tab bar on the French page must link to the
- * French tabs, or every click is a hop through the proxy back to French (or, for
- * a visitor with no cookie, a silent move into English). On a workspace or
- * customer host ONE unprefixed URL serves every language (the proxy rewrites by
- * cookie and `Accept-Language`, MOTIR-7951), so those arms return exactly what
- * they always did. Required rather than defaulted so a forgotten caller is a
- * compile error, not a link that is wrong in eleven languages out of twelve.
+ * ⚠️ ONE SHAPE FOR EVERY KIND (MOTIR-9528). A project page lives on the site
+ * only: a workspace host serves no project (MOTIR-9790, its root is the
+ * no-application page) and an `unresolved` host reaches only the router's own
+ * two landing pads (MOTIR-4430). No kind can produce a path at a host's root.
+ * `host` stays a parameter so every caller keeps saying which host it renders
+ * on, which {@link siteLinkFor} and the canonical still need.
+ *
+ * ⚠️ THE LOCALE IS A REQUIRED PARAMETER (MOTIR-7971). On motir.co a project
+ * page has twelve addresses — `/p/ACME` and `/fr/p/ACME` and the rest — and a
+ * tab bar on the French page must link to the French tabs, or every click is a
+ * hop through the proxy back to French (or, for a visitor with no cookie, a
+ * silent move into English). Required rather than defaulted so a forgotten
+ * caller is a compile error, not a link that is wrong in eleven languages out
+ * of twelve.
  */
 export function publicPathFor(
   host: PublicHost,
@@ -199,23 +202,7 @@ export function publicPathFor(
   locale: Locale,
 ): string {
   const rest = path ? `/${path}` : ''
-  switch (host.kind) {
-    case 'project':
-      // ONE project at the root (ADR Q3) — the identifier is the host, so it is
-      // absent from the path. `''` is the root itself, not the empty string.
-      return rest || '/'
-    default:
-      // `site`, and `unresolved` and `workspace` with it. An `unresolved` host
-      // reaches only the router's own two landing pads (MOTIR-4430), and a
-      // workspace host serves no project since the address decision MOTIR-9790
-      // (its root is the no-application page, MOTIR-9512) — neither renders a
-      // project path, so this arm is the site's shape and nothing is claimed
-      // about a host that has no projects to address.
-      return localizedPath(
-        locale,
-        `/p/${encodeURIComponent(identifier)}${rest}`,
-      )
-  }
+  return localizedPath(locale, `/p/${encodeURIComponent(identifier)}${rest}`)
 }
 
 /** The same path with a query string appended, dropping empty values. */
@@ -237,11 +224,10 @@ export function publicPathWithQuery(
  * on (MOTIR-4372).
  *
  * `publicPathFor` above answers the mirror question — where does a PROJECT's
- * page live on this host — and the two together are the whole of the per-host
- * address model. A tenant host serves that workspace's projects and nothing
- * else, so `/explore`, `/docs`, `/design` and `/legal` are 404 there: the same
- * rule `lib/sitemapEntries.ts` states in its own header, that **a tenant host is a
- * project's address, not a copy of the marketing site**.
+ * page live — and the two together are the whole of the per-host address
+ * model. A tenant host serves none of the site's pages, so `/explore`, `/docs`,
+ * `/design` and `/legal` are 404 there: **a tenant host is not a copy of the
+ * marketing site**.
  *
  * ⚠️ THE FAILURE IT REMOVES IS NOT ONLY A DEAD CLICK. These paths are rendered
  * into the shared chrome, which every tenant page wears, and Next RSC-prefetches
@@ -261,8 +247,8 @@ export function publicPathWithQuery(
  * That is what makes the fourth kind free: `unresolved` — the base domain, an
  * unknown host, a host the contract could not answer for — is not the site, so
  * it takes the absolute arm, which is the only arm that can work. A predicate
- * written as `kind === 'workspace' || kind === 'project'` would have answered
- * "relative" for a shape that did not exist when it was written.
+ * written as a list of tenant kinds would have answered "relative" for a shape
+ * that did not exist when it was written.
  *
  * ⚠️ AND IT CARRIES THE PAGE'S LOCALE, ON EVERY HOST (MOTIR-7971). The site is
  * served in twelve languages, English unprefixed, and a link that dropped the
@@ -325,7 +311,7 @@ export async function requestPublicHost(): Promise<PublicHost> {
   return readPublicHost(await headers())
 }
 
-/* ── the PRIMARY address (MOTIR-4222) ─────────────────────────────────────── */
+/* ── the CANONICAL address (MOTIR-4222 · MOTIR-9528) ───────────────────────── */
 
 /**
  * Everything below needs only these two fields, so that is what it asks for —
@@ -343,11 +329,8 @@ export interface AddressedProject {
    * field yet — and a `project.addresses.primary` on `undefined` is a TypeError
    * inside `generateMetadata`, which 500s the page rather than degrading it.
    *
-   * Absent means TODAY'S BEHAVIOUR: `motir.co/p/<identifier>` is the canonical
-   * and nothing redirects. That is the safe direction in both senses — a page
-   * that renders with the pre-story canonical is correct until the field
-   * arrives, whereas a missing-field redirect would send visitors somewhere
-   * chosen by a bug.
+   * Absent means `motir.co/p/<identifier>` is the canonical, which is what
+   * motir-core sends anyway since MOTIR-9525.
    */
   readonly addresses?: { readonly primary: string }
 }
@@ -382,11 +365,16 @@ export function currentOrigin(host: PublicHost): string {
  * The ONE canonical URL for a project, and the only place `/p/` is spelled into
  * an absolute URL (MOTIR-4222).
  *
- * `addresses.primary` already carries the project's own path — `motir.co/p/PROD`,
- * `acme.motir.site/PROD`, or a customer domain's bare root — so a tab hangs
- * below it. Every `<link rel="canonical">`, `og:url`, JSON-LD `@id` and sitemap
- * entry is built from this, which is what makes them agree by construction
- * rather than by four files being edited together.
+ * `addresses.primary` already carries the project's own path —
+ * `motir.co/p/PROD` — so a tab hangs below it. Every `<link rel="canonical">`,
+ * `og:url`, JSON-LD `@id` and sitemap entry is built from this, which is what
+ * makes them agree by construction rather than by four files being edited
+ * together.
+ *
+ * ⚠️ IT NAMES THE CANONICAL AND NOTHING REDIRECTS TO IT (MOTIR-9528). The page
+ * that used to 308 a visitor onto the primary host is gone with the customer
+ * domain it existed for: every public page renders the page it was asked
+ * for.
  */
 export function publicUrlFor(
   project: AddressedProject,
@@ -395,58 +383,4 @@ export function publicUrlFor(
 ): string {
   const base = primaryOf(project).replace(/\/$/, '')
   return `${base}${path ? `/${path}` : ''}${search}`
-}
-
-/**
- * Whether this request is already on the project's canonical host.
- *
- * ⚠️ BOTH SIDES ARE NORMALISED, and the port is why. `currentHost` comes from a
- * `Host` header with the port stripped, while `addresses.primary` is a URL that
- * may carry one — `http://acme.localhost:4318/ACME` in the browser lane, or an
- * explicit `:443` from a hand-edited value. Comparing the two raw makes a
- * project's own host look like somebody else's, and the page then redirects to
- * itself: an infinite loop, in the one code path every public page runs.
- */
-export function isOnPrimaryHost(
-  project: AddressedProject,
-  host: PublicHost,
-): boolean {
-  return (
-    normaliseHost(new URL(primaryOf(project)).host) ===
-    normaliseHost(currentHost(host))
-  )
-}
-
-/**
- * 301 to the same page on the project's PRIMARY address, unless we are already
- * there (MOTIR-4222).
- *
- * ⚠️ CALLED FROM THE SHELL, so every tab and detail page inherits it — including
- * `motir.co/p/<identifier>` once a project's primary lives elsewhere, which the
- * ADR §7 names as its stated consequence. Without it the same page is indexable
- * at three addresses, which is the duplication *make primary* exists to prevent.
- *
- * ⚠️ IT ANSWERS 308, NOT THE 301 THE CARD ASKS FOR, and the difference is the
- * framework's rather than a choice. Next's page-level API is
- * `permanentRedirect()`, which emits 308; a 301 is settable only from the proxy
- * or a route handler, and the proxy cannot know a project's primary without a
- * SECOND contract read on every request to every host — including `motir.co`,
- * the host that today makes none. Both are permanent and both consolidate a
- * canonical for every crawler that matters; 308 additionally preserves the
- * method, which for a GET-only surface is a difference with no consequence. The
- * one redirect on this story that IS a 301 is the retired subdomain's, because
- * that one lives in the router where the status is settable.
- *
- * ⚠️ AND `next/navigation` IS IMPORTED LAZILY, for the reason this module's
- * header gives: `proxy.ts` imports it, and the proxy runtime has no router.
- */
-export async function redirectIfNotPrimary(
-  project: AddressedProject,
-  host: PublicHost,
-  path = '',
-  search = '',
-): Promise<void> {
-  if (isOnPrimaryHost(project, host)) return
-  const { permanentRedirect } = await import('next/navigation')
-  permanentRedirect(publicUrlFor(project, path, search))
 }

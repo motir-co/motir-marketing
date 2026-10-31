@@ -48,11 +48,6 @@ const WORKSPACE: PublicHost = {
   host: 'acme.motir.site',
   origin: 'https://acme.motir.site',
 }
-const CUSTOM: PublicHost = {
-  kind: 'project',
-  host: 'roadmap.acme.com',
-  origin: 'https://roadmap.acme.com',
-}
 
 /** Every href a rendered tree emits, in document order. */
 function hrefs(container: HTMLElement): string[] {
@@ -62,8 +57,9 @@ function hrefs(container: HTMLElement): string[] {
 }
 
 describe.each([
+  // A customer domain is no longer a host a project page renders on
+  // (MOTIR-9528), so the site is the one host with project tabs.
   ['the site', SITE_HOST, '/p/PROD', '/p/PROD/changelog'],
-  ['a customer domain', CUSTOM, '/', '/changelog'],
 ])('%s', (_label, host, overview, changelog) => {
   it('the SITE tabs point at this host; the APP tabs at the app, on every host', () => {
     // MOTIR-6745: Overview and Changelog are pages on this host. Board, Items,
@@ -100,13 +96,7 @@ describe.each([
         label="Load more"
       />,
     )
-    expect(hrefs(container)).toEqual([
-      host.kind === 'site'
-        ? '/p/PROD/items?cursor=w9'
-        : host.kind === 'workspace'
-          ? '/PROD/items?cursor=w9'
-          : '/items?cursor=w9',
-    ])
+    expect(hrefs(container)).toEqual(['/p/PROD/items?cursor=w9'])
   })
 
   it('the ERROR state’s feed link points at this host', () => {
@@ -117,28 +107,7 @@ describe.each([
         host={host}
       />,
     )
-    expect(hrefs(container)).toEqual([
-      host.kind === 'site'
-        ? '/p/PROD/changelog.xml'
-        : host.kind === 'workspace'
-          ? '/PROD/changelog.xml'
-          : '/changelog.xml',
-    ])
-  })
-
-  it('NO same-origin href carries a /p/ prefix off the site', () => {
-    // The criterion, asked of the whole shell at once. The act rail's hand-offs
-    // are ABSOLUTE `app.motir.co` URLs and are excluded by that — they are a
-    // different host on purpose, and the `return` they carry is asserted below.
-    const { container } = render(
-      <ProjectHeader project={project} current="board" host={host} />,
-    )
-    const relative = hrefs(container).filter((h) => h.startsWith('/'))
-    // Four since MOTIR-6745: the four app tabs left this host for `APP_ORIGIN`.
-    expect(relative.length).toBeGreaterThanOrEqual(4)
-    if (host.kind !== 'site') {
-      expect(relative.filter((h) => h.startsWith('/p/'))).toEqual([])
-    }
+    expect(hrefs(container)).toEqual(['/p/PROD/changelog.xml'])
   })
 })
 
@@ -146,11 +115,10 @@ describe('the hand-off’s RETURN is the site path on every host', () => {
   it.each([
     ['the site', SITE_HOST],
     ['a workspace subdomain', WORKSPACE],
-    ['a customer domain', CUSTOM],
   ])('%s', (_label, host) => {
     // ⚠️ THE ONE PATH THAT MUST NOT FOLLOW THE HOST. `actHref` prefixes it with
     // `SITE_ORIGIN`, so a host-relative return would become `motir.co/board` —
-    // a URL that does not exist, on every customer domain.
+    // a URL that does not exist.
     render(<ProjectHeader project={project} current="board" host={host} />)
 
     const follow = screen.getByRole('link', { name: /Follow/ })
