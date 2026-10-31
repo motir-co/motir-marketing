@@ -1,8 +1,8 @@
 ---
-source: 410c4c87d2ef
+source: 331d263ce3e1
 ---
 
-Projekt publiczny odpowiada pod własnym adresem w `motir.co` i może dodatkowo odpowiadać na domenie, którą już posiadasz. Niezależnie od tego obszar roboczy może zająć jedną własną nazwę w `motir.site`.
+Projekt publiczny odpowiada pod własnym adresem w `motir.co`. Niezależnie od tego obszar roboczy może zająć jedną własną nazwę w `motir.site` i udostępniać swoją hostowaną aplikację w domenie, którą już posiada.
 
 ## Twój adres Motir {#your-motir-address}
 
@@ -21,71 +21,92 @@ Obszar roboczy ma jedną nazwę albo żadnej. **Nie ma aliasów i nic nie przeki
 - **Jedna zmiana na 30 dni.** Zmiana nazwy i zwolnienie liczą się każde jako jedna zmiana, więc zwolnienie i ponowne zajęcie nie obchodzi tego limitu. Dopóki zmiana nie jest jeszcze dozwolona, panel pokazuje datę, od której będzie.
 - **Nazwa, którą oddajesz, jest wstrzymywana — chyba że dopiero co ją zająłeś.** Nazwa trzymana krócej niż 24 godziny od razu wraca do puli. Nazwa trzymana 24 godziny lub dłużej jest wstrzymywana na 90 dni, aby nikt inny nie przejął linków, które prowadziły do Ciebie; okno potwierdzenia podaje dokładną datę, od której znów jest wolna.
 
-## Podłączanie własnej domeny {#connecting-your-own-domain}
+## Twoja własna domena {#your-own-domain}
 
-Podłączenie własnej domeny jest dostępne w planach płatnych — zobacz [nasze plany](/). Twój adres `motir.co` jest wliczony w każdy plan i działa tak czy inaczej.
+Domena, którą posiadasz, na przykład `shop.acme.com`, może odpowiadać hostowaną aplikacją Twojego obszaru roboczego, niezależnie od tego, na jakim celu ta aplikacja działa. Własne domeny są dostępne w płatnych planach — zobacz [nasze plany](/). Dodaje je i usuwa właściciel lub administrator obszaru roboczego; pozostali członkowie obszaru roboczego widzą je tylko do odczytu. Adresy `motir.co` Twoich projektów i nazwa `motir.site` Twojego obszaru roboczego działają tak czy inaczej.
 
-Podłączona domena obsługuje _jeden_ projekt, w swoim katalogu głównym: `roadmap.acme.com/` to strona tego projektu, a `roadmap.acme.com/changelog` — jego lista zmian. Aktywna tablica, elementy robocze i roadmapa znajdują się w aplikacji Motir, a prowadzą do nich tamtejsze linki.
+## Dodawanie domeny {#add-the-domain}
 
-U rejestratora tworzysz dwa rodzaje rekordów. **Najpierw dodaj domenę** w sekcji _Ustawienia projektu_, pod _Adres publiczny_: panel wyświetli wtedy wszystkie rekordy, których domena potrzebuje, z dokładną wartością i przyciskiem kopiowania przy każdym. Poniższe kształty pokazują, czego się spodziewać — przeczytaj je, by sprawdzić, czy Twój rejestrator potrafi je utworzyć, a wartości weź z panelu.
+Dodaj domenę w sekcji _Ustawienia obszaru roboczego_, pod _Własne domeny_. Panel _Adres publiczny_ również tam prowadzi, przez _Użyj zamiast tego własnej domeny_.
 
-### 1 · Skieruj domenę do nas {#point-the-domain-at-us}
+Przy dodawaniu wybierz, którą aplikację obszaru roboczego ma udostępniać. Domena udostępnia dokładnie jedną aplikację. Którą — możesz zmienić później w wierszu domeny, przez _Zmień aplikację_. Obszar roboczy, który nie ma jeszcze hostowanej aplikacji, i tak może dodać domenę: zostaje dodana bez aplikacji i nic nie udostępnia, dopóki jej nie wybierzesz.
 
-Dla **subdomeny**, takiej jak `roadmap.acme.com`, wystarczy jeden rekord `CNAME`:
+## Rekordy, które tworzysz {#the-records-you-create}
 
-| Typ     | Nazwa     | Wartość           |
-| ------- | --------- | ----------------- |
-| `CNAME` | `roadmap` | pokazana w panelu |
+Po dodaniu domeny panel wyświetla każdy potrzebny jej rekord, z dokładną wartością i przyciskiem kopiowania przy każdym, i przechowuje je pod _Pokaż rekordy DNS_. Poniższe kształty pokazują, czego się spodziewać — przeczytaj je, aby sprawdzić, czy Twój rejestrator może je utworzyć, a wartości weź z panelu.
 
-Dla **domeny głównej**, takiej jak `acme.com`, zamiast tego potrzebne są rekordy `A` i `AAAA` — domena główna nie może mieć rekordu `CNAME`, ponieważ ma już rekordy `MX` i `TXT`, od których zależą Twoja poczta i inne usługi:
+Najpierw jeden rekord `TXT`, który dowodzi, że domena należy do Ciebie. Jego nazwa to `_motir-verify.`, a po niej Twoja domena; większość rejestratorów chce tylko części przed domeną główną, jak tutaj:
+
+| Typ   | Nazwa                | Wartość           |
+| ----- | -------------------- | ----------------- |
+| `TXT` | `_motir-verify.shop` | widoczna w panelu |
+
+Token w nim należy tylko do Ciebie, więc skopiuj go z panelu, a nie skądinąd.
+
+Następnie rekord, który kieruje domenę na Motir. Dla **subdomeny** takiej jak `shop.acme.com` jeden `CNAME`:
+
+| Typ     | Nazwa  | Wartość           |
+| ------- | ------ | ----------------- |
+| `CNAME` | `shop` | widoczna w panelu |
+
+Dla **domeny głównej** takiej jak `acme.com` zamiast tego `A` i `AAAA` — domena główna nie może mieć rekordu `CNAME`, bo ma już rekordy `MX` i `TXT`, od których zależą Twoja poczta i pozostałe usługi. To samo dotyczy domeny leżącej bezpośrednio pod publicznym sufiksem złożonym z więcej niż jednej części, takiej jak `acme.co.uk`; panel wie, jakiego rodzaju jest Twoja, i wyświetla właściwe rekordy.
 
 | Typ    | Nazwa | Wartość           |
 | ------ | ----- | ----------------- |
-| `A`    | `@`   | pokazana w panelu |
-| `AAAA` | `@`   | pokazana w panelu |
+| `A`    | `@`   | widoczna w panelu |
+| `AAAA` | `@`   | widoczna w panelu |
 
-Każdą wartość kopiuj z panelu, a nie skądkolwiek indziej. To adresy, pod którymi serwowany jest Motir, odczytane z platformy, na której działamy, i mogą się zmienić — panel zmienia się razem z nimi, a taka strona jak ta nie.
+Te adresy należą do samego Motir i są zarezerwowane dla domen klientów. Jeśli kiedyś się zmienią, panel zmieni się razem z nimi; taka strona jak ta — nie.
 
-> Jeśli Twój dostawca DNS oferuje przy rekordzie przełącznik „proxy” lub „chmura”, wyłącz go: proxy przed rekordem ukrywa Twoją domenę przed sprawdzaniem i nie da się wystawić certyfikatu.
+> Jeśli Twój dostawca DNS oferuje przy rekordzie przełącznik „proxy” lub „chmura”, wyłącz go: proxy przed rekordem ukrywa Twoją domenę przed sprawdzeniem i certyfikatu nie da się wystawić.
 
-### 2 · Udowodnij, że domena jest Twoja {#prove-the-domain-is-yours}
-
-Obok rekordu kierującego panel wyświetla jeden rekord `TXT` z tokenem, w takim kształcie:
-
-| Typ   | Nazwa                   | Wartość          |
-| ----- | ----------------------- | ---------------- |
-| `TXT` | `_motir-verify.roadmap` | `motir-verify=…` |
-
-Skopiuj wartość z panelu, a nie stąd — token jest tylko Twój. Następnie wybierz _Zweryfikuj_. Gdy zobaczymy rekord, zażądamy certyfikatu, co zwykle trwa minutę lub dwie. Możesz zamknąć stronę; status zmienia się dalej samodzielnie, a rekordy pozostają dostępne pod _Pokaż rekordy DNS_.
+Potem wybierz _Sprawdź teraz_. Gdy tylko zobaczymy rekord własności, prosimy o certyfikat, co zwykle trwa kilka minut. Możesz zamknąć stronę; status zmienia się sam.
 
 ## Co oznacza każdy status {#what-each-status-means}
 
 [//]: # "Translator: the Status column names states the product itself shows. Use the label the app's own messages file for your locale gives each state, not a fresh translation, so this table matches the screen."
 
-| Status           | Co oznacza                                                                                                                                 | Co zrobić                                                                 |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| Niezweryfikowana | Nie widzimy jeszcze rekordu potwierdzającego własność. W urzędzie certyfikacji nic jeszcze nie zamówiono.                                  | Utwórz poniższy rekord TXT, a potem wybierz Sprawdź ponownie.             |
-| Sprawdzanie…     | Właśnie szukamy rekordu potwierdzającego własność. Zmiany DNS mogą potrzebować kilku minut, by się rozejść.                                | Poczekaj chwilę. Status zmieni się sam.                                   |
-| Wystawianie…     | Własność została potwierdzona, a certyfikat zamówiony. Zwykle trwa to minutę lub dwie.                                                     | Nic. Resztą zajmuje się Motir.                                            |
-| Aktywna          | Certyfikat został wystawiony, a Twoja domena obsługuje projekt. Odnawia się samodzielnie.                                                  | Możesz uczynić ten adres głównym.                                         |
-| Niepowodzenie    | Nie udało się wystawić certyfikatu. Powód widać obok statusu — najczęściej to rekord, którego brakuje albo który wskazuje gdzie indziej.   | Porównaj swoje rekordy z poniższymi, a potem wybierz Sprawdź ponownie.    |
-| Wygasła          | Certyfikat stracił ważność, a odnowienie się nie powiodło — prawie zawsze dlatego, że zmienił się rekord DNS. Domena nie jest obsługiwana. | Przywróć rekordy do poprzedniego stanu, a potem wybierz Sprawdź ponownie. |
-| Unieważniona     | Certyfikat został wycofany. Domena nie jest obsługiwana.                                                                                   | Wybierz Zażądaj ponownie, by rozpocząć nowy certyfikat.                   |
+| Status          | Co oznacza                                                                                                                                                       | Co zrobić                                                                                   |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Niepotwierdzona | Nie widzieliśmy jeszcze Twojego rekordu własności. Nic nie zostało zamówione u urzędu certyfikacji, a domena nie odpowiada.                                      | Utwórz rekordy wyświetlone w panelu, a potem wybierz Sprawdź teraz.                         |
+| Oczekuje        | Właśnie szukamy Twojego rekordu własności. Zmiany DNS mogą potrzebować kilku minut, żeby się rozejść.                                                            | Poczekaj chwilę. Zmieni się sam.                                                            |
+| Oczekuje        | Własność jest potwierdzona, a certyfikat jest wystawiany. Zwykle trwa to kilka minut.                                                                            | Nic. Strona odświeża się sama.                                                              |
+| Wystawiony      | Certyfikat jest wystawiony, a Twoja domena odpowiada. Odnawia się sam.                                                                                           | Nic.                                                                                        |
+| Niepowodzenie   | „Nie widzimy już Twojego rekordu własności.” Rekord `TXT` nie zawiera już Twojego tokenu, więc domena przestała odpowiadać.                                      | Przywróć rekord `TXT` wyświetlony w panelu, a potem wybierz Sprawdź ponownie.               |
+| Niepowodzenie   | „_Twoja domena_ nie wskazuje już Motir.” Jej rekord `A`, `AAAA` lub `CNAME` został zmieniony lub usunięty, więc domena przestała odpowiadać.                     | Przywróć rekordowi wartość wyświetloną w panelu, a potem wybierz Sprawdź ponownie.          |
+| Niepowodzenie   | „Nie udało się wystawić certyfikatu.” Urząd certyfikacji go odrzucił; panel pokazuje obok jego własne uzasadnienie.                                              | Popraw to, co wskazuje uzasadnienie — najczęściej brakujący rekord — a potem wybierz Ponów. |
+| Niepowodzenie   | „Nie udało się wystawić certyfikatu.” Certyfikat wygasł, a odnowienie się nie powiodło — prawie zawsze dlatego, że zmienił się rekord DNS. Domena nie odpowiada. | Przywróć rekordy do postaci wyświetlonej w panelu, a potem wybierz Ponów.                   |
+| Niepowodzenie   | „Nie udało się wystawić certyfikatu.” Certyfikat został unieważniony. Domena nie odpowiada.                                                                      | Wybierz Ponów, aby rozpocząć nowy certyfikat.                                               |
 
-## Który adres jest właściwy {#which-address-is-the-real-one}
+Odpowiada wyłącznie domena ze statusem _Wystawiony_.
 
-Projekt może odpowiadać pod kilkoma adresami, a dokładnie jeden z nich jest _główny_ — ten, o którym informowane są wyszukiwarki i podglądy w mediach społecznościowych. Gdy certyfikat podłączonej domeny jest aktywny, możesz uczynić ją główną; do tego czasu głównym jest adres Motir.
+## Co udostępnia Twoja domena {#what-your-domain-serves}
 
-**Każdy inny adres przekierowuje na główny.** Dotyczy to także Twojego adresu `motir.co`, gdy awansujesz własną domenę. Odwiedzający zawsze trafiają tam, gdzie wszystko działa, a wyszukiwarka widzi jedną stronę zamiast trzech kopii konkurujących ze sobą.
+Gdy certyfikat zostanie wystawiony, na Twoją domenę odpowiada brzeg Motir, który przekazuje każde żądanie — ścieżkę, zapytanie, treść i ciasteczka — do aplikacji wskazanej przez domenę i zwraca odpowiedź tej aplikacji. To, co widzi odwiedzający, zależy od aplikacji:
+
+- **Twoja aplikacja**, gdy została opublikowana i jest otwarta dla wszystkich.
+- **Strona z informacją, że nic tu jeszcze nie opublikowano**, gdy domena nie wskazuje żadnej aplikacji albo aplikacja nie została jeszcze opublikowana.
+- **Strona z informacją, że witryna jest tylko dla członków**, gdy aplikacja jest otwarta wyłącznie dla swoich członków. Członkowie docierają do niej pod jej adresem `motir.site`, do którego strona prowadzi, jeśli taki istnieje. Obecnie każda hostowana aplikacja jest otwarta wyłącznie dla swoich członków — ustawienie, które otwiera aplikację dla wszystkich, nie jest jeszcze dostępne — więc na razie domena wskazująca opublikowaną aplikację pokazuje tę stronę zamiast aplikacji.
+- **Strona z informacją, że witryna jest teraz niedostępna**, gdy aplikacja działa na celu, do którego brzeg nie umie jeszcze przekazywać żądań. Odpowie znowu, gdy tylko brzeg będzie to potrafił.
+- **Jedna prosta strona „nie znaleziono”** z każdego innego powodu, także dla usuniętej domeny. To ta sama strona bez względu na powód, więc nigdy nie zdradza odwiedzającemu, który z nich zaszedł.
+
+Żadna z tych stron nie ma wokół siebie witryny Motir i żadna nie jest indeksowana przez wyszukiwarki.
+
+Motir nie dodaje w Twojej domenie żadnego własnego przekierowania, linku kanonicznego, pliku robots ani mapy witryny. Twoja aplikacja określa własne.
+
+## Dwie domeny w jednym obszarze roboczym {#two-domains-on-one-workspace}
+
+Obszar roboczy może podłączyć więcej niż jedną domenę, w granicach tego, co obejmuje jego plan. Każda wskazuje własną aplikację, wybraną we własnym wierszu. Motir nie stawia żadnej ponad pozostałymi i nie przekierowuje między żadnymi z nich: każda odpowiada sama za siebie, aplikacją, którą wskazuje.
 
 ## Usuwanie domeny {#removing-a-domain}
 
-Usunięcie podłączonej domeny wycofuje jej certyfikat, a adres przestaje odpowiadać — każdy, kto go używa, zobaczy błąd, a już udostępnione linki do niego przestaną działać. Projekt pozostaje publiczny pod pozostałymi adresami, więc usunięcie domeny nigdy nie czyni projektu prywatnym.
+Wybierz _Usuń_ w wierszu domeny. Domena przestaje udostępniać Twoją aplikację w ciągu mniej więcej pół minuty i od tej chwili odpowiada stroną „nie znaleziono”. Nic nie jest rezerwowane: możesz ją dodać ponownie później, a inny obszar roboczy może ją dodać, gdy tylko udowodni własność własnym rekordem `TXT`. Rekordy u Twojego dostawcy DNS usuwasz sam. Usunięcie domeny niczego nie zmienia w aplikacji, która dalej odpowiada pod swoimi pozostałymi adresami.
 
-## Jeśli coś nie działa {#if-something-is-not-working}
+## Gdy coś nie działa {#if-something-is-not-working}
 
-Trzy pomyłki odpowiadają za niemal każdą awarię, a każda objawia się w panelu inaczej.
+Cztery pomyłki odpowiadają za niemal każde niepowodzenie, a każda wygląda w panelu inaczej.
 
-- **CNAME na domenie głównej.** Większość rejestratorów go przyjmuje, a on nie działa. Objaw: domena pozostaje w stanie `Not verified` albo trafia do stanu `Failed`. Użyj zamiast tego powyższych rekordów `A` i `AAAA`.
-- **Dostawca DNS z proxy przed rekordem.** Jeśli dostawca oferuje proxy lub przyspieszanie ruchu, ukrywa to przed nami prawdziwy rekord. Objaw: stan `Checking…`, który nigdy się nie kończy. Wyłącz proxy dla tych rekordów.
-- **Nieaktualny rekord własności.** Jeśli domena została usunięta i dodana ponownie, token się zmienił. Objaw: stan `Not verified`, choć rekord `TXT` wyraźnie istnieje. Zastąp jego wartość tą, którą panel pokazuje teraz.
+- **CNAME na domenie głównej.** Większość rejestratorów go przyjmuje, a on nie działa. Objawem jest domena, która zostaje na _Oczekuje_ albo dochodzi do _Niepowodzenie_. Użyj zamiast tego rekordów `A` i `AAAA` opisanych wyżej.
+- **Dostawca DNS działający jako proxy przed rekordem.** Jeśli Twój dostawca proponuje przepuszczanie ruchu przez proxy lub jego przyspieszanie, ukrywa to przed nami prawdziwy rekord. Objawem jest _Oczekuje_, które nigdy się nie zmienia. Wyłącz proxy dla tych rekordów.
+- **Nieaktualny rekord własności.** Jeśli usunięto i ponownie dodano domenę, token się zmienił. Objawem jest _Niepotwierdzona_, mimo że rekord `TXT` wyraźnie istnieje. Zastąp jego wartość tą, którą panel pokazuje teraz.
+- **Rekord własności usunięty później.** Aktywna domena, której rekord `TXT` zniknie, odpowiada dalej, dopóki nasze regularne sprawdzenie tego nie zauważy, co następuje w ciągu mniej więcej godziny; wtedy przechodzi w _Niepowodzenie_ i przestaje odpowiadać. Przywróć rekord i wybierz Sprawdź ponownie.

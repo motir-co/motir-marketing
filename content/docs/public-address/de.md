@@ -1,8 +1,8 @@
 ---
-source: 410c4c87d2ef
+source: 331d263ce3e1
 ---
 
-Ein öffentliches Projekt antwortet unter seiner eigenen Adresse auf `motir.co` und kann zusätzlich unter einer Domain antworten, die Ihnen bereits gehört. Unabhängig davon kann ein Arbeitsbereich einen eigenen Namen unter `motir.site` beanspruchen.
+Ein öffentliches Projekt antwortet unter seiner eigenen Adresse auf `motir.co`. Unabhängig davon kann ein Arbeitsbereich einen eigenen Namen unter `motir.site` beanspruchen und seine gehostete Anwendung unter einer Domain bereitstellen, die ihm bereits gehört.
 
 ## Ihre Motir-Adresse {#your-motir-address}
 
@@ -21,71 +21,92 @@ Ein Arbeitsbereich hat einen Namen oder keinen. **Es gibt keine Aliase, und nich
 - **Eine Änderung alle 30 Tage.** Eine Umbenennung und eine Freigabe zählen jeweils als eine Änderung, freigeben und neu beanspruchen umgeht die Grenze also nicht. Solange eine Änderung noch nicht erlaubt ist, zeigt der Bereich das Datum, ab dem sie es ist.
 - **Ein Name, den Sie aufgeben, wird zurückgehalten – außer Sie haben ihn gerade erst beansprucht.** Ein Name, den Sie weniger als 24 Stunden hatten, geht sofort zurück in den Pool. Ein Name, den Sie 24 Stunden oder länger hatten, wird 90 Tage zurückgehalten, damit niemand sonst Links übernehmen kann, die auf Sie zeigten; der Bestätigungsdialog nennt das genaue Datum, ab dem er wieder frei ist.
 
-## Eigene Domain verbinden {#connecting-your-own-domain}
+## Ihre eigene Domain {#your-own-domain}
 
-Eine eigene Domain zu verbinden ist in den kostenpflichtigen Plänen möglich – siehe [unsere Pläne](/). Ihre `motir.co`-Adresse ist in jedem Plan enthalten und funktioniert in beiden Fällen weiter.
+Eine Domain, die Ihnen gehört, etwa `shop.acme.com`, kann mit der gehosteten Anwendung Ihres Arbeitsbereichs antworten – gleich, auf welchem Ziel sie läuft. Eigene Domains sind in kostenpflichtigen Plänen enthalten – siehe [unsere Pläne](/). Ein Inhaber oder Administrator des Arbeitsbereichs fügt sie hinzu und entfernt sie; alle anderen im Arbeitsbereich sehen sie schreibgeschützt. Die `motir.co`-Adressen Ihrer Projekte und der `motir.site`-Name Ihres Arbeitsbereichs funktionieren so oder so weiter.
 
-Eine verbundene Domain stellt _ein_ Projekt unter ihrem Stamm bereit: `roadmap.acme.com/` ist die Seite dieses Projekts und `roadmap.acme.com/changelog` sein Changelog. Das Live-Board, die Arbeitselemente und die Roadmap befinden sich in der Motir-App, und die dortigen Links führen hierher.
+## Die Domain hinzufügen {#add-the-domain}
 
-Bei Ihrem Registrar legen Sie zwei Arten von Einträgen an. **Fügen Sie zuerst die Domain hinzu**, in den Projekteinstellungen unter _Öffentliche Adresse_: Der Bereich listet dann jeden Eintrag auf, den diese Domain braucht, mit seinem genauen Wert und einer Kopierschaltfläche. Die unten gezeigten Formen sind das, was Sie erwarten können – lesen Sie sie, um zu prüfen, ob Ihr Registrar sie anlegen kann, und entnehmen Sie die Werte dem Bereich.
+Fügen Sie die Domain in den _Einstellungen des Arbeitsbereichs_ unter _Eigene Domains_ hinzu. Auch der Bereich _Öffentliche Adresse_ verweist dorthin, mit _Stattdessen eine eigene Domain verwenden_.
 
-### 1 · Die Domain auf uns verweisen {#point-the-domain-at-us}
+Wählen Sie beim Hinzufügen, welche Anwendung des Arbeitsbereichs sie bereitstellt. Eine Domain stellt genau eine Anwendung bereit. Welche, können Sie später in der Zeile der Domain mit _Anwendung ändern_ ändern. Ein Arbeitsbereich, der noch keine gehostete Anwendung hat, kann trotzdem eine Domain hinzufügen: Sie wird ohne Anwendung hinzugefügt und stellt nichts bereit, bis Sie eine wählen.
 
-Für eine **Subdomain** wie `roadmap.acme.com` genügt ein `CNAME`:
+## Die Einträge, die Sie anlegen {#the-records-you-create}
 
-| Typ     | Name      | Wert                 |
-| ------- | --------- | -------------------- |
-| `CNAME` | `roadmap` | im Bereich angezeigt |
+Sobald die Domain hinzugefügt ist, listet der Bereich jeden Eintrag auf, den sie braucht, mit seinem genauen Wert und einer Kopierschaltfläche an jedem, und hält sie unter _DNS-Einträge anzeigen_ bereit. Die folgenden Formen zeigen, was Sie erwartet – prüfen Sie damit, ob Ihr Registrar sie anlegen kann, und übernehmen Sie die Werte aus dem Bereich.
 
-Für eine **Stammdomain** wie `acme.com` stattdessen ein `A` und ein `AAAA` – eine Stammdomain kann keinen `CNAME` tragen, weil sie bereits die Einträge `MX` und `TXT` führt, auf die Ihre E-Mail und Ihre anderen Dienste angewiesen sind:
+Zuerst ein `TXT`-Eintrag, der nachweist, dass die Domain Ihnen gehört. Sein Name ist `_motir-verify.`, gefolgt von Ihrer Domain; die meisten Registrare wollen nur den Teil vor Ihrer Stammdomain, wie hier:
 
-| Typ    | Name | Wert                 |
-| ------ | ---- | -------------------- |
-| `A`    | `@`  | im Bereich angezeigt |
-| `AAAA` | `@`  | im Bereich angezeigt |
+| Typ   | Name                 | Wert                      |
+| ----- | -------------------- | ------------------------- |
+| `TXT` | `_motir-verify.shop` | wird im Bereich angezeigt |
 
-Kopieren Sie jeden Wert aus dem Bereich und von nirgendwo sonst. Dies sind die Adressen, unter denen Motir ausgeliefert wird, gelesen von der Plattform, auf der wir laufen, und sie können sich ändern – der Bereich ändert sich mit ihnen, eine Seite wie diese nicht.
+Das Token darin gehört nur Ihnen, kopieren Sie es also aus dem Bereich und nicht von anderswo.
 
-> Bietet Ihr DNS-Anbieter am Eintrag einen Schalter „Proxy“ oder „Cloud“ an, schalten Sie ihn aus: Ein Proxy vor dem Eintrag verbirgt Ihre Domain vor der Prüfung, und das Zertifikat kann nicht ausgestellt werden.
+Dann ein Eintrag, der die Domain auf Motir verweist. Für eine **Subdomain** wie `shop.acme.com` ein `CNAME`:
 
-### 2 · Nachweisen, dass die Domain Ihnen gehört {#prove-the-domain-is-yours}
+| Typ     | Name   | Wert                      |
+| ------- | ------ | ------------------------- |
+| `CNAME` | `shop` | wird im Bereich angezeigt |
 
-Neben dem Verweis-Eintrag listet der Bereich einen `TXT`-Eintrag mit einem Token auf, in dieser Form:
+Für eine **Stammdomain** wie `acme.com` stattdessen ein `A` und ein `AAAA` – eine Stammdomain kann keinen `CNAME` tragen, weil sie bereits die `MX`- und `TXT`-Einträge trägt, von denen Ihre E-Mail und Ihre anderen Dienste abhängen. Dasselbe gilt für eine Domain direkt unter einem öffentlichen Suffix aus mehr als einem Teil, etwa `acme.co.uk`; der Bereich weiß, welche Art Ihre ist, und listet die richtigen Einträge auf.
 
-| Typ   | Name                    | Wert             |
-| ----- | ----------------------- | ---------------- |
-| `TXT` | `_motir-verify.roadmap` | `motir-verify=…` |
+| Typ    | Name | Wert                      |
+| ------ | ---- | ------------------------- |
+| `A`    | `@`  | wird im Bereich angezeigt |
+| `AAAA` | `@`  | wird im Bereich angezeigt |
 
-Kopieren Sie den Wert aus dem Bereich und nicht von hier – das Token gehört nur Ihnen. Wählen Sie dann _Verifizieren_. Sobald wir den Eintrag sehen, fordern wir ein Zertifikat an, was meist ein bis zwei Minuten dauert. Sie können die Seite schließen; der Status schreitet von selbst voran, und die Einträge bleiben unter _DNS-Einträge anzeigen_ verfügbar.
+Diese Adressen gehören Motir selbst und werden für Kundendomains vorgehalten. Ändern sie sich je, ändert sich der Bereich mit ihnen – eine Seite wie diese nicht.
+
+> Wenn Ihr DNS-Anbieter am Eintrag einen „Proxy“- oder „Cloud“-Schalter anbietet, schalten Sie ihn aus: Ein Proxy vor dem Eintrag verbirgt Ihre Domain vor der Prüfung, und das Zertifikat kann nicht ausgestellt werden.
+
+Wählen Sie dann _Jetzt prüfen_. Sobald wir den Inhaberschaftseintrag sehen, fordern wir ein Zertifikat an, was meist einige Minuten dauert. Sie können die Seite schließen; der Status bewegt sich von selbst weiter.
 
 ## Was jeder Status bedeutet {#what-each-status-means}
 
 [//]: # "Translator: the Status column names states the product itself shows. Use the label the app's own messages file for your locale gives each state, not a fresh translation, so this table matches the screen."
 
-| Status            | Was er bedeutet                                                                                                                                                | Was zu tun ist                                                                            |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| Nicht verifiziert | Wir haben Ihren Eigentumsnachweis noch nicht gesehen. Bei der Zertifizierungsstelle wurde noch nichts angefordert.                                             | Legen Sie den TXT-Eintrag unten an und wählen Sie dann Erneut prüfen.                     |
-| Wird geprüft…     | Wir suchen gerade nach dem Eigentumsnachweis. DNS-Änderungen können einige Minuten brauchen, bis sie sich verbreiten.                                          | Warten Sie einen Moment. Er rückt von selbst weiter.                                      |
-| Wird ausgestellt… | Das Eigentum ist nachgewiesen und das Zertifikat angefordert. Das dauert meist ein bis zwei Minuten.                                                           | Nichts. Motir erledigt den Rest.                                                          |
-| Live              | Das Zertifikat ist ausgestellt, und Ihre Domain stellt das Projekt bereit. Es wird automatisch erneuert.                                                       | Sie können diese Adresse zur primären machen.                                             |
-| Fehlgeschlagen    | Das Zertifikat konnte nicht ausgestellt werden. Der Grund steht neben dem Status – meist ein fehlender Eintrag oder einer, der woandershin verweist.           | Vergleichen Sie Ihre Einträge mit den unten genannten und wählen Sie dann Erneut prüfen.  |
-| Abgelaufen        | Das Zertifikat ist abgelaufen, und die Erneuerung ist fehlgeschlagen – fast immer, weil sich ein DNS-Eintrag geändert hat. Die Domain wird nicht ausgeliefert. | Stellen Sie die Einträge wieder so her, wie sie waren, und wählen Sie dann Erneut prüfen. |
-| Widerrufen        | Das Zertifikat wurde zurückgezogen. Die Domain wird nicht ausgeliefert.                                                                                        | Wählen Sie Erneut anfordern, um ein neues Zertifikat zu starten.                          |
+| Status          | Was er bedeutet                                                                                                                                                                                          | Was zu tun ist                                                                                          |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Nicht bestätigt | Wir haben Ihren Inhaberschaftseintrag noch nicht gesehen. Bei der Zertifizierungsstelle wurde nichts angefordert, und die Domain antwortet nicht.                                                        | Legen Sie die Einträge an, die der Bereich auflistet, und wählen Sie dann Jetzt prüfen.                 |
+| Ausstehend      | Wir suchen gerade nach Ihrem Inhaberschaftseintrag. DNS-Änderungen können einige Minuten brauchen, bis sie sich verbreiten.                                                                              | Warten Sie einen Moment. Er rückt von selbst weiter.                                                    |
+| Ausstehend      | Die Inhaberschaft ist bestätigt, und das Zertifikat wird ausgestellt. Das dauert meist einige Minuten.                                                                                                   | Nichts. Die Seite aktualisiert sich von selbst.                                                         |
+| Ausgestellt     | Das Zertifikat ist ausgestellt, und Ihre Domain antwortet. Es wird automatisch erneuert.                                                                                                                 | Nichts.                                                                                                 |
+| Fehlgeschlagen  | „Wir sehen Ihren Inhaberschaftseintrag nicht mehr.“ Der `TXT`-Eintrag enthält Ihr Token nicht mehr, daher antwortet die Domain nicht mehr.                                                               | Stellen Sie den `TXT`-Eintrag wieder her, den der Bereich anzeigt, und wählen Sie dann Erneut prüfen.   |
+| Fehlgeschlagen  | „_Ihre Domain_ zeigt nicht mehr auf Motir.“ Ihr `A`-, `AAAA`- oder `CNAME`-Eintrag wurde geändert oder entfernt, daher antwortet die Domain nicht mehr.                                                  | Setzen Sie den Eintrag auf den Wert zurück, den der Bereich anzeigt, und wählen Sie dann Erneut prüfen. |
+| Fehlgeschlagen  | „Das Zertifikat konnte nicht ausgestellt werden.“ Die Zertifizierungsstelle hat es abgelehnt; der Bereich zeigt ihre eigene Begründung daneben.                                                          | Beheben Sie, was die Begründung nennt – meist ein fehlender Eintrag – und wählen Sie dann Wiederholen.  |
+| Fehlgeschlagen  | „Das Zertifikat konnte nicht ausgestellt werden.“ Das Zertifikat ist abgelaufen, und die Erneuerung ist fehlgeschlagen – fast immer, weil sich ein DNS-Eintrag geändert hat. Die Domain antwortet nicht. | Stellen Sie die Einträge so wieder her, wie der Bereich sie anzeigt, und wählen Sie dann Wiederholen.   |
+| Fehlgeschlagen  | „Das Zertifikat konnte nicht ausgestellt werden.“ Das Zertifikat wurde zurückgezogen. Die Domain antwortet nicht.                                                                                        | Wählen Sie Wiederholen, um ein neues Zertifikat zu starten.                                             |
 
-## Welche Adresse die maßgebliche ist {#which-address-is-the-real-one}
+Nur eine Domain mit dem Status _Ausgestellt_ antwortet überhaupt.
 
-Ein Projekt kann unter mehreren Adressen antworten, und genau eine davon ist die _primäre_ – die, die Suchmaschinen und Link-Vorschauen in sozialen Netzwerken mitgeteilt wird. Sobald das Zertifikat einer verbundenen Domain live ist, können Sie sie zur primären machen; bis dahin ist es die Motir-Adresse.
+## Was Ihre Domain bereitstellt {#what-your-domain-serves}
 
-**Jede andere Adresse leitet auf die primäre weiter.** Das schließt Ihre `motir.co`-Adresse ein, sobald Sie eine eigene Domain hochgestuft haben. Besucher landen immer an einem Ort, der funktioniert, und eine Suchmaschine sieht eine Seite statt dreier Kopien, die miteinander konkurrieren.
+Sobald ihr Zertifikat ausgestellt ist, beantwortet Motirs Edge Ihre Domain: Sie leitet jede Anfrage – Pfad, Query, Body und Cookies – an die Anwendung weiter, die die Domain nennt, und gibt deren eigene Antwort zurück. Was ein Besucher sieht, hängt von der Anwendung ab:
+
+- **Ihre Anwendung selbst**, wenn sie veröffentlicht und für alle geöffnet ist.
+- **Eine Seite, die sagt, dass hier noch nichts veröffentlicht ist**, wenn die Domain keine Anwendung nennt oder die Anwendung noch nicht veröffentlicht wurde.
+- **Eine Seite, die sagt, dass die Website nur für Mitglieder ist**, wenn die Anwendung nur ihren Mitgliedern offensteht. Mitglieder erreichen sie unter ihrer `motir.site`-Adresse, auf die die Seite verlinkt, wenn es eine gibt. Derzeit steht jede gehostete Anwendung nur ihren Mitgliedern offen – die Einstellung, die eine Anwendung für alle öffnet, gibt es noch nicht –, daher zeigt eine Domain, die eine veröffentlichte Anwendung nennt, vorerst diese Seite statt der Anwendung.
+- **Eine Seite, die sagt, dass die Website gerade nicht erreichbar ist**, wenn die Anwendung auf einem Ziel läuft, an das die Edge noch nicht weiterleiten kann. Sie antwortet wieder, sobald die Edge es kann.
+- **Eine schlichte Nicht-gefunden-Seite** für jeden anderen Grund, auch für eine entfernte Domain. Es ist dieselbe Seite, gleich aus welchem Grund, sie verrät einem Besucher also nie, welcher zutraf.
+
+Keine dieser Seiten trägt Motirs eigene Website um sich herum, und keine wird von Suchmaschinen indexiert.
+
+Motir fügt auf Ihrer Domain keine eigene Weiterleitung, keinen Canonical-Link, keine Robots-Datei und keine Sitemap hinzu. Ihre Anwendung legt ihre eigenen fest.
+
+## Zwei Domains in einem Arbeitsbereich {#two-domains-on-one-workspace}
+
+Ein Arbeitsbereich kann mehr als eine Domain verbinden, bis zu dem, was sein Plan enthält. Jede nennt ihre eigene Anwendung, gewählt in ihrer eigenen Zeile. Motir stellt keine über die anderen und leitet zwischen keinen weiter: Jede antwortet für sich, mit der Anwendung, die sie nennt.
 
 ## Eine Domain entfernen {#removing-a-domain}
 
-Das Entfernen einer verbundenen Domain zieht ihr Zertifikat zurück, und die Adresse antwortet nicht mehr – wer sie verwendet, erhält einen Fehler, und bereits weitergegebene Links dorthin funktionieren nicht mehr. Ihr Projekt bleibt unter seinen anderen Adressen öffentlich, das Entfernen einer Domain macht ein Projekt also nie privat.
+Wählen Sie _Entfernen_ in der Zeile der Domain. Die Domain stellt Ihre Anwendung innerhalb von etwa einer halben Minute nicht mehr bereit und antwortet ab dann mit der Nicht-gefunden-Seite. Nichts wird reserviert: Sie können sie später wieder hinzufügen, und ein anderer Arbeitsbereich kann sie hinzufügen, sobald er die Inhaberschaft mit einem eigenen `TXT`-Eintrag nachweist. Die Einträge bei Ihrem DNS-Anbieter zu löschen ist Ihre Sache. Das Entfernen einer Domain ändert nichts an der Anwendung, die unter ihren anderen Adressen weiter antwortet.
 
 ## Wenn etwas nicht funktioniert {#if-something-is-not-working}
 
-Drei Fehler erklären fast jeden Ausfall, und jeder zeigt sich im Bereich anders.
+Vier Fehler erklären fast jeden Ausfall, und jeder zeigt sich im Bereich anders.
 
-- **Ein CNAME auf einer Stammdomain.** Die meisten Registrare akzeptieren ihn, und er funktioniert nicht. Das Symptom ist eine Domain, die auf `Not verified` bleibt oder `Failed` erreicht. Verwenden Sie stattdessen die oben genannten Einträge `A` und `AAAA`.
-- **Ein Proxy-DNS-Anbieter vor dem Eintrag.** Bietet Ihr Anbieter an, den Datenverkehr zu proxen oder zu beschleunigen, verbirgt das den echten Eintrag vor uns. Das Symptom ist `Checking…`, das sich nie auflöst. Schalten Sie den Proxy für diese Einträge aus.
-- **Ein veralteter Eigentumsnachweis.** Wenn Sie eine Domain entfernt und erneut hinzugefügt haben, hat sich das Token geändert. Das Symptom ist `Not verified`, obwohl ein `TXT`-Eintrag offensichtlich vorhanden ist. Ersetzen Sie seinen Wert durch den, den der Bereich jetzt anzeigt.
+- **Ein CNAME auf einer Stammdomain.** Die meisten Registrare akzeptieren ihn, und er funktioniert nicht. Das Symptom ist eine Domain, die auf _Ausstehend_ bleibt oder _Fehlgeschlagen_ erreicht. Verwenden Sie stattdessen die oben genannten Einträge `A` und `AAAA`.
+- **Ein Proxy-DNS-Anbieter vor dem Eintrag.** Bietet Ihr Anbieter an, den Datenverkehr zu proxen oder zu beschleunigen, verbirgt das den echten Eintrag vor uns. Das Symptom ist _Ausstehend_, das sich nie auflöst. Schalten Sie den Proxy für diese Einträge aus.
+- **Ein veralteter Inhaberschaftseintrag.** Wenn Sie eine Domain entfernt und erneut hinzugefügt haben, hat sich das Token geändert. Das Symptom ist _Nicht bestätigt_, obwohl ein `TXT`-Eintrag offensichtlich vorhanden ist. Ersetzen Sie seinen Wert durch den, den der Bereich jetzt anzeigt.
+- **Ein später gelöschter Inhaberschaftseintrag.** Eine aktive Domain, deren `TXT`-Eintrag verschwindet, antwortet weiter, bis unsere regelmäßige Prüfung es bemerkt, was innerhalb von etwa einer Stunde geschieht; dann wechselt sie zu _Fehlgeschlagen_ und antwortet nicht mehr. Stellen Sie den Eintrag wieder her und wählen Sie Erneut prüfen.
