@@ -1,8 +1,8 @@
 ---
-source: 410c4c87d2ef
+source: 331d263ce3e1
 ---
 
-Un projet public répond à sa propre adresse sur `motir.co`, et peut en plus répondre sur un domaine que vous possédez déjà. Par ailleurs, un espace de travail peut réserver un nom qui lui est propre sous `motir.site`.
+Un projet public répond à sa propre adresse sur `motir.co`. Par ailleurs, un espace de travail peut réserver un nom qui lui est propre sous `motir.site`, et servir son application hébergée sur un domaine qu’il possède déjà.
 
 ## Votre adresse Motir {#your-motir-address}
 
@@ -21,71 +21,92 @@ Un espace de travail a un nom ou aucun. **Il n’y a pas d’alias, et rien ne r
 - **Un changement tous les 30 jours.** Un renommage et une libération comptent chacun pour un changement : libérer puis réserver à nouveau ne permet donc pas de contourner la règle. Tant qu’un changement n’est pas encore permis, le volet indique la date à partir de laquelle il le sera.
 - **Un nom que vous abandonnez est retenu, sauf si vous venez de le réserver.** Un nom détenu moins de 24 heures retourne immédiatement dans le pool. Un nom détenu 24 heures ou plus est mis de côté pendant 90 jours, pour que personne d’autre ne récupère des liens qui pointaient vers vous ; la boîte de confirmation indique la date exacte à laquelle il redevient libre.
 
-## Connecter votre propre domaine {#connecting-your-own-domain}
+## Votre propre domaine {#your-own-domain}
 
-Connecter un domaine que vous possédez est disponible avec les offres payantes — voir [nos offres](/). Votre adresse `motir.co` est incluse dans toutes les offres et continue de fonctionner dans tous les cas.
+Un domaine que vous possédez, comme `shop.acme.com`, peut répondre avec l’application hébergée de votre espace de travail, quelle que soit la cible qui l’exécute. Les domaines personnalisés sont disponibles avec les offres payantes — voir [nos offres](/). Un propriétaire ou un administrateur de l’espace de travail les ajoute et les retire ; tous les autres membres de l’espace de travail les voient en lecture seule. Les adresses `motir.co` de vos projets et le nom `motir.site` de votre espace de travail continuent de fonctionner dans tous les cas.
 
-Un domaine connecté sert _un_ projet, à sa racine : `roadmap.acme.com/` est la page de ce projet et `roadmap.acme.com/changelog` son journal des modifications. Le tableau en direct, les éléments de travail et la roadmap se trouvent dans l’application Motir, et leurs liens y mènent.
+## Ajouter le domaine {#add-the-domain}
 
-Vous créez deux types d’enregistrements chez votre registrar. **Ajoutez d’abord le domaine**, dans les paramètres du projet, sous _Adresse publique_ : le volet liste alors chaque enregistrement dont ce domaine a besoin, avec sa valeur exacte et un bouton de copie sur chacun. Les formes ci-dessous sont ce à quoi vous attendre — lisez-les pour vérifier que votre registrar peut les créer, et reprenez les valeurs du volet.
+Ajoutez le domaine dans les _Paramètres de l’espace de travail_, sous _Domaines personnalisés_. Le panneau _Adresse publique_ y renvoie aussi, avec _Utiliser plutôt votre propre domaine_.
 
-### 1 · Faire pointer le domaine vers nous {#point-the-domain-at-us}
+En l’ajoutant, choisissez quelle application de l’espace de travail il sert. Un domaine sert exactement une application. Vous pourrez changer laquelle plus tard sur la ligne du domaine, avec _Changer d’application_. Un espace de travail qui n’a pas encore d’application hébergée peut quand même ajouter un domaine : il est ajouté sans application et ne sert rien tant que vous n’en avez pas choisi une.
 
-Pour un **sous-domaine** tel que `roadmap.acme.com`, un seul `CNAME` :
+## Les enregistrements à créer {#the-records-you-create}
 
-| Type    | Nom       | Valeur                 |
-| ------- | --------- | ---------------------- |
-| `CNAME` | `roadmap` | indiquée dans le volet |
+Une fois le domaine ajouté, le panneau liste chaque enregistrement dont il a besoin, avec sa valeur exacte et un bouton de copie sur chacun, et les garde sous _Afficher les enregistrements DNS_. Les formes ci-dessous montrent à quoi vous attendre — lisez-les pour vérifier que votre registraire peut les créer, et prenez les valeurs dans le panneau.
 
-Pour un **domaine racine** tel que `acme.com`, un `A` et un `AAAA` à la place — un domaine racine ne peut pas recevoir de `CNAME`, car il porte déjà les enregistrements `MX` et `TXT` dont dépendent votre messagerie et vos autres services :
+D’abord, un enregistrement `TXT` qui prouve que le domaine vous appartient. Son nom est `_motir-verify.` suivi de votre domaine ; la plupart des registraires n’attendent que la partie qui précède votre domaine racine, comme ici :
 
-| Type   | Nom | Valeur                 |
-| ------ | --- | ---------------------- |
-| `A`    | `@` | indiquée dans le volet |
-| `AAAA` | `@` | indiquée dans le volet |
+| Type  | Nom                  | Valeur                   |
+| ----- | -------------------- | ------------------------ |
+| `TXT` | `_motir-verify.shop` | affichée dans le panneau |
 
-Copiez chaque valeur depuis le volet plutôt que depuis ailleurs. Ce sont les adresses sur lesquelles Motir est servi, lues sur la plateforme que nous utilisons, et elles peuvent changer — le volet change avec elles, pas une page comme celle-ci.
+Le jeton qu’il contient n’appartient qu’à vous : copiez-le depuis le panneau plutôt que depuis ailleurs.
 
-> Si votre fournisseur DNS propose un interrupteur « proxy » ou « cloud » sur l’enregistrement, désactivez-le : un proxy placé devant l’enregistrement masque votre domaine à la vérification et le certificat ne peut pas être émis.
+Puis un enregistrement qui fait pointer le domaine vers Motir. Pour un **sous-domaine** comme `shop.acme.com`, un `CNAME` :
 
-### 2 · Prouver que le domaine est le vôtre {#prove-the-domain-is-yours}
+| Type    | Nom    | Valeur                   |
+| ------- | ------ | ------------------------ |
+| `CNAME` | `shop` | affichée dans le panneau |
 
-En plus de l’enregistrement de redirection, le volet liste un enregistrement `TXT` contenant un jeton, de la forme :
+Pour un **domaine racine** comme `acme.com`, un `A` et un `AAAA` à la place — un domaine racine ne peut pas porter de `CNAME`, car il porte déjà les enregistrements `MX` et `TXT` dont dépendent votre messagerie et vos autres services. Il en va de même pour un domaine placé directement sous un suffixe public de plus d’une partie, comme `acme.co.uk` ; le panneau sait de quel type est le vôtre et liste les bons enregistrements.
 
-| Type  | Nom                     | Valeur           |
-| ----- | ----------------------- | ---------------- |
-| `TXT` | `_motir-verify.roadmap` | `motir-verify=…` |
+| Type   | Nom | Valeur                   |
+| ------ | --- | ------------------------ |
+| `A`    | `@` | affichée dans le panneau |
+| `AAAA` | `@` | affichée dans le panneau |
 
-Copiez la valeur depuis le volet plutôt que d’ici — le jeton n’est qu’à vous. Choisissez ensuite _Vérifier_. Dès que nous voyons l’enregistrement, nous sollicitons un certificat, ce qui prend généralement une minute ou deux. Vous pouvez fermer la page ; le statut continue d’évoluer de lui-même, et les enregistrements restent disponibles sous _Afficher les enregistrements DNS_.
+Ces adresses appartiennent à Motir, qui les réserve aux domaines de ses clients. Si elles changent un jour, le panneau change avec elles ; une page comme celle-ci, non.
+
+> Si votre fournisseur DNS propose un interrupteur « proxy » ou « cloud » sur l’enregistrement, désactivez-le : un proxy placé devant l’enregistrement cache votre domaine à la vérification, et le certificat ne peut pas être émis.
+
+Choisissez ensuite _Contrôler maintenant_. Dès que nous voyons l’enregistrement de propriété, nous sollicitons un certificat, ce qui prend en général quelques minutes. Vous pouvez fermer la page ; le statut avance tout seul.
 
 ## Ce que signifie chaque statut {#what-each-status-means}
 
 [//]: # "Translator: the Status column names states the product itself shows. Use the label the app's own messages file for your locale gives each state, not a fresh translation, so this table matches the screen."
 
-| Statut        | Ce que cela signifie                                                                                                                             | Que faire                                                                               |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| Non vérifié   | Nous n’avons pas encore vu votre enregistrement de propriété. Rien n’a été sollicité auprès de l’autorité de certification.                      | Créez l’enregistrement TXT ci-dessous, puis choisissez Vérifier de nouveau.             |
-| Vérification… | Nous recherchons l’enregistrement de propriété en ce moment. Les changements DNS peuvent mettre quelques minutes à se propager.                  | Patientez un instant. Le statut évolue de lui-même.                                     |
-| Émission…     | La propriété est prouvée et le certificat a été sollicité. Cela prend généralement une minute ou deux.                                           | Rien. Motir fait le reste.                                                              |
-| En ligne      | Le certificat est émis et votre domaine sert le projet. Il se renouvelle de lui-même.                                                            | Vous pouvez faire de cette adresse l’adresse principale.                                |
-| Échec         | Le certificat n’a pas pu être émis. La raison est affichée à côté du statut — le plus souvent un enregistrement manquant ou qui pointe ailleurs. | Comparez vos enregistrements avec ceux ci-dessous, puis choisissez Vérifier de nouveau. |
-| Expiré        | Le certificat a expiré et le renouvellement a échoué — presque toujours parce qu’un enregistrement DNS a changé. Le domaine ne sert plus rien.   | Remettez les enregistrements comme ils étaient, puis choisissez Vérifier de nouveau.    |
-| Révoqué       | Le certificat a été retiré. Le domaine ne sert plus rien.                                                                                        | Choisissez Relancer la requête pour obtenir un nouveau certificat.                      |
+| Statut       | Ce qu’il signifie                                                                                                                                                                   | Que faire                                                                                                |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Non confirmé | Nous n’avons pas encore vu votre enregistrement de propriété. Rien n’a été sollicité auprès de l’autorité de certification, et le domaine ne répond pas.                            | Créez les enregistrements que liste le panneau, puis choisissez Contrôler maintenant.                    |
+| En attente   | Nous cherchons votre enregistrement de propriété en ce moment. Les changements DNS peuvent mettre quelques minutes à se propager.                                                   | Patientez un instant. Il avance tout seul.                                                               |
+| En attente   | La propriété est confirmée et le certificat est en cours d’émission. Cela prend en général quelques minutes.                                                                        | Rien. La page se met à jour toute seule.                                                                 |
+| Émis         | Le certificat est émis et votre domaine répond. Il se renouvelle tout seul.                                                                                                         | Rien.                                                                                                    |
+| Échec        | « Nous ne voyons plus votre enregistrement de propriété. » L’enregistrement `TXT` ne contient plus votre jeton, donc le domaine a cessé de répondre.                                | Rétablissez l’enregistrement `TXT` que montre le panneau, puis choisissez Contrôler à nouveau.           |
+| Échec        | « _Votre domaine_ ne pointe plus vers Motir. » Son enregistrement `A`, `AAAA` ou `CNAME` a été modifié ou supprimé, donc le domaine a cessé de répondre.                            | Remettez l’enregistrement à la valeur que montre le panneau, puis choisissez Contrôler à nouveau.        |
+| Échec        | « Le certificat n’a pas pu être émis. » L’autorité de certification l’a refusé ; le panneau affiche son propre motif à côté.                                                        | Corrigez ce que nomme le motif — le plus souvent un enregistrement manquant — puis choisissez Réessayer. |
+| Échec        | « Le certificat n’a pas pu être émis. » Le certificat a expiré et son renouvellement a échoué — presque toujours parce qu’un enregistrement DNS a changé. Le domaine ne répond pas. | Rétablissez les enregistrements tels que les montre le panneau, puis choisissez Réessayer.               |
+| Échec        | « Le certificat n’a pas pu être émis. » Le certificat a été révoqué. Le domaine ne répond pas.                                                                                      | Choisissez Réessayer pour lancer un nouveau certificat.                                                  |
 
-## Quelle adresse fait foi {#which-address-is-the-real-one}
+Seul un domaine dont le statut est _Émis_ répond.
 
-Un projet peut répondre à plusieurs adresses, et exactement l’une d’elles est la _principale_ — celle dont les moteurs de recherche et les aperçus sociaux sont informés. Une fois le certificat d’un domaine connecté en ligne, vous pouvez en faire l’adresse principale ; d’ici là, c’est l’adresse Motir.
+## Ce que sert votre domaine {#what-your-domain-serves}
 
-**Toute autre adresse redirige vers l’adresse principale.** Cela inclut votre adresse `motir.co` dès que vous avez promu un domaine qui vous appartient. Les visiteurs arrivent toujours à un endroit qui fonctionne, et un moteur de recherche voit une seule page plutôt que trois copies en concurrence.
+Une fois son certificat émis, votre domaine reçoit sa réponse de la périphérie de Motir, qui transmet chaque requête — son chemin, sa chaîne de requête, son corps et ses cookies — à l’application que nomme le domaine, et renvoie la réponse propre à cette application. Ce que voit un visiteur dépend de l’application :
+
+- **Votre application elle-même**, quand elle a été publiée et qu’elle est ouverte à tous.
+- **Une page indiquant que rien n’est encore publié ici**, quand le domaine ne nomme aucune application ou que l’application n’a pas encore été publiée.
+- **Une page indiquant que le site est réservé aux membres**, quand l’application n’est ouverte qu’à ses membres. Les membres y accèdent à son adresse `motir.site`, vers laquelle la page renvoie quand il y en a une. Aujourd’hui, chaque application hébergée n’est ouverte qu’à ses membres — le réglage qui en ouvre une à tous n’est pas encore disponible —, donc pour l’instant un domaine qui nomme une application publiée affiche cette page plutôt que l’application.
+- **Une page indiquant que le site est momentanément injoignable**, quand l’application tourne sur une cible vers laquelle la périphérie ne sait pas encore transmettre. Il répond de nouveau dès qu’elle le peut.
+- **Une seule page « introuvable » toute simple** pour toute autre raison, y compris un domaine retiré. C’est la même page quelle que soit la raison, elle ne dit donc jamais à un visiteur laquelle s’applique.
+
+Aucune de ces pages n’affiche le site de Motir autour d’elle, et aucune n’est indexée par les moteurs de recherche.
+
+Motir n’ajoute sur votre domaine ni redirection, ni lien canonique, ni fichier robots, ni sitemap qui lui soient propres. Votre application définit les siens.
+
+## Deux domaines dans un même espace de travail {#two-domains-on-one-workspace}
+
+Un espace de travail peut connecter plus d’un domaine, dans la limite de ce que comprend son offre. Chacun nomme sa propre application, choisie sur sa propre ligne. Motir ne place aucun d’eux au-dessus des autres et ne redirige entre aucun d’eux : chacun répond de lui-même, avec l’application qu’il nomme.
 
 ## Retirer un domaine {#removing-a-domain}
 
-Retirer un domaine connecté retire son certificat et l’adresse cesse de répondre — quiconque l’utilise obtiendra une erreur, et les liens déjà partagés vers elle cessent de fonctionner. Votre projet reste public à ses autres adresses : retirer un domaine ne rend donc jamais un projet privé.
+Choisissez _Retirer_ sur la ligne du domaine. Le domaine cesse de servir votre application en une trentaine de secondes environ, puis répond avec la page introuvable. Rien n’est réservé : vous pourrez l’ajouter de nouveau plus tard, et un autre espace de travail peut l’ajouter dès qu’il en prouve la propriété avec un enregistrement `TXT` à lui. Les enregistrements chez votre fournisseur DNS sont à vous de supprimer. Retirer un domaine ne change rien à l’application, qui continue de répondre à ses autres adresses.
 
 ## Si quelque chose ne fonctionne pas {#if-something-is-not-working}
 
-Trois erreurs expliquent presque tous les échecs, et chacune se manifeste différemment dans le volet.
+Quatre erreurs expliquent presque tous les échecs, et chacune se manifeste différemment dans le panneau.
 
-- **Un CNAME sur un domaine racine.** La plupart des registrars l’acceptent et cela ne fonctionne pas. Le symptôme est un domaine qui reste « Non vérifié » (`Not verified`) ou qui passe à « Échec » (`Failed`). Utilisez plutôt les enregistrements `A` et `AAAA` ci-dessus.
-- **Un fournisseur DNS en proxy devant l’enregistrement.** Si votre fournisseur propose de relayer ou d’accélérer le trafic, cela nous masque le véritable enregistrement. Le symptôme est un « Vérification… » (`Checking…`) qui ne se stabilise jamais. Désactivez le proxy pour ces enregistrements.
-- **Un enregistrement de propriété périmé.** Si vous avez retiré puis rajouté un domaine, le jeton a changé. Le symptôme est « Non vérifié » (`Not verified`) alors qu’un enregistrement `TXT` est bien présent. Remplacez sa valeur par celle qu’affiche le volet à présent.
+- **Un CNAME sur un domaine racine.** La plupart des registraires l’acceptent, et il ne fonctionne pas. Le symptôme est un domaine qui reste _En attente_ ou passe en _Échec_. Utilisez plutôt les enregistrements `A` et `AAAA` ci-dessus.
+- **Un fournisseur DNS qui joue le rôle de proxy devant l’enregistrement.** Si votre fournisseur propose de faire transiter ou d’accélérer le trafic, cela nous cache le véritable enregistrement. Le symptôme est un _En attente_ qui ne se stabilise jamais. Désactivez le proxy pour ces enregistrements.
+- **Un enregistrement de propriété périmé.** Si vous avez retiré puis ajouté de nouveau un domaine, le jeton a changé. Le symptôme est _Non confirmé_ alors qu’un enregistrement `TXT` est bien là. Remplacez sa valeur par celle que le panneau affiche maintenant.
+- **Un enregistrement de propriété supprimé plus tard.** Un domaine actif dont l’enregistrement `TXT` disparaît continue de répondre jusqu’à ce que notre contrôle régulier s’en aperçoive, ce qui arrive en une heure environ ; il passe alors en _Échec_ et cesse de répondre. Rétablissez l’enregistrement et choisissez Contrôler à nouveau.

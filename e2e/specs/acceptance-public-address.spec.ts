@@ -13,7 +13,8 @@ import {
  * ⚠️ THE ACCEPTANCE WALK FOR CUSTOMER-OWNED ADDRESSES (MOTIR-4226) — a visitor
  * arrives on a tenant subdomain and on a customer domain, reads the project,
  * follows links and STAYS on that host; a request on a non-primary address
- * lands on the primary. PACED FOR A PERSON TO WATCH.
+ * lands on the primary. PACED FOR A PERSON TO WATCH. (Its customer-domain and
+ * primary-redirect chapters are retired by MOTIR-9528 — see below.)
  *
  * ⚠️ AMENDED BY MOTIR-9512 (Story MOTIR-4528, the address decision MOTIR-9790).
  * The bare workspace host now belongs to the workspace's default application
@@ -37,12 +38,14 @@ import {
  * decided by `e2e/stub/publicApiStub.ts`, so the whole address matrix is one
  * fixture table. `e2e/stub/origin.ts` owns the constants.
  *
- * ── ⚠️ THE PRIMARY IS A PROPERTY OF THE PROJECT, WHICH SHAPES THE FIXTURES ─
+ * ── ⚠️ A CUSTOMER DOMAIN IS NOT THIS SITE'S ─────────────────────────────
  *
- * `ROAD`'s primary is the customer domain, because one project cannot be
- * canonical at two addresses. That is also the trap this lane already sprang once: a tenant-host spec walking a
- * project whose primary is `motir.co` does not merely fail — the redirect sends
- * the browser to PRODUCTION, and it answers 200.
+ * ⚠️ AMENDED BY MOTIR-9528 (Story MOTIR-4533). A customer's own domain now
+ * belongs to its workspace's application and is answered at Motir's edge, so
+ * this site serves no project on one and redirects no project onto one. The
+ * stub still answers `roadmap.localhost` with the retired `project` payload, a
+ * producer a version behind, and the walk shows it getting the one 404 room
+ * while `ROAD` answers in place at its `motir.co` address.
  */
 
 test.setTimeout(180_000)
@@ -113,38 +116,34 @@ test('a project at its own address, as MOTIR-3878 asks to be accepted', async ({
   ).toBeVisible()
   await beat(page)
 
-  // ── 3 · A CUSTOMER DOMAIN, WITH THE PROJECT AT ITS ROOT ─────────────────
-  chapter('A customer domain serves one project at its root')
+  // ── 3 · A CUSTOMER DOMAIN IS NOT SERVED HERE ────────────────────────────
+  // MOTIR-9528 (Story MOTIR-4533): a customer's own domain belongs to its
+  // workspace's application, answered at Motir's edge, so this site never
+  // serves a project on one. The stub still answers this host with the retired
+  // `project` payload, the case of a producer a version behind: the router must
+  // give it the one 404 room, and redirect nowhere.
+  chapter('A customer domain is not served by this site — a 404, no redirect')
   const custom = await page.goto(`${CUSTOM_ORIGIN}/`)
-  expect(custom?.status()).toBe(200)
+  expect(custom?.status()).toBe(404)
+  expect(custom?.request().redirectedFrom()).toBeNull()
   expect(new URL(page.url()).host).toBe(new URL(CUSTOM_ORIGIN).host)
+  await expect(
+    page.getByRole('heading', { level: 1, name: /isn’t here/ }),
+  ).toBeVisible()
+  await beat(page)
 
+  // ── 3 · THE PROJECT ANSWERS AT ITS OWN motir.co ADDRESS ─────────────────
+  chapter('motir.co serves the project in place — it redirects nowhere')
+  const home = await page.goto(`${SITE_ORIGIN}/p/ROAD`)
+  expect(home?.status()).toBe(200)
+  // Asserted from the response CHAIN, not merely from where we ended up.
+  expect(home?.request().redirectedFrom()).toBeNull()
+  expect(page.url()).toBe(`${SITE_ORIGIN}/p/ROAD`)
   await expect(
     page.getByRole('navigation', { name: 'Project' }).getByRole('link', {
       name: 'Overview',
     }),
-  ).toHaveAttribute('href', '/')
-
-  // The canonical and `og:url` name the primary the fixture declares.
-  // (The overview's canonical is the bare origin — no trailing slash.)
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
-    'href',
-    CUSTOM_ORIGIN,
-  )
-  await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
-    'content',
-    CUSTOM_ORIGIN,
-  )
-  await beat(page)
-
-  // ── 3 · A NON-PRIMARY ADDRESS LANDS ON THE PRIMARY ──────────────────────
-  chapter('motir.co redirects to the primary, once it has moved')
-  const moved = await page.goto(`${SITE_ORIGIN}/p/ROAD`)
-  expect(page.url()).toBe(`${CUSTOM_ORIGIN}/`)
-  // Asserted from the response CHAIN, not merely from where we ended up.
-  const chain = moved?.request().redirectedFrom()
-  expect(chain, 'no redirect happened at all').not.toBeNull()
-  expect((await chain!.response())?.status()).toBe(308)
+  ).toBeVisible()
   await beat(page)
 
   // ── 4 · A RETIRED NAME STOPS ANSWERING ──────────────────────────────────
@@ -169,23 +168,20 @@ test('the crawl surface belongs to the host that asks for it', async ({
   ).text()
   expect(tenant).not.toContain('<loc>')
 
-  const custom = await (
-    await request.get(`${CUSTOM_ORIGIN}/sitemap.xml`)
-  ).text()
-  expect(custom).toContain(`${CUSTOM_ORIGIN}/</loc>`)
-  expect(custom).not.toContain(`${CUSTOM_ORIGIN}/board</loc>`)
-  expect(custom).not.toContain('ACME')
+  // A customer domain is not this site's to serve (MOTIR-9528), so it has no
+  // crawl surface here at all: its sitemap is the 404 room, not a listing.
+  const custom = await request.get(`${CUSTOM_ORIGIN}/sitemap.xml`)
+  expect(custom.status()).toBe(404)
+  expect(await custom.text()).not.toContain('<loc>')
 
   const site = await readSitemap(request, SITE_ORIGIN)
   expect(site).toContain('https://motir.co/p/MOTIR</loc>')
   expect(site).not.toContain('ACME')
   expect(site).not.toContain('ROAD')
 
-  for (const origin of [TENANT_ORIGIN, CUSTOM_ORIGIN]) {
-    const txt = await (await request.get(`${origin}/robots.txt`)).text()
-    expect(txt).toContain(`${origin}/sitemap.xml`)
-    expect(txt).not.toContain('motir.co')
-  }
+  const txt = await (await request.get(`${TENANT_ORIGIN}/robots.txt`)).text()
+  expect(txt).toContain(`${TENANT_ORIGIN}/sitemap.xml`)
+  expect(txt).not.toContain('motir.co')
 })
 
 test('the three states a tenant address can be in', async ({ page }) => {

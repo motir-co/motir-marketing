@@ -22,11 +22,6 @@ const WORKSPACE: PublicHostResolution = {
   kind: 'no_application',
   workspace: { name: 'Acme' },
 }
-const CUSTOM: PublicHostResolution = {
-  kind: 'project',
-  project: { identifier: 'PROD', name: 'Prod' },
-  primary: true,
-}
 
 /* ── the read ─────────────────────────────────────────────────────────────── */
 
@@ -176,6 +171,13 @@ describe('resolveHost', () => {
       { kind: 'alias', redirectTo: 'acme.motir.site' },
       { kind: 'workspace', workspace: { name: 'Acme' }, projects: [] },
       { kind: 'application' },
+      // MOTIR-9527: the customer-domain kinds are the edge's, never this router's.
+      {
+        kind: 'project',
+        project: { identifier: 'PROD', name: 'Prod' },
+        primary: true,
+      },
+      { kind: 'members_only_application', workspace: { name: 'Acme' } },
       null,
     ]) {
       resetHostResolutionCache()
@@ -259,7 +261,7 @@ describe('isStorable', () => {
 
 describe('routeForHost — a live workspace host with no application', () => {
   it('answers the no-application page at the root', () => {
-    expect(routeForHost(WORKSPACE, '/')).toEqual({
+    expect(routeForHost('/')).toEqual({
       action: 'no-application',
       path: '/en/no-application',
     })
@@ -278,17 +280,17 @@ describe('routeForHost — a live workspace host with no application', () => {
       '/w',
       '/explore',
     ]) {
-      expect(routeForHost(WORKSPACE, path), path).toEqual({
+      expect(routeForHost(path), path).toEqual({
         action: 'not-found',
       })
     }
   })
 
   it('lets a site asset through — the chrome’s logo is at the ROOT', () => {
-    expect(routeForHost(WORKSPACE, '/motir-mark.svg')).toEqual({
+    expect(routeForHost('/motir-mark.svg')).toEqual({
       action: 'forward',
     })
-    expect(routeForHost(WORKSPACE, '/favicon.ico')).toEqual({
+    expect(routeForHost('/favicon.ico')).toEqual({
       action: 'forward',
     })
   })
@@ -296,33 +298,27 @@ describe('routeForHost — a live workspace host with no application', () => {
   it('and the CRAWL SURFACE takes that arm too, with the host attached', () => {
     // ⚠️ `forward`, NOT `pass`: `/sitemap.xml` and `/robots.txt` are
     // site-asset-SHAPED and must still know which host asked (MOTIR-4222).
-    expect(routeForHost(WORKSPACE, '/sitemap.xml')).toEqual({
+    expect(routeForHost('/sitemap.xml')).toEqual({
       action: 'forward',
     })
-    expect(routeForHost(CUSTOM, '/robots.txt')).toEqual({ action: 'forward' })
+    expect(routeForHost('/robots.txt')).toEqual({ action: 'forward' })
   })
 })
 
-describe('routeForHost — a customer domain', () => {
-  it('puts the project at the host’s root (ADR Q3)', () => {
-    expect(routeForHost(CUSTOM, '/')).toEqual({
-      action: 'rewrite',
-      path: '/en/p/PROD',
-    })
-    expect(routeForHost(CUSTOM, '/board')).toEqual({
-      action: 'rewrite',
-      path: '/en/p/PROD/board',
-    })
-    expect(routeForHost(CUSTOM, '/items/PROD-42')).toEqual({
-      action: 'rewrite',
-      path: '/en/p/PROD/items/PROD-42',
-    })
-  })
-
-  it('lets a site asset through here too', () => {
-    expect(routeForHost(CUSTOM, '/motir-mark.svg')).toEqual({
-      action: 'forward',
-    })
+describe('routeForHost — no customer-domain arm (MOTIR-9527)', () => {
+  it('rewrites no path onto the project tree, bare or under a locale', () => {
+    // The customer domain's `/p/<identifier>` rewrite is gone: a customer
+    // domain is the edge's, so no path on a host this router serves is ever
+    // turned into a project page.
+    for (const path of [
+      '/p/PROD',
+      '/p/PROD/board',
+      '/p/',
+      '/en/p/PROD',
+      '/ja/p/PROD/items/PROD-1',
+    ]) {
+      expect(routeForHost(path), path).toEqual({ action: 'not-found' })
+    }
   })
 })
 
@@ -330,95 +326,48 @@ describe('routeForHost is IDEMPOTENT — Next re-enters on its own rewrite', () 
   /*
    * ⚠️ THE FINDING THIS SUITE EXISTS FOR, and it was found in the browser lane
    * rather than here. Next 16 dispatches an internal `NextResponse.rewrite`
-   * back through the proxy, so `/MOTIR/board` arrives, becomes `/p/MOTIR/board`
-   * — and then arrives AGAIN as `/p/MOTIR/board`. Before this branch the second
-   * pass read `p` as a project the workspace does not publish and answered 404,
-   * so EVERY tenant page 404'd while every single-pass unit test stayed green.
+   * back through the proxy, so `/` arrives, becomes `/en/no-application` — and
+   * then arrives AGAIN as `/en/no-application`. A second pass that read that as
+   * a locale tree the host does not serve would 404 every workspace root while
+   * every single-pass unit test stayed green.
    */
-  it('forwards a rewrite it could have produced', () => {
-    // MOTIR-7948: the router's targets carry a locale, so the second pass
-    // arrives as `/en/p/…` — or as another locale's tree, once one is chosen.
-    expect(routeForHost(CUSTOM, '/en/p/PROD/items/PROD-1')).toEqual({
+  it('forwards the no-application page back to itself, and rewrites it bare', () => {
+    expect(routeForHost('/en/no-application')).toEqual({
       action: 'forward',
     })
-    expect(routeForHost(CUSTOM, '/ja/p/PROD')).toEqual({
-      action: 'forward',
-    })
-  })
-
-  it('rewrites an UNPREFIXED router path onto the locale tree', () => {
-    // A visitor can type `/p/PROD/board` on their own host. It was a duplicate
-    // URL before MOTIR-7948 and still is, but no route serves it bare any more,
-    // so it is rewritten rather than forwarded — into the chosen locale's tree.
-    expect(routeForHost(CUSTOM, '/p/PROD/board')).toEqual({
-      action: 'rewrite',
-      path: '/en/p/PROD/board',
-    })
-    expect(routeForHost(CUSTOM, '/p/PROD', 'de')).toEqual({
-      action: 'rewrite',
-      path: '/de/p/PROD',
-    })
-  })
-
-  it('and REFUSES one it could not — the address boundary holds', () => {
-    // The recognition is by SHAPE, not by a marker header: a header saying "the
-    // router already ran" would be settable by any caller, and trusting it
-    // would serve any project at any tenant address. There is nothing to forge
-    // here, because the identifier must be one the contract just named.
-    for (const path of [
-      '/p/OTHER/board',
-      '/en/p/OTHER/board',
-      '/p/',
-      // A workspace host serves no project at all, so even a path shaped like
-      // the router's own rewrite is not one it could have produced.
-      '/p/PROD/board',
-      '/en/p/PROD',
-    ]) {
-      expect(routeForHost(WORKSPACE, path), path).toEqual({
-        action: 'not-found',
-      })
-    }
-    expect(routeForHost(CUSTOM, '/en/p/OTHER')).toEqual({ action: 'not-found' })
-    // A locale tree that is none of the router's targets is not this host's.
-    expect(routeForHost(WORKSPACE, '/en/explore')).toEqual({
-      action: 'not-found',
-    })
-  })
-
-  it('forwards the no-application page back to itself, and refuses it elsewhere', () => {
-    expect(routeForHost(WORKSPACE, '/en/no-application')).toEqual({
-      action: 'forward',
-    })
-    expect(routeForHost(WORKSPACE, '/no-application')).toEqual({
+    expect(routeForHost('/no-application')).toEqual({
       action: 'rewrite',
       path: '/en/no-application',
     })
-    // A customer domain always has its project — the router must not send it
-    // to a page saying there is nothing here.
-    expect(routeForHost(CUSTOM, '/en/no-application')).toEqual({
+    expect(routeForHost('/no-application', 'de')).toEqual({
+      action: 'rewrite',
+      path: '/de/no-application',
+    })
+  })
+
+  it('refuses a locale tree that is none of its targets', () => {
+    expect(routeForHost('/en/explore')).toEqual({
       action: 'not-found',
     })
-    expect(routeForHost(CUSTOM, '/no-application')).toEqual({
-      action: 'not-found',
-    })
+    expect(routeForHost('/en/')).toEqual({ action: 'not-found' })
   })
 
   it('passes its own two landing pads through untouched', () => {
     // Anything else here is a redirect loop. The 404 pad is never prefixed.
-    expect(routeForHost(WORKSPACE, '/_host-unknown')).toEqual({
+    expect(routeForHost('/_host-unknown')).toEqual({
       action: 'forward',
     })
-    expect(routeForHost(CUSTOM, '/en/host-unavailable')).toEqual({
+    expect(routeForHost('/en/host-unavailable')).toEqual({
       action: 'forward',
+    })
+    expect(routeForHost('/host-unavailable', 'ja')).toEqual({
+      action: 'rewrite',
+      path: '/ja/host-unavailable',
     })
   })
 
   it('emits the locale it is given, defaulting to English', () => {
-    expect(routeForHost(CUSTOM, '/board', 'ja')).toEqual({
-      action: 'rewrite',
-      path: '/ja/p/PROD/board',
-    })
-    expect(routeForHost(WORKSPACE, '/', 'ko')).toEqual({
+    expect(routeForHost('/', 'ko')).toEqual({
       action: 'no-application',
       path: '/ko/no-application',
     })

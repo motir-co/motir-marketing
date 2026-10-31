@@ -265,8 +265,8 @@ export function visitorViewUrl(
  * ⚠️ THE QUERY STRING IS DROPPED — this host's `?cursor=` / `?bucket=` mean
  * nothing to the in-app views.
  *
- * 308 rather than 301 for the reason `redirectIfNotPrimary` gives: a page-level
- * permanent redirect that preserves the method.
+ * 308 rather than 301: a permanent redirect that preserves the method, which is
+ * what Next's own `permanentRedirect` sends.
  */
 export function visitorViewRedirect(
   identifier: string,

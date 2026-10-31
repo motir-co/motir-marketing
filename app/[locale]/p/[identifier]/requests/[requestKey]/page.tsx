@@ -14,7 +14,6 @@ import { enterLocale } from '@/i18n/locale'
 import {
   publicPathFor,
   publicUrlFor,
-  redirectIfNotPrimary,
   requestPublicHost,
   SITE_HOST,
 } from '@/lib/publicHost'
@@ -102,12 +101,6 @@ export default async function PublicRequestPage({
     notFound()
   if (project.status === 'failed')
     return <ErrorState title={copy.states.error.project} host={host} />
-
-  await redirectIfNotPrimary(
-    project.data,
-    host,
-    `requests/${encodeURIComponent(requestKey)}`,
-  )
 
   // ⚠️ `SITE_HOST`, on every host: the hand-off prefixes this with
   // `SITE_ORIGIN`, so a host-relative return is a URL that does not exist.

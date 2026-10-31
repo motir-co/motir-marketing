@@ -1,9 +1,5 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import {
-  PUBLIC_ADDRESS_KIND_HEADER,
-  PUBLIC_HOST_HEADER,
-} from '@/lib/publicHost'
 import { sitemapIndexXml, urlsetXml } from '@/lib/sitemapXml'
 
 /*
@@ -92,15 +88,9 @@ describe('the three routes', () => {
     expect(xml).not.toContain('/p/MOTIR')
   })
 
-  it('/sitemap-projects.xml lists the projects whose canonical is the asking host', async () => {
+  it('/sitemap-projects.xml lists the projects whose canonical is motir.co', async () => {
     vi.resetModules()
-    vi.doMock('next/headers', () => ({
-      headers: async () =>
-        new Headers({
-          [PUBLIC_ADDRESS_KIND_HEADER]: 'project',
-          [PUBLIC_HOST_HEADER]: 'roadmap.acme.com',
-        }),
-    }))
+    vi.doMock('next/headers', () => ({ headers: async () => new Headers() }))
     vi.stubGlobal('fetch', async () =>
       Response.json({
         projects: [
@@ -121,7 +111,7 @@ describe('the three routes', () => {
     const { GET } = await import('@/app/sitemap-projects.xml/route')
     const xml = await (await GET()).text()
 
-    expect(xml).toContain('<loc>https://roadmap.acme.com/changelog</loc>')
-    expect(xml).not.toContain('MOTIR')
+    expect(xml).toContain('<loc>https://motir.co/p/MOTIR/changelog</loc>')
+    expect(xml).not.toContain('PROD')
   })
 })

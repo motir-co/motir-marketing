@@ -1,8 +1,7 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
   currentHost,
   currentOrigin,
-  isOnPrimaryHost,
   publicUrlFor,
   SITE_HOST,
   type PublicHost,
@@ -11,7 +10,8 @@ import { SITE_ORIGIN } from '@/lib/siteOrigin'
 
 /*
  * ONE CANONICAL PER PAGE (MOTIR-4222) — the helper every canonical, `og:url`,
- * JSON-LD `@id`, sitemap entry and redirect is built from.
+ * JSON-LD `@id` and sitemap entry is built from. Nothing redirects to it any
+ * more (MOTIR-9528): the per-host redirect retired with the customer domain.
  *
  * ⚠️ THE PRIMARY IS A PROPERTY OF THE PROJECT, NOT OF THE REQUEST, and that is
  * the whole design. `motir-core` decides it once (ADR §7: a promoted custom
@@ -37,11 +37,6 @@ const WORKSPACE: PublicHost = {
   kind: 'workspace',
   host: 'acme.motir.site',
   origin: 'https://acme.motir.site',
-}
-const CUSTOM: PublicHost = {
-  kind: 'project',
-  host: 'roadmap.acme.com',
-  origin: 'https://roadmap.acme.com',
 }
 
 describe('publicUrlFor', () => {
@@ -76,6 +71,13 @@ describe('publicUrlFor', () => {
     ).toBe('https://roadmap.acme.com/board')
   })
 
+  it('falls back to motir.co/p/<identifier> when the field has not arrived', () => {
+    expect(publicUrlFor({ identifier: 'PROD' })).toBe(`${SITE_ORIGIN}/p/PROD`)
+    expect(publicUrlFor({ identifier: 'A B' }, 'changelog')).toBe(
+      `${SITE_ORIGIN}/p/A%20B/changelog`,
+    )
+  })
+
   it('carries a query when one is given, and nothing when it is not', () => {
     expect(publicUrlFor(ON_CUSTOM, 'items', '?cursor=w9')).toBe(
       'https://roadmap.acme.com/items?cursor=w9',
@@ -97,70 +99,9 @@ describe('currentHost / currentOrigin', () => {
     // certificate is ISSUED — `motir-core`'s `resolveHost` refuses every other
     // status — and the host redirects http to https.
     expect(currentHost(WORKSPACE)).toBe('acme.motir.site')
-    expect(currentOrigin(CUSTOM)).toBe('https://roadmap.acme.com')
-  })
-})
-
-describe('isOnPrimaryHost — the redirect’s whole decision', () => {
-  it('is true only where the canonical lives', () => {
-    expect(isOnPrimaryHost(ON_SITE, SITE_HOST)).toBe(true)
-    expect(isOnPrimaryHost(ON_SUBDOMAIN, WORKSPACE)).toBe(true)
-    expect(isOnPrimaryHost(ON_CUSTOM, CUSTOM)).toBe(true)
-  })
-
-  it('is false on every OTHER address, motir.co included', () => {
-    // ⚠️ THE motir.co ARM IS THE ONE THE ADR NAMES AS THE CONSEQUENCE (§7):
-    // once a project's primary moves, `motir.co/p/<identifier>` for that project
-    // becomes a redirect and serves no tenant content at all.
-    expect(isOnPrimaryHost(ON_CUSTOM, SITE_HOST)).toBe(false)
-    expect(isOnPrimaryHost(ON_SUBDOMAIN, SITE_HOST)).toBe(false)
-    expect(isOnPrimaryHost(ON_CUSTOM, WORKSPACE)).toBe(false)
-    expect(isOnPrimaryHost(ON_SITE, CUSTOM)).toBe(false)
-  })
-})
-
-describe('redirectIfNotPrimary', () => {
-  const permanentRedirect = vi.fn()
-
-  async function load() {
-    vi.doMock('next/navigation', () => ({ permanentRedirect }))
-    return import('@/lib/publicHost')
-  }
-
-  it('does NOTHING on the primary host — a redirect to itself is a loop', async () => {
-    permanentRedirect.mockClear()
-    const { redirectIfNotPrimary } = await load()
-    try {
-      await redirectIfNotPrimary(ON_CUSTOM, CUSTOM, 'board')
-      expect(permanentRedirect).not.toHaveBeenCalled()
-    } finally {
-      vi.doUnmock('next/navigation')
-    }
-  })
-
-  it('sends the SAME PATH on the primary, query preserved', async () => {
-    permanentRedirect.mockClear()
-    const { redirectIfNotPrimary } = await load()
-    try {
-      await redirectIfNotPrimary(ON_CUSTOM, SITE_HOST, 'items', '?cursor=w9')
-      expect(permanentRedirect).toHaveBeenCalledWith(
-        'https://roadmap.acme.com/items?cursor=w9',
-      )
-    } finally {
-      vi.doUnmock('next/navigation')
-    }
-  })
-
-  it('carries a workspace visitor to a promoted custom domain', async () => {
-    permanentRedirect.mockClear()
-    const { redirectIfNotPrimary } = await load()
-    try {
-      await redirectIfNotPrimary(ON_CUSTOM, WORKSPACE, 'board')
-      expect(permanentRedirect).toHaveBeenCalledWith(
-        'https://roadmap.acme.com/board',
-      )
-    } finally {
-      vi.doUnmock('next/navigation')
-    }
+    expect(currentOrigin(WORKSPACE)).toBe('https://acme.motir.site')
+    expect(currentOrigin({ ...WORKSPACE, origin: null })).toBe(
+      'https://acme.motir.site',
+    )
   })
 })

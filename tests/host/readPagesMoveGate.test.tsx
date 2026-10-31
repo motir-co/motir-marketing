@@ -2,11 +2,6 @@ import { readFileSync } from 'node:fs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import { render } from '@/tests/helpers/withCopy'
-import {
-  PUBLIC_ADDRESS_KIND_HEADER,
-  PUBLIC_HOST_HEADER,
-  PUBLIC_ORIGIN_HEADER,
-} from '@/lib/publicHost'
 
 /*
  * THE STORY'S motir-marketing GATE (MOTIR-6747, Story MOTIR-6171).
@@ -91,26 +86,30 @@ const CUSTOM: HostCase = {
   label: 'a custom domain',
   origin: 'https://roadmap.acme.com',
   path: (view) => (view ? `/${view}` : '/'),
-  headers: {
-    [PUBLIC_ADDRESS_KIND_HEADER]: 'project',
-    [PUBLIC_HOST_HEADER]: 'roadmap.acme.com',
-    [PUBLIC_ORIGIN_HEADER]: 'https://roadmap.acme.com',
-  },
+  headers: {},
   primary: 'https://roadmap.acme.com',
 }
-// A workspace host serves no project since MOTIR-9512, so it has no read
-// links to move; its refusals are asserted below.
-const HOSTS = [SITE, CUSTOM]
+// A workspace host serves no project since MOTIR-9512, and the router serves
+// no customer domain since MOTIR-9527 (the certificate edge answers it), so
+// motir.co is the one host whose read links the router still routes; both
+// refusals are asserted below.
+const ROUTED_HOSTS = [SITE]
+// ⚠️ A PROJECT WHOSE PRIMARY IS ANOTHER HOST STILL RENDERS ON motir.co
+// (MOTIR-9528). Its `addresses.primary` names the customer's own domain, and
+// the page used to redirect there; that redirect retired with the customer
+// domain leaving this repository, so the page now renders in place — a thrown
+// NEXT_REDIRECT would fail every case below.
+const PRIMARY_ELSEWHERE: HostCase = {
+  ...SITE,
+  label: 'motir.co, for a project whose primary is another host',
+  primary: CUSTOM.primary,
+}
+const HOSTS = [SITE, PRIMARY_ELSEWHERE]
 
 const HOST_READS: Record<string, unknown> = {
   'acme.motir.site': {
     kind: 'no_application',
     workspace: { name: 'Acme' },
-  },
-  'roadmap.acme.com': {
-    kind: 'project',
-    project: { identifier: 'ACME', name: 'Acme Roadmap' },
-    primary: true,
   },
   'old.motir.site': { kind: 'alias', redirectTo: 'acme.motir.site' },
 }
@@ -223,28 +222,31 @@ async function handle(path: string): Promise<Response> {
 
 const READ_PATHS = ['board', 'items', 'tree', 'roadmap', 'items/ACME-42']
 
-describe.each(HOSTS)('$label — every old read link lands in the app', (h) => {
-  it.each(READ_PATHS)(
-    '%s → 308 to the same view on APP_ORIGIN',
-    async (view) => {
-      const url = `${h.origin}${h.path(view)}`
-      const reached = await route(url)
-      expect(reached).toBe(`/en/p/ACME/${view}`)
+describe.each(ROUTED_HOSTS)(
+  '$label — every old read link lands in the app',
+  (h) => {
+    it.each(READ_PATHS)(
+      '%s → 308 to the same view on APP_ORIGIN',
+      async (view) => {
+        const url = `${h.origin}${h.path(view)}`
+        const reached = await route(url)
+        expect(reached).toBe(`/en/p/ACME/${view}`)
 
-      const res = await handle(reached)
-      expect(res.status, url).toBe(308)
-      expect(res.headers.get('location'), url).toBe(`${APP}/p/ACME/${view}`)
-    },
-  )
-})
+        const res = await handle(reached)
+        expect(res.status, url).toBe(308)
+        expect(res.headers.get('location'), url).toBe(`${APP}/p/ACME/${view}`)
+      },
+    )
+  },
+)
 
-describe('the matrix is ten cases, not fewer', () => {
-  it('two host kinds × five read paths', () => {
-    expect(HOSTS.length * READ_PATHS.length).toBe(10)
+describe('the matrix is five cases, not fewer', () => {
+  it('one routed host × five read paths', () => {
+    expect(ROUTED_HOSTS.length * READ_PATHS.length).toBe(5)
   })
 
   it('and no case read the contract for anything but a HOST', async () => {
-    for (const h of HOSTS) {
+    for (const h of ROUTED_HOSTS) {
       for (const view of READ_PATHS) {
         await handle(await route(`${h.origin}${h.path(view)}`))
       }
@@ -276,6 +278,15 @@ describe('the router still refuses what it refused before', () => {
     expect(res.status).not.toBe(301)
     expect(res.headers.get('location')).toBeNull()
     expect(rewriteOf(res)).toBe(ROUTER_PATHS.notFound)
+  })
+
+  it('a custom domain’s old read link → not-found, without asking the contract (MOTIR-9527)', async () => {
+    for (const view of READ_PATHS) {
+      const res = await proxy(request(`${CUSTOM.origin}${CUSTOM.path(view)}`))
+      expect(rewriteOf(res), view).toBe(ROUTER_PATHS.notFound)
+      expect(res.headers.get('location'), view).toBeNull()
+    }
+    expect(asked).toEqual([])
   })
 
   it('the tenant base domain → not-found, without asking the contract', async () => {
@@ -352,4 +363,18 @@ describe.each(HOSTS)('$label — the pages that stay still render', (h) => {
       expect(READ_HREF.test(new URL(back).pathname), href).toBe(false)
     }
   })
+})
+
+describe('a project whose primary is another host (MOTIR-9531)', () => {
+  it.each(PAGES)(
+    '%s renders on motir.co rather than redirecting there',
+    async (_label, page) => {
+      // A `permanentRedirect` is a THROW in a server component, so a page that
+      // still bounced to `addresses.primary` would reject here with
+      // NEXT_REDIRECT rather than resolve to a tree.
+      headerScope.current = new Headers(PRIMARY_ELSEWHERE.headers)
+      stubContract(PRIMARY_ELSEWHERE.primary)
+      await expect(page()).resolves.toBeTruthy()
+    },
+  )
 })

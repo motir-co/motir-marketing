@@ -24,7 +24,6 @@ import {
   localisedPath,
   resolveHost,
   routeForHost,
-  type PublicHostResolution,
 } from '@/lib/hostResolution'
 
 /**
@@ -37,12 +36,14 @@ import {
  *
  * ── WHAT IT DOES ─────────────────────────────────────────────────────────
  *
- * A request arrives on `acme.motir.site` or on `roadmap.acme.com`. The visitor's
- * URL is the address they typed; the RENDERER has one `/p/[identifier]` tree.
- * This turns the first into the second with a REWRITE — the URL bar does not
- * change, no page is duplicated, and `app/p/**` never learns that it is serving
- * three shapes of address. The two headers it forwards are what a page uses to
- * emit links back at the host it is on (`lib/publicHost.ts`).
+ * A request arrives on a workspace subdomain, `acme.motir.site`. The router
+ * resolves it against the contract and REWRITES it onto one of its own pages —
+ * the workspace's no-application page at the root, its two root files, or the
+ * one 404 — with the URL bar unchanged. The headers it forwards are what a page
+ * uses to emit links back at the host it is on (`lib/publicHost.ts`). A
+ * customer's own domain is not this router's: the certificate edge answers it
+ * (decision MOTIR-9521), and one whose DNS still points here gets the one 404
+ * without a contract call (MOTIR-9527).
  *
  * ── ⚠️ `motir.co` NEVER CALLS THE CONTRACT, AND THAT IS ASSERTED ─────────
  *
@@ -58,14 +59,16 @@ import {
  * When the contract does not answer, the request is rewritten to
  * `/host-unavailable`, which renders the design's ERROR state
  * (`design/public-projects/` panel 12) in the site chrome. Answering 404 instead
- * would tell a crawler that a customer's domain is gone every time
+ * would tell a crawler that a workspace address is gone every time
  * `app.motir.co` restarts — and a crawler acts on a 404. This is
  * `lib/publicProject.ts`'s three-outcome rule, applied one layer earlier.
  *
  * ── BOUNDARY ─────────────────────────────────────────────────────────────
  *
- * No canonical, `og:url`, sitemap or robots decision is made here, and no
- * `motir.co/p/*` redirect — those are MOTIR-4222's, over the headers this sets.
+ * No canonical, `og:url`, sitemap or robots decision is made here: the pages
+ * make them, over the headers this sets. And `motir.co/p/*` never redirects to
+ * another host — the per-host canonical it once served a customer domain is
+ * retired (MOTIR-9528).
  */
 
 // The three paths the router itself produces live in `lib/hostResolution.ts`,
@@ -73,10 +76,15 @@ import {
 const { notFound: NOT_FOUND_PATH, unavailable: UNAVAILABLE_PATH } = ROUTER_PATHS
 
 /**
- * The two root files that are motir.co's own, built once, and whose tenant
- * answer therefore lives in a route handler of its own (MOTIR-8842): a tenant's
- * `robots.txt` names its own host and sitemap, and its `sitemap.xml` is its
- * project half alone.
+ * The two root files that are motir.co's own, built once, and whose WORKSPACE
+ * host answer therefore lives in a route handler of its own (MOTIR-8842): a
+ * workspace host's `robots.txt` names its own host and sitemap, and its
+ * `sitemap.xml` is the project half, which is empty there.
+ *
+ * ⚠️ READ ONLY ON A RESOLVED WORKSPACE REQUEST. The site branch serves its own
+ * built files, and every other host is the one 404 before it gets here — a
+ * customer's own domain included, which carries no robots or sitemap from
+ * Motir (MOTIR-9528).
  */
 const TENANT_ROOT_FILES: Readonly<Record<string, string>> = {
   '/robots.txt': '/robots-tenant.txt',
@@ -308,9 +316,20 @@ function forwardWithHost(
   )
 }
 
-/** The header value for a resolution. */
-function kindOf(resolution: PublicHostResolution): 'workspace' | 'project' {
-  return resolution.kind === 'no_application' ? 'workspace' : 'project'
+/**
+ * Whether a host is in the namespace this router owns: the tenant base domain
+ * or a label under it (`acme.motir.site`).
+ *
+ * ⚠️ EVERY OTHER HOST IS A CUSTOMER'S DOMAIN OR A STRANGER'S, AND NEITHER IS
+ * OURS TO RESOLVE (MOTIR-9521 · MOTIR-9527). An issued customer domain is
+ * answered by the certificate edge, `motir-edge`. One whose DNS still points
+ * here gets the one 404 without a contract call. Asking would draw Motir's own
+ * `no-application` page on the customer's domain whenever the contract answers
+ * `no_application` for it, and that answer is right for the edge, not for this
+ * router.
+ */
+function inTenantNamespace(host: string): boolean {
+  return host === TENANT_DOMAIN || host.endsWith(`.${TENANT_DOMAIN}`)
 }
 
 /** The header next-intl's rewrite carries back into this proxy. */
@@ -398,8 +417,10 @@ async function route(request: NextRequest): Promise<NextResponse> {
   // the two landing pads below spell every site path absolutely instead of
   // offering a lost visitor six doors that 404 where they are standing.
 
-  // The base domain itself is not a tenant address (`lib/tenantDomain.ts`).
-  if (host === TENANT_DOMAIN) {
+  // The base domain itself is not a tenant address (`lib/tenantDomain.ts`), and
+  // a host outside the namespace is not this router's to resolve at all (see
+  // `inTenantNamespace`). Neither costs a network hop.
+  if (host === TENANT_DOMAIN || !inTenantNamespace(host)) {
     return forwardWithHost(request, 'unresolved', host, NOT_FOUND_PATH)
   }
 
@@ -409,11 +430,10 @@ async function route(request: NextRequest): Promise<NextResponse> {
 
   const read = await resolveHost(host)
   if (read.status === 'failed') {
-    // The OUTAGE — and the one branch where the host is most likely to be a real
-    // customer's domain, because `/host-unavailable` renders exactly while
-    // `app.motir.co` is restarting. Site-relative chrome is at its most wrong
-    // here, which is why "SITE_HOST is fine on an unresolvable host" is not the
-    // disposition this card took.
+    // The OUTAGE — a real workspace address, rendered while `app.motir.co` is
+    // restarting. Site-relative chrome would be wrong here, which is why
+    // "SITE_HOST is fine on an unresolvable host" is not the disposition
+    // MOTIR-4430 took.
     return forwardWithHost(
       request,
       'unresolved',
@@ -425,16 +445,16 @@ async function route(request: NextRequest): Promise<NextResponse> {
     return forwardWithHost(request, 'unresolved', host, NOT_FOUND_PATH)
   }
 
-  const route = routeForHost(read.data, request.nextUrl.pathname, locale)
+  const route = routeForHost(request.nextUrl.pathname, locale)
 
   switch (route.action) {
     case 'forward':
-      // A tenant's `robots.txt` and `sitemap.xml` are the two root files
-      // answered per request, by route handlers: motir.co's own are built.
+      // A workspace host's `robots.txt` and `sitemap.xml` are the two root
+      // files answered per request, by route handlers: motir.co's own are built.
       if (TENANT_ROOT_FILES[request.nextUrl.pathname]) {
         return forwardWithHost(
           request,
-          kindOf(read.data),
+          'workspace',
           host,
           TENANT_ROOT_FILES[request.nextUrl.pathname],
         )
@@ -442,19 +462,19 @@ async function route(request: NextRequest): Promise<NextResponse> {
       // The router's own rewrite, coming back around. The headers are SET again
       // rather than assumed to have survived, so the page reads them whichever
       // pass produced the request it renders.
-      return forwardWithHost(request, kindOf(read.data), host)
+      return forwardWithHost(request, 'workspace', host)
     case 'not-found':
       // ⚠️ THE ONE 404 BRANCH THAT HOLDS A RESOLUTION, so it forwards the REAL
       // kind rather than `unresolved` (MOTIR-4430). `hey.motir.site/explore` is
       // a live workspace address serving a path it does not have — the host is
       // known, the path is not — and this is the branch the card's
       // reproduction takes.
-      return forwardWithHost(request, kindOf(read.data), host, NOT_FOUND_PATH)
+      return forwardWithHost(request, 'workspace', host, NOT_FOUND_PATH)
     case 'no-application':
       // A live workspace host with no application to serve yet (MOTIR-9512).
       return forwardWithHost(request, 'workspace', host, route.path)
     default:
-      return forwardWithHost(request, kindOf(read.data), host, route.path)
+      return forwardWithHost(request, 'workspace', host, route.path)
   }
 }
 

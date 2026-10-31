@@ -10,12 +10,7 @@ import { legalDocumentSlugs } from '@/lib/legal/documents'
 import { DOCS_INDEX_HREF, DOCS_ROUTES } from '@/lib/docsSurfaces'
 import { HOW_THE_CALCULATION_WORKS } from '@/lib/destinations'
 import { PROJECT_TABS, loadAllPublicProjects } from '@/lib/publicProject'
-import {
-  currentHost,
-  currentOrigin,
-  publicPathFor,
-  type PublicHost,
-} from '@/lib/publicHost'
+import { currentHost, publicPathFor, type PublicHost } from '@/lib/publicHost'
 
 /*
  * motir.co's sitemap (MOTIR-1154 · 8.3.7), served at `/sitemap.xml`.
@@ -59,19 +54,19 @@ import {
  * **a sitemap may only list URLs on its own host.** So this file lists exactly
  * the projects whose CANONICAL is the host being asked — `primaryHost` on the
  * index row is the field that says so — at the paths that host serves them at.
- * Three consequences, each of them the point rather than a side effect:
+ * Since MOTIR-9528 that host is `motir.co` and nothing else:
  *
- *   • a project whose primary moves to a customer domain DISAPPEARS from
- *     `motir.co/sitemap.xml` and appears in that domain's own;
  *   • a workspace subdomain's sitemap lists NOTHING: since the address
  *     decision MOTIR-9790 it serves no project (MOTIR-9512), and its root is a
  *     `noindex` placeholder;
- *   • a customer domain's lists ONE project's tabs, at the host's root.
+ *   • a customer's own domain is not this repository's to describe at all — it
+ *     is answered by the certificate edge (decision MOTIR-9521), and Motir puts
+ *     no sitemap, robots or canonical on it.
  *
  * The STATIC entries — the landing, /explore, /docs, /legal — belong to
- * `motir.co` alone and are emitted only there. A tenant host is a project's
- * address, not a copy of the marketing site, and listing this site's pages in a
- * customer's sitemap would ask a crawler to attribute them to that host.
+ * `motir.co` alone and are emitted only there. A tenant host is not a copy of
+ * the marketing site, and listing this site's pages in its sitemap would ask a
+ * crawler to attribute them to that host.
  *
  * ⚠️ A FAILED INDEX READ EMITS THE STATIC ENTRIES AND A 200. `loadAllPublicProjects`
  * never throws and returns what it has. A sitemap that briefly loses its project
@@ -89,9 +84,7 @@ import {
  * whose primary address is motir.co — is one entry per locale, and every one of
  * those entries carries the same thirteen alternates (the twelve plus
  * `x-default`) the page's `<head>` does, spelled by the same helper
- * (`lib/localeMetadata.ts`), so the two cannot disagree. A tenant host is not
- * multiplied: one URL there serves every language by cookie and
- * `Accept-Language`, and an alternate can only name a distinct URL.
+ * (`lib/localeMetadata.ts`), so the two cannot disagree.
  *
  * ⚠️ EXCEPT A LEGAL DOCUMENT, WHICH APPEARS ONCE (MOTIR-8086). Its body, title,
  * version and date are the same English in every language version — only the
@@ -133,11 +126,11 @@ function everyLanguage(
 export async function projectSitemapEntries(
   host: PublicHost,
 ): Promise<MetadataRoute.Sitemap> {
-  // A workspace host serves no project path (MOTIR-9512), so nothing on it is
-  // crawlable — whatever a stale index row says its canonical is.
-  if (host.kind === 'workspace') return []
+  // Only the site serves a project path (MOTIR-9528): a workspace host serves
+  // none (MOTIR-9512), so nothing on it is crawlable — whatever a stale index
+  // row says its canonical is — and the project index is not even read.
+  if (host.kind !== 'site') return []
 
-  const origin = currentOrigin(host)
   const thisHost = currentHost(host)
 
   // The projects, and their tab paths — every crawlable URL THIS HOST has.
@@ -155,10 +148,10 @@ export async function projectSitemapEntries(
       // crawler to index an address that is not a page.
       return PROJECT_TABS.filter((tab) => tab.served === 'site').flatMap(
         (tab) => {
-          // ⚠️ ONE EXPRESSION FOR ALL THREE HOST KINDS. `publicPathFor` is the
-          // same helper every rendered link goes through, so a sitemap entry
-          // and the page's own navigation cannot spell the address differently
-          // — which is the way a sitemap normally goes stale.
+          // ⚠️ `publicPathFor` is the same helper every rendered link goes
+          // through, so a sitemap entry and the page's own navigation cannot
+          // spell the address differently — which is the way a sitemap normally
+          // goes stale.
           // The ENGLISH path: `everyLanguage` spells the other ten from it.
           const path = publicPathFor(
             host,
@@ -173,11 +166,8 @@ export async function projectSitemapEntries(
             // link and /explore's cards point at.
             priority: tab.segment ? 0.5 : 0.8,
           }
-          // On motir.co a project page has twelve language addresses; on a
-          // tenant host, one (the note above).
-          return host.kind === 'site'
-            ? everyLanguage(path, rest)
-            : [{ url: `${origin}${path}`, ...rest }]
+          // A project page has twelve language addresses (the note above).
+          return everyLanguage(path, rest)
         },
       )
     })
@@ -188,9 +178,9 @@ export async function projectSitemapEntries(
 /**
  * The SITE half: motir.co's own pages. It reads nothing from the request, so
  * `/sitemap-site.xml` is written once by `next build` (MOTIR-8842). A tenant
- * host never serves it — a tenant host is a project's address, not a copy of
- * the marketing site, and listing this site's pages in a customer's sitemap
- * would ask a crawler to attribute them to that host.
+ * host never serves it — a tenant host is not a copy of the marketing site, and
+ * listing this site's pages in its sitemap would ask a crawler to attribute
+ * them to that host.
  */
 export function siteSitemapEntries(): MetadataRoute.Sitemap {
   return [

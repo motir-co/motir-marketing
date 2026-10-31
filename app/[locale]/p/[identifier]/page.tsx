@@ -4,11 +4,7 @@ import { deriveDescription, loadProject } from '@/lib/publicProject'
 import { format, getCopy } from '@/lib/copy'
 import { projectAlternates } from '@/lib/localeMetadata'
 import { enterLocale } from '@/i18n/locale'
-import {
-  publicUrlFor,
-  redirectIfNotPrimary,
-  requestPublicHost,
-} from '@/lib/publicHost'
+import { publicUrlFor, requestPublicHost } from '@/lib/publicHost'
 import { MarkdownBody } from '@/app/[locale]/legal/_components/MarkdownBody'
 import { ProjectHeader } from './_components/ProjectHeader'
 import { EmptyState, ErrorState } from './_components/States'
@@ -104,7 +100,6 @@ export default async function PublicProjectOverviewPage({
   }
 
   const project = read.data
-  await redirectIfNotPrimary(project, host)
 
   return (
     <>

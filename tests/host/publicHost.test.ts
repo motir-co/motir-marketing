@@ -25,8 +25,8 @@ const WORKSPACE: PublicHost = {
   host: 'acme.motir.site',
   origin: 'https://acme.motir.site',
 }
-const CUSTOM: PublicHost = {
-  kind: 'project',
+const UNRESOLVED: PublicHost = {
+  kind: 'unresolved',
   host: 'roadmap.acme.com',
   origin: 'https://roadmap.acme.com',
 }
@@ -52,7 +52,7 @@ describe('normaliseHost', () => {
   })
 })
 
-describe('publicPathFor — the same page, three addresses', () => {
+describe('publicPathFor — one shape, the site’s, for every kind (MOTIR-9528)', () => {
   it('is /p/<id>/<tab> on the site', () => {
     expect(publicPathFor(SITE_HOST, 'ACME', 'board', 'en')).toBe(
       '/p/ACME/board',
@@ -68,17 +68,13 @@ describe('publicPathFor — the same page, three addresses', () => {
     )
   })
 
-  it('drops the identifier too on a customer domain — ONE project at the root', () => {
-    expect(publicPathFor(CUSTOM, 'ACME', 'board', 'en')).toBe('/board')
-    expect(publicPathFor(CUSTOM, 'ACME', 'items/ACME-42', 'en')).toBe(
-      '/items/ACME-42',
-    )
-  })
-
-  it('gives the customer domain’s root a slash rather than the empty string', () => {
-    // `href=""` is the CURRENT url including its query, not the root — so a
-    // "back to the project" link on a paged tab would go nowhere.
-    expect(publicPathFor(CUSTOM, 'ACME', '', 'en')).toBe('/')
+  it('never produces a path at a host’s root — no kind can spell a customer root', () => {
+    for (const host of [SITE_HOST, WORKSPACE, UNRESOLVED]) {
+      expect(publicPathFor(host, 'ACME', 'items/ACME-42', 'en')).toBe(
+        '/p/ACME/items/ACME-42',
+      )
+      expect(publicPathFor(host, 'ACME', '', 'en')).toBe('/p/ACME')
+    }
   })
 
   it('encodes the identifier where the identifier is a path segment', () => {
@@ -94,8 +90,8 @@ describe('publicPathWithQuery — the no-JS pager, per host', () => {
       publicPathWithQuery(SITE_HOST, 'ACME', 'items', { cursor: 'w9' }, 'en'),
     ).toBe('/p/ACME/items?cursor=w9')
     expect(
-      publicPathWithQuery(CUSTOM, 'ACME', 'items', { cursor: 'w9' }, 'en'),
-    ).toBe('/items?cursor=w9')
+      publicPathWithQuery(WORKSPACE, 'ACME', 'items', { cursor: 'w9' }, 'en'),
+    ).toBe('/p/ACME/items?cursor=w9')
   })
 
   it('drops undefined parameters rather than emitting empty ones', () => {
@@ -103,7 +99,7 @@ describe('publicPathWithQuery — the no-JS pager, per host', () => {
     // silently jump back to the top of the tree.
     expect(
       publicPathWithQuery(
-        CUSTOM,
+        SITE_HOST,
         'ACME',
         'tree',
         {
@@ -112,7 +108,7 @@ describe('publicPathWithQuery — the no-JS pager, per host', () => {
         },
         'en',
       ),
-    ).toBe('/tree?offset=3')
+    ).toBe('/p/ACME/tree?offset=3')
   })
 })
 
@@ -141,8 +137,8 @@ describe('readPublicHost — what a page believes about its address', () => {
     expect(
       readPublicHost(
         headers({
-          [PUBLIC_ADDRESS_KIND_HEADER]: 'project',
-          [PUBLIC_HOST_HEADER]: 'roadmap.acme.com',
+          [PUBLIC_ADDRESS_KIND_HEADER]: 'workspace',
+          [PUBLIC_HOST_HEADER]: 'acme.motir.site',
           [PUBLIC_ORIGIN_HEADER]: 'https://evil.example/path',
         }),
       ).origin,
@@ -183,6 +179,15 @@ describe('readPublicHost — what a page believes about its address', () => {
     expect(
       readPublicHost(headers({ [PUBLIC_ADDRESS_KIND_HEADER]: 'admin' })),
     ).toEqual(SITE_HOST)
+    // The retired customer-domain kind is one of those now (MOTIR-9528).
+    expect(
+      readPublicHost(
+        headers({
+          [PUBLIC_ADDRESS_KIND_HEADER]: 'project',
+          [PUBLIC_HOST_HEADER]: 'roadmap.acme.com',
+        }),
+      ),
+    ).toEqual(SITE_HOST)
     expect(
       readPublicHost(headers({ [PUBLIC_ADDRESS_KIND_HEADER]: 'site' })),
     ).toEqual(SITE_HOST)
@@ -198,15 +203,15 @@ describe('requestPublicHost — the one ambient read on the surface', () => {
     vi.doMock('next/headers', () => ({
       headers: async () =>
         new Headers({
-          [PUBLIC_ADDRESS_KIND_HEADER]: 'project',
-          [PUBLIC_HOST_HEADER]: 'roadmap.acme.com',
+          [PUBLIC_ADDRESS_KIND_HEADER]: 'workspace',
+          [PUBLIC_HOST_HEADER]: 'acme.motir.site',
         }),
     }))
     try {
       const { requestPublicHost } = await import('@/lib/publicHost')
       await expect(requestPublicHost()).resolves.toEqual({
-        kind: 'project',
-        host: 'roadmap.acme.com',
+        kind: 'workspace',
+        host: 'acme.motir.site',
         origin: null,
       })
     } finally {
@@ -215,7 +220,7 @@ describe('requestPublicHost — the one ambient read on the surface', () => {
   })
 })
 
-describe('publicPathFor keeps the page’s locale on the site, and only there (MOTIR-7971)', () => {
+describe('publicPathFor keeps the page’s locale (MOTIR-7971)', () => {
   it('prefixes the site arm in every locale but English', () => {
     expect(publicPathFor(SITE_HOST, 'ACME', 'board', 'fr')).toBe(
       '/fr/p/ACME/board',
@@ -235,11 +240,11 @@ describe('publicPathFor keeps the page’s locale on the site, and only there (M
     ).toBe('/fr/p/ACME/changelog?cursor=w9')
   })
 
-  it('leaves the project arm EXACTLY as it was', () => {
-    // One unprefixed URL serves every language on a tenant host (MOTIR-7951).
-    for (const locale of ['en', 'fr', 'ja'] as const) {
-      expect(publicPathFor(CUSTOM, 'ACME', 'board', locale)).toBe('/board')
-      expect(publicPathFor(CUSTOM, 'ACME', '', locale)).toBe('/')
+  it('takes the same locale prefix on every kind, since every kind is the site’s shape', () => {
+    for (const host of [WORKSPACE, UNRESOLVED]) {
+      expect(publicPathFor(host, 'ACME', 'board', 'fr')).toBe(
+        '/fr/p/ACME/board',
+      )
     }
   })
 })

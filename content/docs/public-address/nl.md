@@ -1,8 +1,8 @@
 ---
-source: 410c4c87d2ef
+source: 331d263ce3e1
 ---
 
-Een openbaar project antwoordt op zijn eigen adres op `motir.co`, en kan daarnaast antwoorden op een domein dat je al bezit. Los daarvan kan een werkruimte één eigen naam claimen onder `motir.site`.
+Een openbaar project antwoordt op zijn eigen adres op `motir.co`. Los daarvan kan een werkruimte één eigen naam claimen onder `motir.site`, en haar gehoste applicatie serveren op een domein dat ze al bezit.
 
 ## Je Motir-adres {#your-motir-address}
 
@@ -21,71 +21,92 @@ Een werkruimte heeft één naam of geen. **Er zijn geen aliassen, en niets verwi
 - **Eén wijziging per 30 dagen.** Een hernoeming en een vrijgave tellen elk als één wijziging, dus vrijgeven en opnieuw claimen omzeilt het niet. Zolang een wijziging nog niet mag, toont het paneel de datum waarop dat wel kan.
 - **Een naam die je loslaat wordt vastgehouden, tenzij je hem net pas claimde.** Een naam die je korter dan 24 uur had, gaat meteen terug naar de pool. Een naam die je 24 uur of langer had, wordt 90 dagen vastgehouden, zodat niemand anders links kan overnemen die naar jou wezen; het bevestigingsvenster noemt de precieze datum waarop hij weer vrij is.
 
-## Je eigen domein koppelen {#connecting-your-own-domain}
+## Je eigen domein {#your-own-domain}
 
-Een domein dat je bezit koppelen kan met betaalde abonnementen — zie [onze abonnementen](/). Je `motir.co`-adres zit in elk abonnement en blijft hoe dan ook werken.
+Een domein dat je bezit, zoals `shop.acme.com`, kan antwoorden met de gehoste applicatie van je werkruimte, ongeacht op welk doel die draait. Eigen domeinen zijn beschikbaar in de betaalde abonnementen — zie [onze abonnementen](/). Een eigenaar of beheerder van de werkruimte voegt ze toe en verwijdert ze; alle anderen in de werkruimte zien ze alleen-lezen. De `motir.co`-adressen van je projecten en de `motir.site`-naam van je werkruimte blijven hoe dan ook werken.
 
-Een gekoppeld domein bedient _één_ project, op zijn root: `roadmap.acme.com/` is de pagina van dat project en `roadmap.acme.com/changelog` zijn changelog. Het live bord, de werkitems en de roadmap staan in de Motir-app, en hun links daar leiden naar binnen.
+## Het domein toevoegen {#add-the-domain}
 
-Je maakt twee soorten records aan bij je registrar. **Voeg eerst het domein toe**, in Projectinstellingen onder _Openbaar adres_: het paneel toont dan elk record dat dat domein nodig heeft, met zijn exacte waarde en een kopieerknop erbij. De vormen hieronder zijn wat je kunt verwachten — lees ze om te controleren of je registrar ze kan aanmaken, en neem de waarden uit het paneel.
+Voeg het domein toe in _Werkruimte-instellingen_ onder _Eigen domeinen_. Het paneel _Openbaar adres_ verwijst er ook naar, met _Gebruik in plaats daarvan je eigen domein_.
 
-### 1 · Wijs het domein naar ons {#point-the-domain-at-us}
+Kies bij het toevoegen welke applicatie van de werkruimte het serveert. Een domein serveert precies één applicatie. Welke dat is, kun je later wijzigen op de regel van het domein, met _Applicatie wijzigen_. Een werkruimte die nog geen gehoste applicatie heeft, kan toch een domein toevoegen: het wordt zonder applicatie toegevoegd en serveert niets tot je er een kiest.
 
-Voor een **subdomein** zoals `roadmap.acme.com`, één `CNAME`:
+## De records die je aanmaakt {#the-records-you-create}
 
-| Type    | Naam      | Waarde                |
-| ------- | --------- | --------------------- |
-| `CNAME` | `roadmap` | getoond in het paneel |
+Zodra het domein is toegevoegd, toont het paneel elk record dat het nodig heeft, met de exacte waarde en een kopieerknop bij elk, en bewaart ze onder _DNS-records tonen_. De vormen hieronder laten zien wat je kunt verwachten — lees ze om na te gaan of je registrar ze kan aanmaken, en neem de waarden over uit het paneel.
 
-Voor een **rootdomein** zoals `acme.com` in plaats daarvan een `A` en een `AAAA` — een rootdomein kan geen `CNAME` hebben, omdat het al de `MX`- en `TXT`-records draagt waarvan je e-mail en je andere diensten afhangen:
+Eerst één `TXT`-record dat bewijst dat het domein van jou is. De naam is `_motir-verify.` gevolgd door je domein; de meeste registrars willen alleen het deel vóór je hoofddomein, zoals hier:
 
-| Type   | Naam | Waarde                |
-| ------ | ---- | --------------------- |
-| `A`    | `@`  | getoond in het paneel |
-| `AAAA` | `@`  | getoond in het paneel |
+| Type  | Naam                 | Waarde              |
+| ----- | -------------------- | ------------------- |
+| `TXT` | `_motir-verify.shop` | staat in het paneel |
 
-Kopieer elke waarde uit het paneel en niet van ergens anders. Dit zijn de adressen waarop Motir wordt bediend, gelezen van het platform waarop wij draaien, en ze kunnen veranderen — het paneel verandert mee en een pagina als deze niet.
+Het token erin is alleen van jou, dus kopieer het uit het paneel en niet van ergens anders.
 
-> Biedt je DNS-provider een schakelaar ‘proxy’ of ‘cloud’ bij het record, zet die dan uit: een proxy voor het record verbergt je domein voor de controle en het certificaat kan dan niet worden uitgegeven.
+Daarna een record dat het domein naar Motir laat wijzen. Voor een **subdomein** zoals `shop.acme.com` één `CNAME`:
 
-### 2 · Bewijs dat het domein van jou is {#prove-the-domain-is-yours}
+| Type    | Naam   | Waarde              |
+| ------- | ------ | ------------------- |
+| `CNAME` | `shop` | staat in het paneel |
 
-Naast het wijzende record toont het paneel één `TXT`-record met een token erin, van deze vorm:
+Voor een **hoofddomein** zoals `acme.com` in plaats daarvan een `A` en een `AAAA` — een hoofddomein kan geen `CNAME` dragen, omdat het al de `MX`- en `TXT`-records draagt waar je e-mail en je andere diensten van afhangen. Hetzelfde geldt voor een domein direct onder een openbaar achtervoegsel van meer dan één deel, zoals `acme.co.uk`; het paneel weet welk soort het jouwe is en toont de juiste records.
 
-| Type  | Naam                    | Waarde           |
-| ----- | ----------------------- | ---------------- |
-| `TXT` | `_motir-verify.roadmap` | `motir-verify=…` |
+| Type   | Naam | Waarde              |
+| ------ | ---- | ------------------- |
+| `A`    | `@`  | staat in het paneel |
+| `AAAA` | `@`  | staat in het paneel |
 
-Kopieer de waarde uit het paneel en niet van hier — het token is van jou alleen. Kies dan _Verifiëren_. Zodra we het record kunnen zien, vragen we een certificaat aan, wat meestal binnen een minuut of twee klaar is. Je kunt de pagina sluiten; de status loopt vanzelf door, en de records blijven beschikbaar onder _DNS-records tonen_.
+Deze adressen zijn van Motir zelf en worden vastgehouden voor domeinen van klanten. Veranderen ze ooit, dan verandert het paneel mee; een pagina als deze niet.
+
+> Biedt je DNS-provider een ‘proxy’- of ‘cloud’-schakelaar op het record, zet die dan uit: een proxy vóór het record verbergt je domein voor de controle en het certificaat kan niet worden uitgegeven.
+
+Kies daarna _Nu controleren_. Zodra we het eigendomsrecord zien, vragen we een certificaat aan, wat meestal een paar minuten duurt. Je kunt de pagina sluiten; de status loopt vanzelf verder.
 
 ## Wat elke status betekent {#what-each-status-means}
 
 [//]: # "Translator: the Status column names states the product itself shows. Use the label the app's own messages file for your locale gives each state, not a fresh translation, so this table matches the screen."
 
-| Status            | Wat het betekent                                                                                                                              | Wat je moet doen                                                        |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Niet geverifieerd | We hebben je eigendomsrecord nog niet gezien. Er is niets aangevraagd bij de certificaatautoriteit.                                           | Maak hieronder het TXT-record aan en kies dan Opnieuw controleren.      |
-| Controleren…      | We zoeken nu naar het eigendomsrecord. DNS-wijzigingen kunnen een paar minuten nodig hebben om zich te verspreiden.                           | Wacht even. Het gaat vanzelf verder.                                    |
-| Uitgeven…         | Het eigendom is bewezen en het certificaat is aangevraagd. Dit duurt meestal een minuut of twee.                                              | Niets. Motir doet de rest.                                              |
-| Live              | Het certificaat is uitgegeven en je domein bedient het project. Het wordt vanzelf vernieuwd.                                                  | Je kunt van dit adres het primaire adres maken.                         |
-| Mislukt           | Het certificaat kon niet worden uitgegeven. De reden staat naast de status — meestal een record dat ontbreekt of ergens anders naartoe wijst. | Vergelijk je records met die hieronder en kies dan Opnieuw controleren. |
-| Verlopen          | Het certificaat is verlopen en de vernieuwing is niet gelukt — bijna altijd omdat een DNS-record is gewijzigd. Het domein bedient niets.      | Zet de records terug zoals ze waren en kies dan Opnieuw controleren.    |
-| Ingetrokken       | Het certificaat is ingetrokken. Het domein bedient niets.                                                                                     | Kies Opnieuw aanvragen om een nieuw certificaat te starten.             |
+| Status         | Wat het betekent                                                                                                                                                                        | Wat te doen                                                                               |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Niet bevestigd | We hebben je eigendomsrecord nog niet gezien. Er is niets aangevraagd bij de certificeringsinstantie, en het domein antwoordt niet.                                                     | Maak de records aan die het paneel toont en kies dan Nu controleren.                      |
+| In afwachting  | We zoeken nu naar je eigendomsrecord. DNS-wijzigingen kunnen een paar minuten nodig hebben om zich te verspreiden.                                                                      | Wacht even. Het loopt vanzelf verder.                                                     |
+| In afwachting  | Het eigendom is bevestigd en het certificaat wordt uitgegeven. Dat duurt meestal een paar minuten.                                                                                      | Niets. De pagina werkt zichzelf bij.                                                      |
+| Uitgegeven     | Het certificaat is uitgegeven en je domein antwoordt. Het wordt vanzelf vernieuwd.                                                                                                      | Niets.                                                                                    |
+| Mislukt        | ‘We zien je eigendomsrecord niet meer.’ Het `TXT`-record bevat je token niet meer, dus het domein antwoordt niet meer.                                                                  | Herstel het `TXT`-record dat het paneel toont en kies dan Opnieuw controleren.            |
+| Mislukt        | ‘_Je domein_ wijst niet meer naar Motir.’ Het `A`-, `AAAA`- of `CNAME`-record is gewijzigd of verwijderd, dus het domein antwoordt niet meer.                                           | Zet het record terug op de waarde die het paneel toont en kies dan Opnieuw controleren.   |
+| Mislukt        | ‘Het certificaat kon niet worden uitgegeven.’ De certificeringsinstantie weigerde het; het paneel toont haar eigen reden ernaast.                                                       | Los op wat de reden noemt — meestal een ontbrekend record — en kies dan Opnieuw proberen. |
+| Mislukt        | ‘Het certificaat kon niet worden uitgegeven.’ Het certificaat is verlopen en de vernieuwing is niet gelukt — bijna altijd omdat een DNS-record is gewijzigd. Het domein antwoordt niet. | Zet de records terug zoals het paneel ze toont en kies dan Opnieuw proberen.              |
+| Mislukt        | ‘Het certificaat kon niet worden uitgegeven.’ Het certificaat is ingetrokken. Het domein antwoordt niet.                                                                                | Kies Opnieuw proberen om een nieuw certificaat te starten.                                |
 
-## Welk adres het echte is {#which-address-is-the-real-one}
+Alleen een domein met de status _Uitgegeven_ antwoordt überhaupt.
 
-Een project kan op meerdere adressen antwoorden, en precies één ervan is het _primaire_ — het adres waarover zoekmachines en socialemediakaarten worden geïnformeerd. Zodra het certificaat van een gekoppeld domein live is, kun je het primair maken; tot dan is het Motir-adres dat.
+## Wat je domein serveert {#what-your-domain-serves}
 
-**Elk ander adres verwijst door naar het primaire.** Dat geldt ook voor je `motir.co`-adres zodra je een eigen domein hebt gepromoveerd. Bezoekers komen altijd ergens aan waar het werkt, en een zoekmachine ziet één pagina in plaats van drie kopieën die met elkaar concurreren.
+Zodra het certificaat is uitgegeven, beantwoordt de edge van Motir je domein: die stuurt elk verzoek — pad, query, body en cookies — door naar de applicatie die het domein noemt en geeft het eigen antwoord van die applicatie terug. Wat een bezoeker te zien krijgt, hangt af van de applicatie:
+
+- **Je applicatie zelf**, als die is gepubliceerd en voor iedereen open staat.
+- **Een pagina die zegt dat hier nog niets is gepubliceerd**, als het domein geen applicatie noemt of de applicatie nog niet is gepubliceerd.
+- **Een pagina die zegt dat de site alleen voor leden is**, als de applicatie alleen voor haar leden open staat. Leden bereiken haar op haar `motir.site`-adres, waar de pagina naar linkt als er een is. Op dit moment staat elke gehoste applicatie alleen voor haar leden open — de instelling die er een voor iedereen opent, is er nog niet — dus voorlopig toont een domein dat een gepubliceerde applicatie noemt deze pagina in plaats van de applicatie.
+- **Een pagina die zegt dat de site nu niet bereikbaar is**, als de applicatie draait op een doel waar de edge nog niet naar kan doorsturen. Zodra de edge het kan, antwoordt hij weer.
+- **Eén eenvoudige ‘niet gevonden’-pagina** voor elke andere reden, ook voor een verwijderd domein. Het is dezelfde pagina, wat de reden ook is, dus ze vertelt een bezoeker nooit welke reden gold.
+
+Geen van deze pagina’s heeft de site van Motir eromheen, en geen ervan wordt door zoekmachines geïndexeerd.
+
+Motir voegt op je domein geen eigen doorverwijzing, canonieke link, robots-bestand of sitemap toe. Je applicatie bepaalt haar eigen.
+
+## Twee domeinen in één werkruimte {#two-domains-on-one-workspace}
+
+Een werkruimte kan meer dan één domein koppelen, tot wat haar abonnement omvat. Elk noemt zijn eigen applicatie, gekozen op zijn eigen regel. Motir zet geen ervan boven de andere en stuurt tussen geen ervan door: elk antwoordt op zichzelf, met de applicatie die het noemt.
 
 ## Een domein verwijderen {#removing-a-domain}
 
-Als je een gekoppeld domein verwijdert, wordt zijn certificaat ingetrokken en antwoordt het adres niet meer — wie het gebruikt, krijgt een fout, en links die er al naartoe zijn gedeeld, werken niet meer. Je project blijft openbaar op zijn andere adressen, dus een domein verwijderen maakt een project nooit privé.
+Kies _Verwijderen_ op de regel van het domein. Het domein serveert je applicatie binnen ongeveer een halve minuut niet meer en antwoordt vanaf dan met de niet-gevonden-pagina. Er wordt niets vastgehouden: je kunt het later weer toevoegen, en een andere werkruimte kan het toevoegen zodra die het eigendom bewijst met een eigen `TXT`-record. De records bij je DNS-provider zijn aan jou om te verwijderen. Een domein verwijderen verandert niets aan de applicatie, die op haar andere adressen blijft antwoorden.
 
 ## Als iets niet werkt {#if-something-is-not-working}
 
-Drie vergissingen verklaren bijna elke storing, en elk ziet er in het paneel anders uit.
+Vier vergissingen verklaren bijna elke mislukking, en elk ervan zie je anders terug in het paneel.
 
-- **Een CNAME op een rootdomein.** De meeste registrars accepteren het en het werkt niet. Het symptoom is een domein dat op de status Niet geverifieerd (`Not verified`) blijft staan of de status Mislukt (`Failed`) bereikt. Gebruik in plaats daarvan de `A`- en `AAAA`-records hierboven.
-- **Een DNS-provider met proxy voor het record.** Als je provider aanbiedt het verkeer te proxyen of te versnellen, verbergt dat het echte record voor ons. Het symptoom is de status Controleren… (`Checking…`) die nooit tot rust komt. Zet de proxy uit voor deze records.
-- **Een verouderd eigendomsrecord.** Als je een domein hebt verwijderd en opnieuw toegevoegd, is het token veranderd. Het symptoom is de status Niet geverifieerd (`Not verified`) terwijl er duidelijk een `TXT`-record staat. Vervang de waarde door die het paneel nu toont.
+- **Een CNAME op een hoofddomein.** De meeste registrars accepteren het, en het werkt niet. Het symptoom is een domein dat op _In afwachting_ blijft staan of _Mislukt_ bereikt. Gebruik in plaats daarvan de `A`- en `AAAA`-records hierboven.
+- **Een DNS-provider die als proxy vóór het record staat.** Biedt je provider aan verkeer via een proxy te leiden of te versnellen, dan verbergt dat het echte record voor ons. Het symptoom is _In afwachting_ dat nooit tot rust komt. Zet de proxy voor deze records uit.
+- **Een verouderd eigendomsrecord.** Heb je een domein verwijderd en opnieuw toegevoegd, dan is het token veranderd. Het symptoom is _Niet bevestigd_ terwijl er duidelijk een `TXT`-record staat. Vervang de waarde door de waarde die het paneel nu toont.
+- **Een eigendomsrecord dat later is verwijderd.** Een actief domein waarvan het `TXT`-record verdwijnt, blijft antwoorden tot onze geregelde controle het opmerkt, wat binnen ongeveer een uur gebeurt; daarna gaat het naar _Mislukt_ en antwoordt het niet meer. Herstel het record en kies Opnieuw controleren.

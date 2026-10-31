@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, test, type Page } from '@playwright/test'
 import { LOCALE_BCP47, type Locale } from '../../i18n/routing'
-import { CUSTOM_ORIGIN, SITE_ORIGIN } from '../stub/origin'
+import { SITE_ORIGIN } from '../stub/origin'
 import { catalogue, leaves, t } from '../support/catalogue'
 import {
   CJK_FAMILIES,
@@ -412,14 +412,15 @@ test('twelve languages on motir.co, as Stories MOTIR-7737 and MOTIR-8937 ask to 
   ).toEqual(['/zh-tw/explore', '/zh-tw'])
   await beat(page, 1400)
 
-  // ── 7 · A FRENCH PUBLIC PROJECT ON A TENANT HOST ────────────────────────
-  // A customer domain since MOTIR-9512: a workspace host serves no project.
-  chapter('A French public project on a customer domain')
+  // ── 7 · A FRENCH PUBLIC PROJECT AT ITS motir.co ADDRESS ─────────────────
+  // A workspace host serves no project since MOTIR-9512, and a customer domain
+  // serves none since MOTIR-9528: a project is read at motir.co/p/<identifier>.
+  chapter('A French public project at its motir.co address')
   await freshVisitor(page, 'fr')
-  const project = await page.goto(`${CUSTOM_ORIGIN}/`)
+  const project = await page.goto(`${SITE_ORIGIN}/fr/p/ROAD`)
   expect(project?.status()).toBe(200)
   expect(project?.request().redirectedFrom()).toBeNull()
-  await expect(page).toHaveURL(`${CUSTOM_ORIGIN}/`)
+  await expect(page).toHaveURL(`${SITE_ORIGIN}/fr/p/ROAD`)
   await expect(html(page)).toHaveAttribute('lang', 'fr')
   const tabs = page.getByRole('navigation', {
     name: t('fr', 'publicProject.header.navAria'),
