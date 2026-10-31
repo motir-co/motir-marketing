@@ -364,3 +364,17 @@ describe.each(HOSTS)('$label — the pages that stay still render', (h) => {
     }
   })
 })
+
+describe('a project whose primary is another host (MOTIR-9531)', () => {
+  it.each(PAGES)(
+    '%s renders on motir.co rather than redirecting there',
+    async (_label, page) => {
+      // A `permanentRedirect` is a THROW in a server component, so a page that
+      // still bounced to `addresses.primary` would reject here with
+      // NEXT_REDIRECT rather than resolve to a tree.
+      headerScope.current = new Headers(PRIMARY_ELSEWHERE.headers)
+      stubContract(PRIMARY_ELSEWHERE.primary)
+      await expect(page()).resolves.toBeTruthy()
+    },
+  )
+})
