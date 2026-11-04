@@ -80,7 +80,15 @@ env:
 
   # motir-ai's public origin (MOTIR-8382), for /price — the release builds
   # with it too. The browser lane points it at the stub instead.
-  NEXT_PUBLIC_MOTIR_AI_ORIGIN: 'https://motir-ai.fly.dev'
+  #
+  # It reads the repository variable MOTIR_AI_ORIGIN, defaulting to today's Fly
+  # name, so with the variable unset nothing about the build changes
+  # (MOTIR-10276). `motir-ai.fly.dev` is Fly's name and cannot follow DNS: after
+  # the AWS cutover calls go, the person running the window sets
+  # `MOTIR_AI_ORIGIN=https://ai.motir.co` on this repository and runs a release
+  # (a push to main, or a re-run of this workflow on main). The decommission
+  # removes the Fly default.
+  NEXT_PUBLIC_MOTIR_AI_ORIGIN: ${{ vars.MOTIR_AI_ORIGIN || 'https://motir-ai.fly.dev' }}
 
 jobs:
   lint:
