@@ -22,10 +22,11 @@ import { SITE_ORIGIN, STUB_ORIGIN } from '../stub/origin'
  * claude.ai sign-in and the plugin install are not browser-reachable here: they
  * are MOTIR-7076's and MOTIR-7075's.
  *
- * ⚠️ AND THE CATALOGUE IS A MODE ON THE SHARED STUB. `/docs/mcp/tools` fetches it
- * server-side, so a variant (hints stripped, or failing) is selected by
- * `POST /__stub/mcp-tools?mode=…` — which is why this file runs SERIALLY and
- * puts the mode back after every test (`e2e/stub/publicApiStub.ts` explains).
+ * ⚠️ AND THE CATALOGUE IS READ AT BUILD (MOTIR-10649). `/docs/mcp/tools` is built
+ * ahead from the stub's recorded catalogue, so the page shows that answer and
+ * no spec can change it between two loads. The file still runs SERIALLY and
+ * puts the stub's mode back after every test, so a mode a later spec sets
+ * cannot leak.
  */
 
 test.describe.configure({ mode: 'serial' })
@@ -200,29 +201,14 @@ test.describe('the receipt', () => {
   })
 })
 
-test('an older Motir with no hints: the absent-hints line, and no chip', async ({
-  page,
-}) => {
-  await catalogueMode('stripped')
-  await page.goto(`${SITE_ORIGIN}/docs/mcp/tools`)
-  const row = toolRow(page, 'delete_work_item')
-  await expect(row).toContainText(
-    'This Motir version does not publish this tool’s behaviour hints.',
-  )
-  await expect(page.locator('main li [data-hint]')).toHaveCount(0)
-})
-
-test('the catalogue unreachable: the existing unreachable state, and no chip', async ({
-  page,
-}) => {
-  await catalogueMode('failing')
-  await page.goto(`${SITE_ORIGIN}/docs/mcp/tools`)
-  await expect(
-    page.getByText('The tool catalogue is temporarily unreachable.'),
-  ).toBeVisible()
-  await expect(page.locator('[data-hint]')).toHaveCount(0)
-  await expect(page.locator('[id^="tool-"]')).toHaveCount(0)
-})
+/*
+ * Two journeys switched the catalogue between page loads and went with the
+ * per-request render (MOTIR-10649): /docs/mcp/tools is built ahead from the
+ * catalogue the stub answered at build. "An older Motir with no hints" is the
+ * stripped catalogue's render, asserted in `tests/docs/apiMove.test.tsx`; "the
+ * catalogue unreachable" is a state no built page has, since a catalogue that
+ * cannot be read fails the build (`tests/docs/buildReads.test.tsx`).
+ */
 
 test.describe('at a phone width', () => {
   test.use({ viewport: { width: 390, height: 844 } })

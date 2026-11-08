@@ -1,15 +1,29 @@
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { LOCALE_BCP47, type Locale } from '../../i18n/routing'
 import { SITE_ORIGIN } from '../stub/origin'
-import { catalogue, leaves, t } from '../support/catalogue'
+import { t } from '../support/catalogue'
+import {
+  beat,
+  choose,
+  ENDONYMS,
+  firstFamily,
+  freshVisitor,
+  HAN,
+  html,
+  lede,
+  noKeyNoEnglish,
+  ORDER,
+  TAGS,
+} from '../support/elevenLanguages'
 import {
   CJK_FAMILIES,
   DEFAULT_FAMILY,
   fetchedFamilies,
   settleFonts,
   siblingFamilies,
+  typeface,
   watchFontRequests,
 } from '../support/fontFaces'
 
@@ -39,6 +53,13 @@ import {
  * `zh-TW`. `ORDER` is the codes, `TAGS` the tags, typed out so a wrong map in
  * `i18n/routing.ts` turns this red instead of moving the expectation.
  *
+ * ⚠️ THE STATIC HALF (MOTIR-10649). The site is built ahead now, so the
+ * journeys a static-only serve cannot answer — the bare-`/` detection, the
+ * `/zh-TW/…` 308, `/fr/p/ROAD`, the remembered choice beating the browser, and
+ * the per-request pages of the walk — moved verbatim to
+ * `acceptance-eleven-languages-live.spec.ts`, on the lane's `testIgnore` list.
+ * The case numbers below are the story's, so the gaps are those journeys.
+ *
  * Every `beat()` is pacing, NOT a wait for state: each assertion waits on a
  * response, a URL, a rendered attribute or the font set settling.
  */
@@ -46,9 +67,6 @@ import {
 // Sixteen journeys at a watchable pace: set here so the other specs keep the
 // lane's tighter budget, as the sibling acceptance specs do.
 test.setTimeout(420_000)
-
-/** Pacing for the recording. NOT a wait for state — see the header. */
-const beat = (page: Page, ms = 900) => page.waitForTimeout(ms)
 
 /*
  * CHAPTERS ARE MEASURED, NEVER AUTHORED: `chapter()` stamps the real elapsed
@@ -68,193 +86,19 @@ test.afterEach(({}, testInfo) => {
   )
 })
 
-/** The switcher's entries, in the order and the scripts the bar lists them. */
-const ENDONYMS = [
-  'English',
-  '简体中文',
-  '繁體中文',
-  '日本語',
-  '한국어',
-  'Deutsch',
-  'Français',
-  'Español',
-  'Italiano',
-  'Nederlands',
-  'Polski',
-  'Português',
-]
-const ORDER = [
-  'en',
-  'zh',
-  'zh-tw',
-  'ja',
-  'ko',
-  'de',
-  'fr',
-  'es',
-  'it',
-  'nl',
-  'pl',
-  'pt',
-]
-const TAGS = [
-  'en',
-  'zh',
-  'zh-TW',
-  'ja',
-  'ko',
-  'de',
-  'fr',
-  'es',
-  'it',
-  'nl',
-  'pl',
-  'pt',
-]
-
-/** The four characters whose drawn form differs between the Han regions. */
-const HAN = '直 化 骨 誤'
-
-const html = (page: Page) => page.locator('html')
-/** The landing's lede — the line that proves the language, now that the
- *  headline, "Vibe the project", is English in every catalogue. */
-const lede = (page: Page) => page.locator('[data-hero-lede]')
-
-/** Open the globe and choose a language by its URL code; the entry and the
- *  page are found by its tag. Waits on the page. */
-async function choose(page: Page, locale: Locale) {
-  const tag = LOCALE_BCP47[locale]
-  await page.locator('button[aria-controls="language-menu"]').click()
-  await beat(page, 600)
-  await page.locator(`#language-menu a[lang="${tag}"]`).click()
-  await expect(html(page)).toHaveAttribute('lang', tag)
-}
-
-/** A visit from a browser asking for `language`, with no cookie. */
-async function freshVisitor(page: Page, language: string) {
-  await page.context().clearCookies()
-  await browserLanguage(page, language)
-}
-
-/** Every request the page makes from here on asks for `language`. */
-async function browserLanguage(page: Page, language: string) {
-  await page.unroute('**/*')
-  await page.route('**/*', (route) =>
-    route.continue({
-      headers: { ...route.request().headers(), 'accept-language': language },
-    }),
-  )
-}
-
-/*
- * A raw key path is a dotted run whose first segment is one of the catalogue's
- * own namespaces. The card's pattern alone also matches a hostname the pages
- * print as text (`app.motir.co`), which is not a key, so a match counts only
- * when it starts with a namespace `en.json` has.
- */
-const RAW_KEY = /\b[a-z]+(\.[a-zA-Z]+){2,}\b/g
-const NAMESPACES = new Set(
-  Object.keys(catalogue('en') as Record<string, unknown>),
-)
-
-/** Case 4's two checks over one page's text. */
-async function noKeyNoEnglish(page: Page, path: string, english = true) {
-  const text = await page.evaluate(() => document.body.innerText)
-  const rawKeys = [...text.matchAll(RAW_KEY)]
-    .map((m) => m[0])
-    .filter((m) => NAMESPACES.has(m.split('.')[0]!))
-  expect(rawKeys, `${path} renders a raw key`).toEqual([])
-  if (!english) {
-    console.log(`${path}: raw keys checked; documentation prose not checked`)
-    return
-  }
-
-  const french = leaves('fr')
-  let checked = 0
-  let skipped = 0
-  const left: string[] = []
-  for (const [key, value] of leaves('en')) {
-    if (value.length < 25) continue
-    if (french.get(key) === value) {
-      skipped += 1
-      continue
-    }
-    checked += 1
-    if (text.includes(value)) left.push(key)
-  }
-  console.log(
-    `${path}: ${checked} en.json leaves checked, ${skipped} skipped (same in fr.json)`,
-  )
-  expect(left, `${path} still shows English`).toEqual([])
-}
-
-/** The first family of an element's computed stack, unquoted. */
-const firstFamily = (stack: string) =>
-  stack.split(',')[0]!.replace(/["']/g, '').trim()
+const LOCALES_WITH_PRODUCTS = ['fr', 'zh-tw'] as const
 
 test('twelve languages on motir.co, as Stories MOTIR-7737 and MOTIR-8937 ask to be accepted', async ({
   page,
   context,
 }) => {
-  // ── 1 · A JAPANESE FIRST VISIT ──────────────────────────────────────────
-  chapter('A Japanese browser’s first visit')
-  await freshVisitor(page, 'ja-JP,ja;q=0.9')
-  await page.goto('/')
-  await expect(page).toHaveURL(`${SITE_ORIGIN}/ja`)
-  await expect(html(page)).toHaveAttribute('lang', 'ja')
-  await expect(lede(page)).toContainText(t('ja', 'landing.hero.lede'))
-  await expect(page.locator('body')).toContainText('Motir')
-  await beat(page, 1600)
-
-  // ── 1a · A TAIWAN FIRST VISIT (MOTIR-8937) ──────────────────────────────
-  chapter('A Taiwan browser’s first visit')
-  await freshVisitor(page, 'zh-TW,zh;q=0.9')
-  await page.goto('/')
-  await expect(page).toHaveURL(`${SITE_ORIGIN}/zh-tw`)
-  await expect(html(page)).toHaveAttribute('lang', 'zh-TW')
-  await expect(lede(page)).toContainText(t('zh-tw', 'landing.hero.lede'))
-  await expect(page.locator('body')).toContainText('Motir')
-  await beat(page, 1600)
-
-  // ── 1b · EVERY TRADITIONAL BROWSER, AND ONLY THOSE ──────────────────────
-  chapter('Hong Kong, Macau and zh-Hant browsers land on /zh-tw; zh-CN on /zh')
-  for (const [language, locale] of [
-    ['zh-HK', 'zh-tw'],
-    ['zh-Hant-TW', 'zh-tw'],
-    ['zh-MO', 'zh-tw'],
-    ['zh-CN', 'zh'],
-    ['zh-Hans', 'zh'],
-  ] as const) {
-    await freshVisitor(page, language)
-    await page.goto('/')
-    await expect(page, language).toHaveURL(`${SITE_ORIGIN}/${locale}`)
-    await expect(html(page)).toHaveAttribute('lang', LOCALE_BCP47[locale])
-    await beat(page, 700)
-  }
-
-  // ── 1c · THE TAG SPELLING IN A URL IS MOVED, NOT LOST ───────────────────
-  chapter('/zh-TW/… answers 308 to the lower-case address')
-  await freshVisitor(page, 'en')
-  const spelled = await page.request.get('/zh-TW/docs/mcp?x=1', {
-    maxRedirects: 0,
-  })
-  expect(spelled.status()).toBe(308)
-  const moved = new URL(spelled.headers()['location']!, SITE_ORIGIN)
-  expect(`${moved.pathname}${moved.search}`).toBe('/zh-tw/docs/mcp?x=1')
-  const landed = await page.goto('/zh-TW/docs/mcp?x=1')
-  expect(landed?.status()).toBe(200)
-  await expect(page).toHaveURL(`${SITE_ORIGIN}/zh-tw/docs/mcp?x=1`)
-  await expect(html(page)).toHaveAttribute('lang', 'zh-TW')
-  await beat(page, 1400)
-
-  // ── 2 · SWEDISH FALLS BACK TO ENGLISH ───────────────────────────────────
-  chapter('Swedish falls back to English')
+  // ── 0 · THE ENGLISH LANDING, WHERE THE WALK STARTS (MOTIR-10649) ───────
+  // The detection journeys (1–2) are per-request and run in
+  // `acceptance-eleven-languages-live.spec.ts`; the static walk starts on the
+  // English landing those journeys ended on.
   await freshVisitor(page, 'sv-SE,sv')
   await page.goto('/')
-  await expect(page).toHaveURL(`${SITE_ORIGIN}/`)
   await expect(html(page)).toHaveAttribute('lang', 'en')
-  await expect(lede(page)).toContainText(t('en', 'landing.hero.lede'))
-  await beat(page, 1400)
 
   // ── 3 · SWITCH TO FRENCH ────────────────────────────────────────────────
   chapter('Switch to French')
@@ -286,16 +130,22 @@ test('twelve languages on motir.co, as Stories MOTIR-7737 and MOTIR-8937 ask to 
 
   // ── 4 · WALK THE SITE IN FRENCH ─────────────────────────────────────────
   chapter('Walk the site in French')
-  const prerendered = Object.keys(
-    (
-      JSON.parse(
-        readFileSync(
-          join(process.cwd(), '.next', 'prerender-manifest.json'),
-          'utf8',
-        ),
-      ) as { routes: Record<string, unknown> }
-    ).routes,
-  )
+  // The build's own record of the product addresses (MOTIR-10649): every
+  // product page `astro build` wrote under the locale, and every product address
+  // its `_redirects` forwards to the docs. The Next build listed both in
+  // `.next/prerender-manifest.json`.
+  const dist = join(process.cwd(), 'dist')
+  const prerendered = [
+    ...LOCALES_WITH_PRODUCTS.flatMap((locale) =>
+      readdirSync(join(dist, locale, 'products')).map(
+        (file) => `/${locale}/products/${file.replace(/\.html$/, '')}`,
+      ),
+    ),
+    ...readFileSync(join(dist, '_redirects'), 'utf8')
+      .split('\n')
+      .map((line) => line.split(' ')[0]!)
+      .filter((from) => /^\/[a-z-]+\/products\//.test(from)),
+  ]
   /** Every page of the walk in one language, each checked as case 4 asks. */
   const walkSite = async (locale: Locale) => {
     // Every product address the build prerendered in this language — the
@@ -304,15 +154,7 @@ test('twelve languages on motir.co, as Stories MOTIR-7737 and MOTIR-8937 ask to 
       .filter((path) => path.startsWith(`/${locale}/products/`))
       .sort()
     expect(products.length).toBeGreaterThan(5)
-    const walk = [
-      ...products,
-      `/${locale}/how-it-works`,
-      `/${locale}/motir-builds-itself`,
-      `/${locale}/design`,
-      `/${locale}/ideas`,
-      `/${locale}/explore`,
-      `/${locale}/explore/topic/developer-tools`,
-    ]
+    const walk = [...products, `/${locale}/how-it-works`, `/${locale}/design`]
     for (const path of walk) {
       const response = await page.goto(path)
       expect(response?.status(), path).toBe(200)
@@ -412,64 +254,9 @@ test('twelve languages on motir.co, as Stories MOTIR-7737 and MOTIR-8937 ask to 
   ).toEqual(['/zh-tw/explore', '/zh-tw'])
   await beat(page, 1400)
 
-  // ── 7 · A FRENCH PUBLIC PROJECT AT ITS motir.co ADDRESS ─────────────────
-  // A workspace host serves no project since MOTIR-9512, and a customer domain
-  // serves none since MOTIR-9528: a project is read at motir.co/p/<identifier>.
-  chapter('A French public project at its motir.co address')
-  await freshVisitor(page, 'fr')
-  const project = await page.goto(`${SITE_ORIGIN}/fr/p/ROAD`)
-  expect(project?.status()).toBe(200)
-  expect(project?.request().redirectedFrom()).toBeNull()
-  await expect(page).toHaveURL(`${SITE_ORIGIN}/fr/p/ROAD`)
-  await expect(html(page)).toHaveAttribute('lang', 'fr')
-  const tabs = page.getByRole('navigation', {
-    name: t('fr', 'publicProject.header.navAria'),
-  })
-  await expect(
-    tabs.getByRole('link', { name: t('fr', 'publicProject.tabs.overview') }),
-  ).toBeVisible()
-  await expect(
-    tabs.getByRole('link', { name: t('fr', 'publicProject.tabs.changelog') }),
-  ).toBeVisible()
-  // The project's own words are data, and stay exactly as the owner wrote them.
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Acme Roadmap' }),
-  ).toBeVisible()
-  await expect(
-    page.getByRole('heading', { level: 2, name: 'What Motir is' }),
-  ).toBeVisible()
-  await beat(page, 1600)
-
-  // ── 8 · THE CHOICE BEATS THE BROWSER ────────────────────────────────────
-  chapter('The remembered choice beats a German browser')
-  await browserLanguage(page, 'de-DE,de')
-  // Case 7 cleared the cookie, so French is chosen again from a German page.
-  await page.goto('/')
-  await expect(html(page)).toHaveAttribute('lang', 'de')
-  await choose(page, 'fr')
-  await beat(page, 800)
-  const back = await page.goto('/')
-  const hop = back?.request().redirectedFrom()
-  expect(hop, 'the bare address was not moved').toBeTruthy()
-  expect((await hop!.response())?.status()).toBe(307)
-  await expect(page).toHaveURL(`${SITE_ORIGIN}/fr`)
-  await expect(lede(page)).toContainText(t('fr', 'landing.hero.lede'))
-  await beat(page, 1400)
-
-  // ── 8a · CHOOSING 繁體中文 REMEMBERS THE URL CODE ────────────────────────
-  chapter('Choosing 繁體中文 is remembered as zh-tw, over a German browser')
-  await choose(page, 'zh-tw')
-  await expect(page).toHaveURL(`${SITE_ORIGIN}/zh-tw`)
-  const rememberedTw = await context.cookies(SITE_ORIGIN)
-  expect(rememberedTw.find((c) => c.name === 'NEXT_LOCALE')?.value).toBe(
-    'zh-tw',
-  )
-  const backTw = await page.goto('/')
-  const hopTw = backTw?.request().redirectedFrom()
-  expect(hopTw, 'the bare address was not moved').toBeTruthy()
-  expect((await hopTw!.response())?.status()).toBe(307)
-  await expect(page).toHaveURL(`${SITE_ORIGIN}/zh-tw`)
-  await beat(page, 1400)
+  // The walk ended on the Traditional 404; case 9 chooses from the landing
+  // (case 8a, the per-request half, ended there).
+  await page.goto('/zh-tw')
 
   // ── 9 · FOUR HAN SCRIPTS ────────────────────────────────────────────────
   chapter('Four Han scripts, each in its own face')
@@ -570,10 +357,12 @@ test('twelve languages on motir.co, as Stories MOTIR-7737 and MOTIR-8937 ask to 
         .screenshot({ timeout: 2_000 })
     }).toPass({ timeout: 30_000 })
     expect(
-      firstFamily(
-        await page
-          .locator(selector)
-          .evaluate((el) => getComputedStyle(el).fontFamily),
+      typeface(
+        firstFamily(
+          await page
+            .locator(selector)
+            .evaluate((el) => getComputedStyle(el).fontFamily),
+        ),
       ),
       `the ${lang} span's first family`,
     ).toBe(family)

@@ -25,29 +25,6 @@ test('the landing page serves a document with a main landmark', async ({
   await expect(page.getByRole('main')).toBeVisible()
 })
 
-test('the explore directory renders the projects the stub serves', async ({
-  page,
-}) => {
-  // The half a `page.route()` stub could never reach: `lib/explore.ts` fetches
-  // from a SERVER component, so this assertion passing is the proof that the
-  // build was pointed at the stub rather than at app.motir.co.
-  //
-  // ⚠️ THE ASSERTION IS ON THE SECOND FIXTURE, NOT THE FIRST, and deliberately.
-  // "Motir" appears in the page's own heading, its banner and its footer, so a
-  // spec asserting it would pass with the API unreachable and the empty state
-  // rendered — the exact failure this spec exists to catch. "Acme Inc" appears
-  // nowhere on this site except in a card built from the fixture.
-  await page.goto('/explore')
-
-  await expect(
-    page.getByRole('heading', { name: /Projects built in public/i }),
-  ).toBeVisible()
-  await expect(
-    page.getByRole('heading', { name: 'Acme', exact: true }),
-  ).toBeVisible()
-  await expect(page.getByText('Acme Inc')).toBeVisible()
-})
-
 test('a page the stub has NO fixture for fails loudly rather than looking empty', async ({
   page,
 }) => {

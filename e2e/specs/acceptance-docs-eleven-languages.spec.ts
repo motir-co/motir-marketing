@@ -1,6 +1,4 @@
-import { execFileSync } from 'node:child_process'
-import { readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { writeFileSync } from 'node:fs'
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { SITE_ORIGIN, STUB_ORIGIN } from '../stub/origin'
 import { LOCALE_BCP47, type Locale } from '../../i18n/routing'
@@ -12,6 +10,15 @@ import {
   settleFonts,
   watchFontRequests,
 } from '../support/fontFaces'
+import {
+  html,
+  main,
+  freshVisitor,
+  browserLanguage,
+  firstParagraph,
+  runPane,
+  copyAndRead,
+} from '../support/docsWalk'
 
 /*
  * ⚠️ THE ACCEPTANCE WALK FOR /docs IN TWELVE LANGUAGES (MOTIR-8052) — Story
@@ -48,13 +55,11 @@ import {
  * `/ko/docs/mcp/tools` shows Korean summaries only because the stub has
  * motir-core's Korean recording.
  *
- * ── STEP 8 EDITS THE REPOSITORY, AND PUTS IT BACK ─────────────────────────
- * It appends a sentence to `content/docs/sentry/en.md` and records the revision,
- * so `/de/docs/sentry` goes stale WHILE THE SERVER RUNS. That works only because
- * the lane builds and serves with `MOTIR_DOCS_LIVE_CONTENT_ROOT` set to the
- * repository's `content/docs` (`playwright.config.ts`, MOTIR-8072): every /docs
- * page is then rendered per request from that directory. Both files are read
- * into memory first and written back byte for byte in a `finally`.
+ * ── THE DOCS ARE BUILT AHEAD (MOTIR-10649) ─────────────────────────────────
+ * Every /docs page is rendered once, when the lane builds the site, from the
+ * repository's `content/docs` and the stub's recordings. The journey that
+ * edited `content/docs/sentry/en.md` while the server ran (case 8) went with
+ * the per-request render.
  */
 
 // Twelve journeys, two of them walking every docs page, at a watchable pace.
@@ -81,75 +86,6 @@ test.afterEach(({}, testInfo) => {
   )
 })
 
-const html = (page: Page) => page.locator('html')
-const main = (page: Page) => page.getByRole('main')
-
-/** A visit from a browser asking for `language`, with no cookie. */
-async function freshVisitor(page: Page, language: string) {
-  await page.context().clearCookies()
-  await browserLanguage(page, language)
-}
-
-/** Every request the page makes from here on asks for `language`. */
-async function browserLanguage(page: Page, language: string) {
-  await page.unroute('**/*')
-  await page.route('**/*', (route) =>
-    route.continue({
-      headers: { ...route.request().headers(), 'accept-language': language },
-    }),
-  )
-}
-
-/** The page's own first paragraph — the intro the reader meets first. */
-async function firstParagraph(page: Page): Promise<string> {
-  // The reading column's, not the rail's (the rail has `<p>` rows of its own).
-  const first = main(page).locator('p:not(nav p)').first()
-  await expect(first).toBeVisible()
-  return normalise((await first.textContent()) ?? '')
-}
-
-const normalise = (text: string) => text.replace(/\s+/g, ' ').trim()
-
-/**
- * The copy button of the `<pre>` a `CodeBlock` draws: the caption row (`<p>`,
- * holding the button) is the `<pre>`'s preceding sibling. Found structurally,
- * not by its accessible name, because the name is built from the caption.
- */
-const copyButtonOf = (pane: Locator) =>
-  pane.locator('xpath=preceding-sibling::p//button')
-
-/** The `docker run` pane of /docs/sandbox, in whatever language the page is. */
-const runPane = (page: Page) =>
-  page.locator('pre', { hasText: 'docker run' }).first()
-
-/** What the browser holds, read back through the granted permission. */
-const clipboardText = (page: Page) =>
-  page.evaluate(() => navigator.clipboard.readText())
-
-/** Press a pane's copy button until it reports `copied`, then read the clipboard. */
-async function copyAndRead(page: Page, pane: Locator): Promise<string> {
-  const button = copyButtonOf(pane)
-  // A press before hydration does nothing; pressing again once it has is
-  // harmless, so the press is retried until the button says it copied.
-  await expect(async () => {
-    await button.click()
-    await expect(button).toHaveAttribute('data-state', 'copied', {
-      timeout: 2_000,
-    })
-  }).toPass({ timeout: 20_000 })
-  return clipboardText(page)
-}
-
-/*
- * Text nodes of Motir's OWN prose: every text node under <body>, minus `pre`,
- * `code`, the copy controls (`button`), anything the page draws in the monospace
- * face (an operation path, an enum of identifiers: data, not prose), a tool's
- * TITLE (the catalogue's own name for it, served in English and never translated
- * — the one English run on a Spanish page that is NOT marked `lang="en"`; noted
- * in the report, not hidden) and any
- * `[lang="en"]` region BELOW the body. The body bound matters: the English page's `<html lang="en">` would
- * otherwise exclude the whole English page.
- */
 function ownProseNodes(page: Page): Promise<string[]> {
   return page.evaluate(() => {
     const excluded = (node: Node): boolean => {
@@ -210,6 +146,11 @@ test('/docs in twelve languages, as Stories MOTIR-7739 and MOTIR-8937 ask to be 
   })
 
   // ── 1 · A GUIDE IN JAPANESE ─────────────────────────────────────────────
+  // ⚠️ AT ITS JAPANESE ADDRESS (MOTIR-10649). The reader used to arrive on
+  // `/docs/sandbox` and be moved to `/ja/docs/sandbox` by the request-time
+  // language detection; that hop is per-request, so cases 1, 2 and 2a with it
+  // moved verbatim to `acceptance-docs-eleven-languages-live.spec.ts`, and here
+  // the reader opens the language's own address, every assertion unchanged.
   chapter('The sandbox guide in Japanese')
   // The English page first, in this run: the baseline cases 1 and 2 compare to.
   await freshVisitor(page, 'en-US,en')
@@ -223,7 +164,7 @@ test('/docs in twelve languages, as Stories MOTIR-7739 and MOTIR-8937 ask to be 
 
   await freshVisitor(page, 'ja-JP,ja;q=0.9')
   const requested = watchFontRequests(page)
-  await page.goto('/docs/sandbox')
+  await page.goto('/ja/docs/sandbox')
   await expect(page).toHaveURL(`${SITE_ORIGIN}/ja/docs/sandbox`)
   await expect(html(page)).toHaveAttribute('lang', 'ja')
   await expect(runPane(page)).toBeVisible()
@@ -254,7 +195,7 @@ test('/docs in twelve languages, as Stories MOTIR-7739 and MOTIR-8937 ask to be 
   chapter('The sandbox guide for a Taiwan browser, and its copy button')
   await freshVisitor(page, 'zh-TW,zh;q=0.9')
   const requestedTw = watchFontRequests(page)
-  await page.goto('/docs/sandbox')
+  await page.goto('/zh-tw/docs/sandbox')
   await expect(page).toHaveURL(`${SITE_ORIGIN}/zh-tw/docs/sandbox`)
   await expect(html(page)).toHaveAttribute('lang', 'zh-TW')
   await expect(runPane(page)).toBeVisible()
@@ -704,64 +645,9 @@ test('/docs in twelve languages, as Stories MOTIR-7739 and MOTIR-8937 ask to be 
   expect(await pathText(page)).toBe(englishPath)
   await beat(page, 1800)
 
-  // ── 8 · A GERMAN PAGE WHOSE ENGLISH MOVED ON ────────────────────────────
-  chapter(
-    'A German page whose English moved on, shown in English under its note',
-  )
-  const sentryDir = join(process.cwd(), 'content', 'docs', 'sentry')
-  const englishFile = join(sentryDir, 'en.md')
-  const ledgerFile = join(sentryDir, 'revisions.json')
-  const sentryHeading = () => page.getByRole('heading', { level: 1 })
-  const germanRail = () =>
-    page.getByRole('navigation', { name: t('de', 'docs.indexTitle') })
-
-  // The German page as it ships: its own translation, no note.
-  await freshVisitor(page, 'de-DE,de')
-  await page.goto('/de/docs/sentry')
-  await expect(html(page)).toHaveAttribute('lang', 'de')
-  await expect(page.getByRole('note')).toHaveCount(0)
-  const germanIntro = await firstParagraph(page)
-  await beat(page)
-
-  const appended =
-    'This sentence was added by the acceptance walk, so the German translation now trails the English.'
-  const englishBytes = readFileSync(englishFile)
-  const ledgerBytes = readFileSync(ledgerFile)
-  try {
-    // One sentence onto the page's first paragraph, then the revision recorded,
-    // exactly as an author would: `de.md`'s `source` is now an older entry.
-    const lines = englishBytes.toString('utf8').split('\n')
-    lines[0] = `${lines[0]} ${appended}`
-    writeFileSync(englishFile, lines.join('\n'))
-    execFileSync('pnpm', ['docs:revisions', 'record', 'sentry'], {
-      stdio: 'pipe',
-    })
-    expect(JSON.parse(readFileSync(ledgerFile, 'utf8'))).toHaveLength(
-      JSON.parse(ledgerBytes.toString('utf8')).length + 1,
-    )
-
-    await page.goto('/de/docs/sentry')
-    await expect(html(page)).toHaveAttribute('lang', 'de')
-    await expect(page.getByRole('note')).toHaveText(
-      t('de', 'docs.notes.beingUpdated'),
-    )
-    const englishBody = main(page).locator('[lang="en"]')
-    await expect(englishBody).toHaveCount(1)
-    await expect(englishBody).toContainText(appended)
-    await expect(sentryHeading()).toHaveText(t('de', 'docs.sentry'))
-    await expect(germanRail()).toBeVisible()
-    await beat(page, 1800)
-  } finally {
-    writeFileSync(englishFile, englishBytes)
-    writeFileSync(ledgerFile, ledgerBytes)
-  }
-
-  // Put back, the lane is as it was found: German again, and no note.
-  await page.goto('/de/docs/sentry')
-  await expect(html(page)).toHaveAttribute('lang', 'de')
-  await expect(page.getByRole('note')).toHaveCount(0)
-  await expect(main(page).locator('[lang="en"]')).toHaveCount(0)
-  expect(await firstParagraph(page)).toBe(germanIntro)
-  await expect(sentryHeading()).toHaveText(t('de', 'docs.sentry'))
-  await beat(page, 1800)
+  // Case 8 (a German page whose English moved on) edited `content/docs` while
+  // the server ran and watched `/de/docs/sentry` go stale, which a built site
+  // cannot do: the docs are rendered once, at build (MOTIR-10649). The stale
+  // translation's note and English body are asserted on the built render in
+  // the docs unit suite.
 })

@@ -32,8 +32,6 @@
  * proving nothing about the route, so the pairing matters.
  */
 
-import { TENANT_ORIGIN } from './stub/origin'
-
 export type SiteRoute = {
   /** The Next route pattern, as `tests/mainLandmark.test.ts` derives it. */
   readonly pattern: string
@@ -50,15 +48,6 @@ export const SITE_ROUTES: readonly SiteRoute[] = [
   {
     pattern: '/how-the-calculation-works',
     url: '/how-the-calculation-works',
-  },
-  { pattern: '/ideas', url: '/ideas' },
-  { pattern: '/motir-builds-itself', url: '/motir-builds-itself' },
-
-  { pattern: '/explore', url: '/explore' },
-  {
-    pattern: '/explore/topic/[slug]',
-    // `developer-tools` is the first slug in `e2e/fixtures/categories.json`.
-    url: '/explore/topic/developer-tools',
   },
 
   { pattern: '/docs', url: '/docs' },
@@ -95,19 +84,25 @@ export const SITE_ROUTES: readonly SiteRoute[] = [
   { pattern: '/products/ai-debugging', url: '/products/ai-debugging' },
   { pattern: '/products/agent-fleet', url: '/products/agent-fleet' },
   { pattern: '/products/agent-hosting', url: '/products/agent-hosting' },
+]
 
-  // ⚠️ THE ONLY ROW WHOSE URL IS ABSOLUTE, AND IT HAS TO BE (MOTIR-4220).
-  // `/no-application` renders for a live WORKSPACE host (MOTIR-9512), so it
-  // exists only there — on `motir.co` it 404s by design, which would fail the
-  // lane's status assertion. The URL below is the ROOT of the lane's tenant
-  // host, which the router rewrites to `/no-application`: the row therefore
-  // walks the route AND the rewrite that is the only way a visitor reaches it.
-  { pattern: '/no-application', url: `${TENANT_ORIGIN}/` },
-
-  // Where the router sends a request whose contract read failed. Reachable on
-  // any host — it renders one static state and reads nothing.
-  { pattern: '/host-unavailable', url: '/host-unavailable' },
-
+/**
+ * THE PER-REQUEST ROUTES (MOTIR-10649) — the pages a static build does not
+ * serve, because each renders per request from the public API. They are the
+ * Worker-routes story's, walked by `e2e/specs/landmark-live.spec.ts`, which
+ * `playwright.config.ts` leaves out of the lane until that story serves them.
+ * The tenant rows (`/no-application`, `/host-unavailable`) went with the
+ * tenant router (MOTIR-10643).
+ */
+export const LIVE_ROUTES: readonly SiteRoute[] = [
+  { pattern: '/ideas', url: '/ideas' },
+  { pattern: '/motir-builds-itself', url: '/motir-builds-itself' },
+  { pattern: '/explore', url: '/explore' },
+  {
+    pattern: '/explore/topic/[slug]',
+    // `developer-tools` is the first slug in `e2e/fixtures/categories.json`.
+    url: '/explore/topic/developer-tools',
+  },
   { pattern: '/p/[identifier]', url: '/p/MOTIR' },
   { pattern: '/p/[identifier]/changelog', url: '/p/MOTIR/changelog' },
   {

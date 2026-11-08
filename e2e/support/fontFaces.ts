@@ -3,13 +3,26 @@ import type { Page } from '@playwright/test'
 /*
  * WHICH FACE A FONT FILE BELONGS TO (MOTIR-7952, shared by MOTIR-7968).
  *
- * `next/font` self-hosts under hashed names, so a request URL does not name
- * its family. The page's own `@font-face` rules do: each `src` url maps to the
- * `font-family` it declares. `fontSets.spec.ts` and the twelve-languages
+ * The build self-hosts each face under a hashed file name, so a request URL does
+ * not name its family. The page's own `@font-face` rules do: each `src` url maps
+ * to the `font-family` it declares. `fontSets.spec.ts` and the twelve-languages
  * acceptance walk both read requests through this.
  */
 
-/** Each CJK set's faces, by the family names next/font gives them. */
+/**
+ * A declared family as the typeface it names (MOTIR-10649). The Astro build
+ * declares a variable face under Fontsource's name, `Noto Sans JP Variable`,
+ * where `next/font` declared `Noto Sans JP`; the file is the same typeface, so
+ * the specs compare typefaces and every assertion keeps its meaning — an
+ * expectation that a face was NOT fetched would otherwise pass vacuously.
+ */
+export const typeface = (family: string): string =>
+  family
+    .replace(/["']/g, '')
+    .trim()
+    .replace(/ Variable$/, '')
+
+/** Each CJK set's faces, by typeface. */
 export const SET_FAMILIES = {
   zh: ['Noto Sans SC', 'Noto Serif SC', 'LXGW WenKai TC'],
   'zh-tw': ['Noto Sans TC', 'Noto Serif TC', 'LXGW WenKai TC'],
@@ -92,7 +105,10 @@ export async function fetchedFamilies(
 ): Promise<Set<string>> {
   const families = await fontFaceFamilies(page)
   return new Set(
-    requested.map((path) => families[path]).filter((f) => f !== undefined),
+    requested
+      .map((path) => families[path])
+      .filter((f) => f !== undefined)
+      .map(typeface),
   )
 }
 

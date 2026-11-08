@@ -7,6 +7,7 @@ import {
   fetchedFamilies,
   settleFonts,
   siblingFamilies,
+  typeface,
   watchFontRequests,
 } from '../support/fontFaces'
 
@@ -74,16 +75,14 @@ for (const locale of ['zh', 'zh-tw', 'ja', 'ko'] as const) {
     const own = DEFAULT_FAMILY[locale]
     // The positive signal first: the language's default face actually loaded.
     await expect
-      .poll(() =>
-        page.evaluate(
-          (family) =>
-            Array.from(document.fonts).some(
-              (face) =>
-                face.family.replace(/["']/g, '') === family &&
-                face.status === 'loaded',
-            ),
-          own,
-        ),
+      .poll(async () =>
+        (
+          await page.evaluate(() =>
+            Array.from(document.fonts)
+              .filter((face) => face.status === 'loaded')
+              .map((face) => face.family),
+          )
+        ).some((family) => typeface(family) === own),
       )
       .toBe(true)
 
@@ -191,7 +190,7 @@ test('a Simplified pick on /zh is not carried to /zh-tw', async ({ page }) => {
     .evaluate((element) =>
       getComputedStyle(element).fontFamily.split(',')[0]!.replace(/["']/g, ''),
     )
-  expect(first.trim()).not.toBe('Noto Serif SC')
+  expect(typeface(first)).not.toBe('Noto Serif SC')
 })
 
 test('a Polish heading is drawn in the pairing face, as an English one is', async ({

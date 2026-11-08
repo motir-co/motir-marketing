@@ -6,11 +6,20 @@ import { HEADER_LADDER, LOCALES } from '../../i18n/routing'
  * THE HEADER'S LANGUAGE SWITCHER (MOTIR-7953), in a real browser, on the site.
  *
  * What only a browser can show: that choosing a language is a full navigation
- * to the same page in it with the query kept, that the cookie the click writes
- * is the one `proxy.ts` then honours over the browser's own languages, and that
- * the globe is on the bar at a phone's width. Every wait is on the navigation
- * itself or a rendered attribute, never a timeout.
+ * to the same page in it, that the click writes the `NEXT_LOCALE` cookie, and
+ * that the globe is on the bar at a phone's width. Every wait is on the
+ * navigation itself or a rendered attribute, never a timeout.
+ *
+ * ⚠️ HOSTED ON A STATIC PAGE (MOTIR-10649). The switcher is the header's, so the
+ * page under it is incidental: these cases used to walk `/explore`, which
+ * renders per request, and now walk `/how-it-works` and its locale twins,
+ * every assertion unchanged. The two per-request assertions (the query kept on
+ * `/explore`, the remembered cookie beating the browser on `/`) moved to
+ * `languageSwitcher-live.spec.ts`.
  */
+
+/** The static page the switcher is walked on. */
+const PAGE = '/how-it-works'
 
 // By the menu it controls, not by its name: the name is the catalogue's, so
 // it reads « Langue : Français » on a French page now that fr.json exists.
@@ -23,22 +32,14 @@ test('choosing Français moves to the same page in French and remembers it', asy
   page,
   context,
 }) => {
-  await page.goto(`${SITE_ORIGIN}/explore?q=plan`)
+  await page.goto(`${SITE_ORIGIN}${PAGE}`)
   await globe(page).click()
   await entry(page, 'Français').click()
-  await expect(page).toHaveURL(`${SITE_ORIGIN}/fr/explore?q=plan`)
+  await expect(page).toHaveURL(`${SITE_ORIGIN}/fr${PAGE}`)
   await expect(page.locator('html')).toHaveAttribute('lang', 'fr')
 
   const cookies = await context.cookies(SITE_ORIGIN)
   expect(cookies.find((c) => c.name === 'NEXT_LOCALE')?.value).toBe('fr')
-
-  // And the remembered choice beats a German browser on the bare address.
-  const root = await page.request.get(`${SITE_ORIGIN}/`, {
-    maxRedirects: 0,
-    headers: { 'Accept-Language': 'de' },
-  })
-  expect(root.status()).toBe(307)
-  expect(new URL(root.headers()['location']!, SITE_ORIGIN).pathname).toBe('/fr')
 })
 
 test('choosing English from a French browser stays English', async ({
@@ -46,17 +47,17 @@ test('choosing English from a French browser stays English', async ({
 }) => {
   const context = await browser.newContext({ locale: 'fr-FR' })
   const page = await context.newPage()
-  await page.goto(`${SITE_ORIGIN}/fr/explore`)
+  await page.goto(`${SITE_ORIGIN}/fr${PAGE}`)
   await expect(page.locator('html')).toHaveAttribute('lang', 'fr')
 
   await globe(page).click()
   const landed = page.waitForResponse(
-    (r) => new URL(r.url()).pathname === '/explore' && r.status() === 200,
+    (r) => new URL(r.url()).pathname === PAGE && r.status() === 200,
   )
   await entry(page, 'English').click()
   await landed
   // No hop back to `/fr`: the cookie was written before the navigation.
-  await expect(page).toHaveURL(`${SITE_ORIGIN}/explore`)
+  await expect(page).toHaveURL(`${SITE_ORIGIN}${PAGE}`)
   await expect(page.locator('html')).toHaveAttribute('lang', 'en')
   await context.close()
 })
@@ -65,7 +66,7 @@ test('on a phone the globe stays on the bar and switches the page', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 375, height: 800 })
-  await page.goto(`${SITE_ORIGIN}/explore`)
+  await page.goto(`${SITE_ORIGIN}${PAGE}`)
   await expect(globe(page)).toBeVisible()
 
   // The Menu panel carries no language section (MOTIR-7947 revision 2).
@@ -83,7 +84,7 @@ test('on a phone the globe stays on the bar and switches the page', async ({
   expect(box.x + box.width).toBeLessThanOrEqual(375)
 
   await entry(page, 'Deutsch').click()
-  await expect(page).toHaveURL(`${SITE_ORIGIN}/de/explore`)
+  await expect(page).toHaveURL(`${SITE_ORIGIN}/de${PAGE}`)
   await expect(page.locator('html')).toHaveAttribute('lang', 'de')
 })
 
@@ -106,7 +107,7 @@ for (const locale of ['en', 'de', 'ja', 'zh-tw'] as const) {
     const menu = page.locator('header button[aria-controls="site-menu"]')
 
     await page.setViewportSize({ width: a, height: 800 })
-    await page.goto(`${SITE_ORIGIN}${prefix}/explore`)
+    await page.goto(`${SITE_ORIGIN}${prefix}${PAGE}`)
     await expect(nav).toBeVisible()
     await expect(menu).toBeHidden()
     expect(await overflow()).toBeLessThanOrEqual(0)
