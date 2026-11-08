@@ -6,11 +6,13 @@ import {
   OG_TEXT_HEX,
   OG_TEXT_SECONDARY_HEX,
   OG_WASH,
-  OG_WASH_FROM_HEX,
-  OG_WASH_TO_HEX,
 } from '@/app/_brand/ogColours'
 
 /*
+ * ⚠️ THE PER-PROJECT HALF ONLY since MOTIR-10647: the landing card is drawn at
+ * build and its colours are asserted in `tests/brand/localeCardColours.test.ts`.
+ * This half waits, held, for the Worker-routes story (MOTIR-10635).
+ *
  * MOTIR-6480 — motir.co's two link-preview cards wear the monochrome Motir
  * palette (motir-core `design/brand/design-notes.md` §10, "§6 amended — OG
  * template", MOTIR-6473).
@@ -48,20 +50,6 @@ vi.mock('@/lib/publicProject', () => ({
     },
   })),
 }))
-
-/** WCAG 2.x relative luminance of a `#rrggbb` colour. */
-function luminance(hex: string): number {
-  const channel = (i: number) => {
-    const c = parseInt(hex.slice(i, i + 2), 16) / 255
-    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
-  }
-  return 0.2126 * channel(1) + 0.7152 * channel(3) + 0.0722 * channel(5)
-}
-
-function contrast(a: string, b: string): number {
-  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x)
-  return (hi + 0.05) / (lo + 0.05)
-}
 
 type Paint = { background: string[]; color: string[]; fill: string[] }
 
@@ -101,37 +89,7 @@ async function renderRoute(
   return paints(captured[0])
 }
 
-describe('every OG ink clears its bar on both ends of the wash', () => {
-  const wash = [OG_WASH_FROM_HEX, OG_WASH_TO_HEX]
-
-  it.each([
-    ['--el-text (wordmark, headline)', OG_TEXT_HEX],
-    ['--el-text-secondary (lede, eyebrow)', OG_TEXT_SECONDARY_HEX],
-  ])('%s is at least 4.5:1', (_role, ink) => {
-    for (const ground of wash)
-      expect(contrast(ink, ground)).toBeGreaterThanOrEqual(4.5)
-  })
-
-  it('the glyph is at least 3:1 (non-text, WCAG 1.4.11)', () => {
-    for (const ground of wash)
-      expect(contrast(BRAND_GLYPH_HEX, ground)).toBeGreaterThanOrEqual(3)
-  })
-
-  it('matches the design table’s values, not the Amethyst ones', () => {
-    // design-notes.md §10, "§6 amended — OG template".
-    expect([OG_WASH_FROM_HEX, OG_WASH_TO_HEX]).toEqual(['#e4e6f3', '#dde9f6'])
-    expect(OG_TEXT_HEX).toBe('#16191d')
-    expect(OG_TEXT_SECONDARY_HEX).toBe('#565c64')
-    expect(BRAND_GLYPH_HEX).toBe('#155bc4')
-  })
-})
-
 describe.each([
-  [
-    'the landing card',
-    () => import('@/app/[locale]/opengraph-image'),
-    { params: Promise.resolve({ locale: 'en' }) },
-  ],
   [
     'the per-project card',
     () => import('@/app/[locale]/p/[identifier]/opengraph-image'),

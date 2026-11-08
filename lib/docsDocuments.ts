@@ -6,7 +6,7 @@ import {
   readFileSync,
   writeFileSync,
 } from 'node:fs'
-import { isAbsolute, join } from 'node:path'
+import { join } from 'node:path'
 // Relative, type-only: `scripts/docs/revisions.ts` runs this file under plain Node,
 // where the `@/` alias does not resolve.
 import type { Locale } from '../i18n/routing.ts'
@@ -44,39 +44,13 @@ const DEFAULT_LOCALE: Locale = 'en'
  */
 
 /*
- * ⚠️ THE LIVE ROOT IS THE BROWSER LANE'S, AND ONLY ITS (MOTIR-8072).
- *
- * A production build prerenders every /docs page, so a document is read ONCE, at
- * build time, from `<cwd>/content/docs`. That is right for the site and wrong
- * for one test: the acceptance walk edits `sentry/en.md` while the server runs
- * and expects `/de/docs/sentry` to fall back to the edited English. Two things
- * stood in its way: the page was HTML written at build time, and the lane's
- * server is `.next/standalone/server.js`, which `chdir`s into
- * `.next/standalone` and reads the copy of `content/docs` traced into it.
- *
- * `MOTIR_DOCS_LIVE_CONTENT_ROOT` answers both. Set to an ABSOLUTE directory, it
- * is where every document is read from, and `DocsDocument` /
- * `renderDocsParts` call `connection()`, so a build made with it set renders
- * /docs per request. `playwright.config.ts` sets it for the lane's build and
- * server; nothing else does, so the image and CI's `build` job (whose
- * `i18n:check-prerender` asserts every /docs page is prerendered) are unchanged.
- * A relative value throws: it would resolve against whichever directory the
- * server happened to `chdir` into, which is the bug this exists to remove.
+ * ⚠️ ONE ROOT, READ AT BUILD (MOTIR-10645). Every /docs page is a file the
+ * static build writes, so a document is read once, at build time, from
+ * `<cwd>/content/docs`. The browser lane's per-request root
+ * (`MOTIR_DOCS_LIVE_CONTENT_ROOT`, MOTIR-8072) went with the per-request render
+ * it served: a built page has no request to read a document for.
  */
-export function liveDocsContentRoot(
-  value: string | undefined = process.env.MOTIR_DOCS_LIVE_CONTENT_ROOT,
-): string | undefined {
-  if (value === undefined || value === '') return undefined
-  if (!isAbsolute(value)) {
-    throw new Error(
-      `MOTIR_DOCS_LIVE_CONTENT_ROOT must be an absolute path (got ${JSON.stringify(value)})`,
-    )
-  }
-  return value
-}
-
-export const DOCS_CONTENT_ROOT =
-  liveDocsContentRoot() ?? join(process.cwd(), 'content', 'docs')
+export const DOCS_CONTENT_ROOT = join(process.cwd(), 'content', 'docs')
 
 export type DocsFallback = null | 'stale' | 'missing'
 

@@ -1,5 +1,3 @@
-import { defineRouting } from 'next-intl/routing'
-
 /**
  * THE LOCALE LIST (Story MOTIR-7737 · MOTIR-7948) — the ONE place motir.co's
  * languages are named. Every sibling card imports {@link LOCALES} and
@@ -12,13 +10,14 @@ import { defineRouting } from 'next-intl/routing'
  * and `/en/…` is a redirect to the unprefixed spelling rather than a second
  * address for the same page.
  *
- * ── ⚠️ DETECTION AND THE COOKIE ARE OFF HERE, AND THAT IS A SCOPE LINE ───
+ * ── PLAIN EXPORTS, READ BY EVERY BUILD STEP (MOTIR-10643) ─────────────────
  *
- * `localeDetection: false` and `localeCookie: false`, and they stay off: the
- * proxy does its own detection (`lib/localeDetection.ts`, MOTIR-7951), and the
- * header's switcher writes the remembered-choice cookie itself
- * (`lib/languageSwitch.ts`, MOTIR-7953). next-intl's middleware never runs on
- * a tenant host, so neither could be its job.
+ * The constants below are read by `astro.config.mjs` (the i18n routing), by
+ * `lib/staticPaths.ts` (every page's twelve build paths), by the every-locale
+ * check (`scripts/i18n/check-static-pages.ts`) and by the pages themselves.
+ * There is no routing library behind them any more: the site is built, and
+ * detection and the remembered-choice cookie belong to the Worker routes and
+ * to the header's switcher (`lib/languageSwitch.ts`).
  */
 export const LOCALES = [
   'en',
@@ -39,13 +38,12 @@ export type Locale = (typeof LOCALES)[number]
 
 export const DEFAULT_LOCALE: Locale = 'en'
 
-export const routing = defineRouting({
-  locales: LOCALES,
-  defaultLocale: DEFAULT_LOCALE,
-  localePrefix: 'as-needed',
-  localeDetection: false,
-  localeCookie: false,
-})
+/** Narrow an unknown value (a route param, a cookie) to one of the twelve. */
+export function isLocale(value: unknown): value is Locale {
+  return (
+    typeof value === 'string' && (LOCALES as readonly string[]).includes(value)
+  )
+}
 
 /**
  * The OpenGraph `og:locale` for each locale — a language_TERRITORY pair, which

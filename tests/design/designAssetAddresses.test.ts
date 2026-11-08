@@ -1,7 +1,7 @@
+import { redirectRules } from '@/lib/redirects'
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import nextConfig from '../../next.config'
 import { ROOT, designTree, filesUnder } from './designTree'
 
 /*
@@ -18,9 +18,11 @@ import { ROOT, designTree, filesUnder } from './designTree'
  *
  * ── The two sweeps ───────────────────────────────────────────────────────────
  *  1. ADDRESSES — every `/…` an asset names must still be a page this app
- *     serves: the `app/**` route tree, plus any redirect `next.config.ts`
- *     declares (checked FIRST — a redirect source resolves, but only by
- *     sending the reader somewhere else).
+ *     serves: the Astro pages under `src/pages/**` and the Next route tree
+ *     under `app/**` that the story's later cards are still porting
+ *     (MOTIR-10643), plus every redirect the built `_redirects` declares
+ *     (checked FIRST — a redirect source resolves, but only by sending the
+ *     reader somewhere else).
  *  2. SOURCE PATHS — every path anchored on one of this repository's own
  *     top-level directories must exist in the tree.
  *
@@ -37,14 +39,14 @@ import { ROOT, designTree, filesUnder } from './designTree'
 
 // A directory holding a PAGE file serves its own path.
 const PAGE_FILES = new Set(['page.tsx', 'page.ts', 'route.ts', 'route.tsx'])
-// A metadata file serves the directory's path plus its OWN name.
+// A metadata file serves the directory's path plus its OWN name. `robots.txt`
+// and the sitemaps are Astro endpoints now (MOTIR-10646), read by
+// `astroRoutes` below.
 const METADATA_FILES = new Set([
   'opengraph-image.tsx',
   'twitter-image.tsx',
   'icon.tsx',
   'apple-icon.tsx',
-  'sitemap.ts',
-  'robots.ts',
 ])
 
 /** The segment every localised page lives under (MOTIR-7948). */
@@ -69,25 +71,53 @@ function appRoutePatterns(): string[][] {
     // Route groups — `(guides)` — organise the tree without appearing in the URL.
     seen.add(parts.filter((segment) => !/^\(.*\)$/.test(segment)).join('/'))
   }
+  for (const route of astroRoutes()) seen.add(route)
   return [...seen].map((path) => (path === '' ? [] : path.split('/')))
+}
+
+/** The optional locale segment every Astro page sits under (MOTIR-10643). */
+const ASTRO_LOCALE_SEGMENT = '[...locale]'
+
+/**
+ * Every address `src/pages/**` builds, as a path below the locale segment:
+ * `index.astro` serves its directory, any other page or endpoint its own name
+ * (`price.astro` → `price`, `robots.txt.ts` → `robots.txt`). The not-found
+ * room serves no address of its own.
+ */
+function astroRoutes(): string[] {
+  const dir = join(ROOT, 'src', 'pages')
+  if (!existsSync(dir)) return []
+  return filesUnder(dir).flatMap((file) => {
+    const parts = file.split('/').slice(2)
+    if (parts[0] === ASTRO_LOCALE_SEGMENT) parts.shift()
+    const leaf = parts.pop()
+    if (!leaf || !/\.(astro|ts)$/.test(leaf)) return []
+    const name = leaf.replace(/\.(astro|ts)$/, '')
+    if (name === '404') return []
+    if (name !== 'index') parts.push(name)
+    return [parts.join('/')]
+  })
 }
 
 const APP_ROUTES = appRoutePatterns()
 
 /*
- * EVERY redirect `next.config.ts` declares, read off the config's own
- * `redirects()` rather than off named maps: a map this list forgot would make
- * the guard call a live address dead. There are none today.
+ * EVERY redirect the built `_redirects` declares, read off `lib/redirects.ts`,
+ * which writes the file the static assets serve (MOTIR-10643), rather than off
+ * a list of its own: a rule this
+ * guard forgot would make it call a live address dead. A `*` segment is a
+ * catch-all (`/en/*` → every address under `/en`).
  *
- * ⚠️ `proxy.ts` REWRITES, AND ADDS NOTHING HERE. Its every branch is keyed on a
- * TENANT host (`acme.motir.site`, a customer domain) and maps that host's paths
- * onto `app/p/[identifier]/**`; on motir.co itself it steps aside before reading
- * the path. So it serves no address on this host that `app/**` does not already
- * list.
+ * ⚠️ `proxy.ts` IS NOT READ. It is out of every gate until the Worker-routes
+ * story ports it, and on motir.co itself it served no address `app/**` did not
+ * already list — every rewrite it made was keyed on a tenant host.
  */
-const REDIRECT_SOURCES: string[][] = (
-  (await nextConfig.redirects?.()) ?? []
-).map((rule) => rule.source.replace(/^\//, '').split('/'))
+const REDIRECT_SOURCES: string[][] = redirectRules().map(({ from }) =>
+  from
+    .replace(/^\//, '')
+    .split('/')
+    .map((segment) => (segment === '*' ? ':splat*' : segment)),
+)
 
 const isDynamic = (segment: string) =>
   /^\[.+\]$/.test(segment) || /^:.+/.test(segment)
@@ -432,7 +462,7 @@ describe('the address sweep catches the drift it was written for', () => {
 
   it('reports a REDIRECT source as redirecting away, ahead of a route that also matches it', () => {
     // No redirect is declared today, so the arm is exercised on a declared one:
-    // the day `next.config.ts` grows a `redirects()`, this is what it reads as.
+    // the day `public/_redirects` grows a rule for one, this is what it reads as.
     expect(
       verdicts('`/docs/old-guide` and `/docs/cli`', [
         ['docs', 'old-guide'],
@@ -478,13 +508,18 @@ describe('the address sweep catches the drift it was written for', () => {
 // from. That file ships to this repository from npm as `@motir/design-system`,
 // outside this tree, so there is no mirrored source to add here.)
 
+const BUILD_OUTPUTS = new Set(['node_modules', 'dist'])
+
 /** This repository's own top-level directories — the anchors a citation starts on. */
 const SOURCE_ROOTS = readdirSync(ROOT, { withFileTypes: true })
   .filter(
     (entry) =>
       entry.isDirectory() &&
       !entry.name.startsWith('.') &&
-      entry.name !== 'node_modules',
+      // Generated, never cited: the installed packages, and `astro build`'s
+      // output (MOTIR-10643), which a package's own `dist/…` path would
+      // otherwise be read as.
+      !BUILD_OUTPUTS.has(entry.name),
   )
   .map((entry) => entry.name)
   .sort()
@@ -615,6 +650,77 @@ const KNOWN_PATHS: { file: string; path: string; why: string }[] = [
     path: 'app/_components/Pillars.tsx',
     why: 'The MOTIR-3984 record (2026-08-30) names the pillars section as one of the two elements whose muted eyebrow moved to --el-text-secondary. The 2026-10 redesign retired the pillars section and deleted the file; the record stays true of the page it describes, so it is not rewritten.',
   },
+  {
+    file: 'design/marketing/design-notes.md',
+    path: 'app/layout.tsx',
+    why: 'A dated record of the Next root layout, which MOTIR-10643 deleted when the site moved to Astro: the shared document is `src/layouts/SitePage.astro` now. The record stays true of the page it describes, so it is not rewritten.',
+  },
+  {
+    file: 'design/explainer/design-notes.md',
+    path: 'app/layout.tsx',
+    why: 'The same retired Next root layout, named by the explainer notes as where the site document was rendered; MOTIR-10643 replaced it with `src/layouts/SitePage.astro`, and the dated note is not rewritten.',
+  },
+  {
+    file: 'design/price/design-notes.md',
+    path: 'app/layout.tsx',
+    why: 'The same retired Next root layout, named by the price notes as where the site document was rendered; MOTIR-10643 replaced it with `src/layouts/SitePage.astro`, and the dated note is not rewritten.',
+  },
+  {
+    file: 'design/legal/design-notes.md',
+    path: 'app/legal/layout.tsx',
+    why: 'The legal shell as a Next route layout. MOTIR-10644 moved it, unchanged, to `app/[locale]/legal/LegalLayout.tsx`, which the Astro legal pages render it through; the dated note is not rewritten.',
+  },
+  {
+    file: 'design/marketing/design-notes.md',
+    path: 'app/page.tsx',
+    why: 'The landing as a Next page module. MOTIR-10644 moved it to `app/[locale]/LandingRoute.tsx`, which `src/pages/[...locale]/index.astro` renders; the dated note is not rewritten.',
+  },
+  {
+    file: 'design/docs/design-notes.md',
+    path: 'app/docs/layout.tsx',
+    why: 'The docs shell as a Next route layout. MOTIR-10645 moved it, unchanged, to `app/[locale]/docs/DocsLayout.tsx`, which every Astro docs page renders it through; the dated asset is a record and is not rewritten.',
+  },
+  {
+    file: 'design/docs/docs.mock.html',
+    path: 'app/docs/layout.tsx',
+    why: 'The docs shell as a Next route layout. MOTIR-10645 moved it, unchanged, to `app/[locale]/docs/DocsLayout.tsx`, which every Astro docs page renders it through; the dated asset is a record and is not rewritten.',
+  },
+  {
+    file: 'design/docs/docs--localized-notes.mock.html',
+    path: 'app/docs/layout.tsx',
+    why: 'The docs shell as a Next route layout. MOTIR-10645 moved it, unchanged, to `app/[locale]/docs/DocsLayout.tsx`, which every Astro docs page renders it through; the dated asset is a record and is not rewritten.',
+  },
+  {
+    file: 'design/docs/sandbox-steps.mock.html',
+    path: 'app/docs/layout.tsx',
+    why: 'The docs shell as a Next route layout. MOTIR-10645 moved it, unchanged, to `app/[locale]/docs/DocsLayout.tsx`, which every Astro docs page renders it through; the dated asset is a record and is not rewritten.',
+  },
+  {
+    file: 'design/docs/design-notes.md',
+    path: 'app/docs/(guides)/mcp/tools/page.tsx',
+    why: '`/docs/mcp/tools` as a Next page module. MOTIR-10645 moved it to `app/[locale]/docs/(guides)/mcp/tools/McpToolsRoute.tsx`, which `src/pages/[...locale]/docs/mcp/tools.astro` renders; the dated asset is not rewritten.',
+  },
+  {
+    file: 'design/docs/docs--mcp-tool-hints.mock.html',
+    path: 'app/docs/(guides)/mcp/tools/page.tsx',
+    why: '`/docs/mcp/tools` as a Next page module. MOTIR-10645 moved it to `app/[locale]/docs/(guides)/mcp/tools/McpToolsRoute.tsx`, which `src/pages/[...locale]/docs/mcp/tools.astro` renders; the dated asset is not rewritten.',
+  },
+  {
+    file: 'design/docs/design-notes.md',
+    path: 'app/docs/(guides)/sandbox/page.tsx',
+    why: '`/docs/sandbox` as a Next page module. MOTIR-10645 moved it to `app/[locale]/docs/(guides)/sandbox/SandboxRoute.tsx`, which `src/pages/[...locale]/docs/sandbox.astro` renders; the dated asset is not rewritten.',
+  },
+  {
+    file: 'design/docs/sandbox-steps.mock.html',
+    path: 'app/docs/(guides)/sandbox/page.tsx',
+    why: '`/docs/sandbox` as a Next page module. MOTIR-10645 moved it to `app/[locale]/docs/(guides)/sandbox/SandboxRoute.tsx`, which `src/pages/[...locale]/docs/sandbox.astro` renders; the dated asset is not rewritten.',
+  },
+  // ── A path in ANOTHER repository that `src/` now also names ───────────────
+  {
+    file: 'design/price/design-notes.md',
+    path: 'src/billing/calculatorTypes.ts',
+    why: "A motir-ai source path the price notes cite for the calculator's types. It became anchored here only when MOTIR-10643 gave this repository a `src/` of its own (the Astro pages); the file is motir-ai's and was never this repository's.",
+  },
   // ── A path inside a quoted COMMAND run in motir-core ─────────────────────
   // The notes record the exact `git` invocation that verified a claim, and its
   // pathspecs are relative to motir-core's root. Qualifying them would make the
@@ -696,7 +802,7 @@ describe('the source-path sweep catches the drift it was written for', () => {
   it('passes the citations that exist, including an extension-less one', () => {
     expect(
       missing(
-        'see `tests/design/inkContrast.test.ts` and `tests/design/inkContrastScan`, and app/legal/[slug]/page.tsx.',
+        'see `tests/design/inkContrast.test.ts` and `tests/design/inkContrastScan`, and app/legal/[slug]/LegalDocumentRoute.tsx.',
       ),
     ).toEqual([])
   })

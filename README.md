@@ -65,10 +65,11 @@ exists, not before.
 The landing is built (MOTIR-1152), from MOTIR-1143's design and MOTIR-1144's
 copy, on `@motir/design-system` and `@motir/brand` installed from npm.
 
-**It is not yet indexable.** `app/robots.ts` still says `disallow: /`, and
-flipping it — along with the `Organization` + `WebSite` JSON-LD, the root OG
-image and the sitemap — is MOTIR-1154 (8.3.7). The landing shipping and the
-landing being indexable are two different events.
+**It is indexable.** MOTIR-1154 (8.3.7) opened `robots.txt` and added the
+`Organization` + `WebSite` JSON-LD, the root OG image and the sitemap.
+`astro build` writes `robots.txt`, `sitemap.xml` and `sitemap-site.xml` at the
+root of the output (`src/pages/*.ts`, from `lib/robots.ts` and
+`lib/siteSitemap.ts`, MOTIR-10646).
 
 The directory-badge slots are drawn and empty; MOTIR-1156 (8.3.9) owns the
 listings and their wording.

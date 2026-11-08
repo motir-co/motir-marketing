@@ -28,7 +28,7 @@ describe('the coverage config', () => {
         'i18n/*.ts',
         'lib/copy.ts',
         'scripts/i18n/*.ts',
-        'app/fonts.ts',
+        'lib/metadata.ts',
       ]),
     )
   })

@@ -41,9 +41,9 @@ const EXCLUDED: readonly { path: string; owner: string }[] = [
       'authored API reference prose — motir.co /docs in eleven languages (MOTIR-7739)',
   },
   {
-    path: 'app/[locale]/opengraph-image.tsx',
+    path: 'app/_brand/localeShareCard.tsx',
     owner:
-      'the share image’s wordmark, drawn with satori — every word of it is read through getCopy (MOTIR-7972)',
+      'the share image’s wordmark, drawn with satori at build — every word of it is read through getCopy (MOTIR-7972 · MOTIR-10647)',
   },
   {
     path: 'app/[locale]/p/[identifier]/opengraph-image.tsx',
@@ -54,7 +54,7 @@ const EXCLUDED: readonly { path: string; owner: string }[] = [
 
 /**
  * Paths not yet swept, each with the card that owns the sweep. EMPTY since
- * MOTIR-7954 swept the public-project tree, `/w` and `/host-unavailable`, and
+ * MOTIR-7954 swept the public-project tree, `/w` and the retired `/host-unavailable`, and
  * asserted empty below: a new entry is a decision to park copy, made in a diff.
  */
 const NOT_YET_SWEPT: readonly { path: string; owner: string }[] = []
@@ -117,7 +117,7 @@ describe('the covered pages hold no hard-coded copy', () => {
     expect(COVERED).toContain('app/_components/NotFoundRoom.tsx')
     expect(COVERED).toContain('app/[locale]/docs/_components/DocsRail.tsx')
     expect(COVERED).toContain('app/[locale]/p/[identifier]/page.tsx')
-    expect(COVERED).toContain('app/[locale]/no-application/page.tsx')
+    expect(COVERED).toContain('app/[locale]/not-found.tsx')
   })
 
   it('finds no literal outside the catalogue', () => {

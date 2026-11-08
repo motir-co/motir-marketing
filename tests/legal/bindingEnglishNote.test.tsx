@@ -1,16 +1,14 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import LegalDocumentPage from '@/app/[locale]/legal/[slug]/page'
-import LegalIndexPage from '@/app/[locale]/legal/page'
+import LegalDocumentPage from '@/app/[locale]/legal/[slug]/LegalDocumentRoute'
+import LegalIndexPage from '@/app/[locale]/legal/LegalIndexRoute'
 import { render } from '@/tests/helpers/withCopy'
 import { resolveAsync } from '@/tests/helpers/resolveAsync'
 import { LOCALES, DEFAULT_LOCALE, type Locale } from '@/i18n/routing'
 import { getCopy } from '@/lib/copy'
 import { legalDocumentSlugs } from '@/lib/legal/documents'
 import { englishLegalPath } from '@/lib/legal/englishAddress'
-
-vi.mock('next/headers', () => ({ headers: async () => new Headers() }))
 
 /*
  * MOTIR-8088 — the binding-English note on the legal pages, and the `lang="en"`
@@ -75,7 +73,7 @@ describe('englishLegalPath', () => {
     // `DEFAULT_LOCALE`, so no file can retype it — and the page goes through it.
     expect(hits).toEqual([])
     expect(
-      readFileSync('app/[locale]/legal/[slug]/page.tsx', 'utf8'),
+      readFileSync('app/[locale]/legal/[slug]/LegalDocumentRoute.tsx', 'utf8'),
     ).toContain('englishLegalPath(slug)')
   })
 })

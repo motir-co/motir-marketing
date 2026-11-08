@@ -1,16 +1,34 @@
 import '@testing-library/jest-dom/vitest'
-import { vi } from 'vitest'
+import { afterEach } from 'vitest'
 
-/*
- * next-intl's SERVER entry under jsdom (MOTIR-7948). This lane resolves the
- * package's client build, where every `next-intl/server` function — including
- * `setRequestLocale`, which each statically rendered page calls first — is a
- * stub that throws "not supported in Client Components". The real one records
- * the locale for the server render that follows and returns nothing, so the
- * stand-in records nothing and returns nothing; every other export stays the
- * package's own.
- */
-vi.mock('next-intl/server', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('next-intl/server')>()),
-  setRequestLocale: () => {},
-}))
+// The docs artifacts are read once per process (`lib/docs.ts`, under this
+// registered symbol); each test stubs `fetch` with its own documents, so each
+// starts with nothing read. Cleared through the symbol rather than an import, so
+// a test file's own `vi.mock` still applies when it first loads `lib/docs.ts`.
+afterEach(() => {
+  const reads = (globalThis as Record<symbol, unknown>)[
+    Symbol.for('motir.docsArtifactReads')
+  ]
+  if (reads instanceof Map) reads.clear()
+})
+
+// jsdom has no `matchMedia`, and the header now mounts the 3D / Immersive
+// pointer tilt, which asks it for `prefers-reduced-motion` (MOTIR-10643). A
+// browser with no preference set answers `matches: false` to every query, so
+// that is the default here; a test that needs a preference stubs its own.
+if (typeof window !== 'undefined' && typeof window.matchMedia !== 'function') {
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    writable: true,
+    value: (media: string): MediaQueryList => ({
+      media,
+      matches: false,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }),
+  })
+}

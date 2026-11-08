@@ -1,15 +1,16 @@
 'use client'
 
 import { useState, type ReactNode } from 'react'
-import { useRouter } from 'next/navigation'
 import { ErrorState, Pill, Segmented } from '@motir/design-system'
 import { useCopy } from '@/lib/copy'
+import { reloadPage } from '@/lib/reloadPage'
 import type { Cadence } from '@/lib/priceLadder'
 
 /*
- * The price card's one client island (MOTIR-8382 · MOTIR-9684): the Monthly /
- * Annual toggle. Every plan card's two price blocks are already in the server
- * markup; the toggle only writes `data-cadence` on the wrapper, and each block
+ * The price card's one client island (MOTIR-8382 · MOTIR-9684 · MOTIR-10644):
+ * the Monthly / Annual toggle, hydrated as `PriceCadenceIsland`. Every plan
+ * card's two price blocks are already in the server markup (the island's
+ * slot); the toggle only writes `data-cadence` on the wrapper, and each block
  * shows itself under `group-data-[cadence=…]/cadence:`. So the page's figures
  * render without JavaScript, at the design's default of Monthly (panel 2).
  * The Annual badge's wording arrives computed from the ladder (MOTIR-10156).
@@ -48,16 +49,17 @@ export function PriceCadence({
 }
 
 /**
- * The ladder read failed (design panel 4): no figure, a retry that re-renders
- * the route so the server reads the ladder again.
+ * The ladder read failed (design panel 4): no figure, a retry that loads the
+ * page again. A built `/price` reads the ladder at build and fails the build
+ * when it cannot (`requirePlanLadder`), so this state is a component's, for a
+ * reader of the ladder that renders it; the retry is a reload either way.
  */
 export function PlansUnavailable() {
   const words = useCopy().pricePage.plans
-  const router = useRouter()
   return (
     <ErrorState
       title={words.unavailableTitle}
-      retry={() => router.refresh()}
+      retry={reloadPage}
       retryLabel={words.retry}
     />
   )

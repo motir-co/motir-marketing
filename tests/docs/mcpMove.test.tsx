@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import ts from 'typescript'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import McpPage from '@/app/[locale]/docs/(guides)/mcp/page'
+import McpPage from '@/app/[locale]/docs/(guides)/mcp/McpRoute'
 import * as wiring from '@/lib/mcpWiring'
 import { documentInvariants } from '@/lib/docsDocuments'
 import { guideDate } from '@/lib/docsGuideValues'
@@ -41,7 +41,9 @@ vi.mock('@/lib/docsDocuments', async (importOriginal) => {
  * and whitespace-normalised, every element `id` in document order, and the text
  * of every <pre>. States: `mcp` over the small two-group catalogue
  * (`CATALOGUE`), `mcp-production` over the recorded production catalogue, and
- * `mcp-unreachable` with the fetch failing. Do not regenerate it to make a red
+ * `mcp-unreachable` with the fetch failing — a state no built page has since
+ * MOTIR-10645 (the build fails instead, asserted below), kept in the fixture as
+ * the record of what it read. Do not regenerate it to make a red
  * test green: the move is meant to be invisible, and a changed word is the
  * finding.
  *
@@ -80,8 +82,14 @@ function expectedText(state: string): string {
 const STATES = {
   mcp: () => stubFetch(CATALOGUE),
   'mcp-production': () => stubFetch(PRODUCTION_CATALOGUE),
-  'mcp-unreachable': () => stubFetch({}, 503),
 } as const
+
+it('/docs/mcp fails the build when the catalogue is unreachable (MOTIR-10645)', async () => {
+  stubFetch({}, 503)
+  await expect(capture(McpPage)).rejects.toThrow(
+    /could not read the MCP tool catalogue at .*: HTTP 503/,
+  )
+})
 
 describe('/docs/mcp reads the same after the move', () => {
   for (const [state, arrange] of Object.entries(STATES)) {
@@ -244,7 +252,7 @@ describe('lib/mcpWiring.ts exports no English sentence', () => {
   })
 })
 
-describe('no page.tsx sentence', () => {
+describe('no page-module sentence', () => {
   /** JSX text and string literals outside imports, metadata and class names. */
   function strings(text: string): string[] {
     const source = ts.createSourceFile(
@@ -281,7 +289,7 @@ describe('no page.tsx sentence', () => {
   }
 
   it('holds no English word group in the TSX', () => {
-    const file = join('app/[locale]/docs/(guides)', 'mcp', 'page.tsx')
+    const file = join('app/[locale]/docs/(guides)', 'mcp', 'McpRoute.tsx')
     const prose = strings(readFileSync(file, 'utf8')).filter(
       (text) => text.split(/\s+/).filter(Boolean).length > 1,
     )

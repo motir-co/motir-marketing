@@ -2,7 +2,7 @@ import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { englishCopy, resolveCopy } from '@/lib/copy'
-import { render } from '@/tests/helpers/withCopy'
+import { renderHydrated } from '@/tests/helpers/withCopy'
 
 /*
  * A page in another locale, end to end through the readers (MOTIR-7950): the
@@ -30,7 +30,6 @@ vi.mock('@/lib/copy', async (importOriginal) => {
       locale === 'de' ? actual.resolveCopy(GERMAN) : actual.englishCopy,
   }
 })
-vi.mock('next/navigation', () => ({ usePathname: () => '/de' }))
 vi.mock('@/lib/ideas', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/ideas')>()),
   fetchIdeas: vi
@@ -38,7 +37,7 @@ vi.mock('@/lib/ideas', async (importOriginal) => ({
     .mockResolvedValue({ items: [], categories: [], total: 0 }),
 }))
 
-const { default: Page } = await import('@/app/[locale]/page')
+const { default: Page } = await import('@/app/[locale]/LandingRoute')
 
 /** A dotted catalogue path — what a missing key would render as. */
 const KEY_PATH = /\b[a-z]+(\.[a-zA-Z]+){2,}\b/g
@@ -64,7 +63,12 @@ function leakedKeys(text: string): string[] {
 describe('the landing under /de', () => {
   it('reads the German catalogue, with English where it has no key', async () => {
     const page = await Page({ params: Promise.resolve({ locale: 'de' }) })
-    render(page, { locale: 'de', messages: resolveCopy(GERMAN) })
+    // Hydrated as the browser does, so the menu below is the live island.
+    await renderHydrated(page, {
+      locale: 'de',
+      messages: resolveCopy(GERMAN),
+      pathname: '/de',
+    })
 
     // Two translated strings: one in the chrome, one in the landing's body.
     expect(

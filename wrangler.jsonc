@@ -1,0 +1,28 @@
+/*
+ * motir.co ON CLOUDFLARE WORKERS (MOTIR-10634 · MOTIR-10643).
+ *
+ * The static half of the site is `astro build`'s `dist/`, served as Workers
+ * static assets with no Worker script in front of it: no request runs code.
+ *
+ *  • `html_handling: "auto-trailing-slash"` (the default, written down)
+ *    serves `price.html` at `/price` and `de.html` at `/de`, the unslashed
+ *    addresses every canonical names (`astro.config.mjs`, `build.format`).
+ *  • `not_found_handling: "404-page"` answers a path with no file with the
+ *    nearest `404.html` above it and a 404 status — `de/404.html` for a
+ *    mistyped `/de/…`, `404.html` for the rest.
+ *  • `_redirects`, which the build writes from `lib/redirects.ts`, carries
+ *    the `/en` → `/` 308s and the `/products/*` → docs 308s.
+ *
+ * The deploy job stays held until the CI story (MOTIR-10637) points it here;
+ * `pnpm start` serves the build locally through `wrangler dev`.
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "motir-marketing",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page",
+  },
+}

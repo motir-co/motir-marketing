@@ -5,19 +5,18 @@ import { englishCopy, getCopy } from '@/lib/copy'
 /*
  * MOTIR-7972 — the landing's share image, one per locale.
  *
- * Runs in `node` for the reason `tests/ogFonts.test.ts` gives: `next/og`
- * renders through satori in a Node runtime. It calls the route's real default
- * export with the `params` promise Next 16 hands it, and spies on `fetch`: a
- * card that reached the network for a fallback font would be drawn in a face
- * this site never chose, and would make the build depend on a network.
+ * Drawn at BUILD since MOTIR-10647: satori and resvg in the Node build, called
+ * by the endpoint `src/pages/[...locale]/opengraph-image.ts`. This calls the
+ * real renderer, and spies on `fetch`: a card that reached the network for a
+ * fallback font would be drawn in a face this site never chose, and would make
+ * the build depend on a network.
  */
 
 const PNG_MAGIC = '89504e470d0a1a0a'
 
 async function render(locale: string): Promise<Buffer> {
-  const { default: route } = await import('@/app/[locale]/opengraph-image')
-  const response = await route({ params: Promise.resolve({ locale }) })
-  return Buffer.from(await response.arrayBuffer())
+  const { renderLocaleShareCard } = await import('@/app/_brand/localeShareCard')
+  return Buffer.from(await renderLocaleShareCard(locale as 'en'))
 }
 
 afterEach(() => {
@@ -55,15 +54,25 @@ describe.each(['en', 'pl', 'ja'])('the %s card', (locale) => {
   })
 })
 
-describe('the route', () => {
-  it('names all eleven locales, so each card is built ahead of time', async () => {
-    const { generateStaticParams } =
-      await import('@/app/[locale]/opengraph-image')
+describe('the endpoint', () => {
+  it('names all twelve locales, English unprefixed, so each card is built ahead of time', async () => {
+    const { getStaticPaths } =
+      await import('@/src/pages/[...locale]/opengraph-image')
     const { LOCALES } = await import('@/i18n/routing')
-    expect(generateStaticParams()).toEqual(
-      LOCALES.map((locale) => ({ locale })),
+    expect(getStaticPaths()).toEqual(
+      LOCALES.map((locale) => ({
+        params: { locale: locale === 'en' ? undefined : locale },
+      })),
     )
   })
+
+  it('answers each locale with its card, as image/png', async () => {
+    const { GET } = await import('@/src/pages/[...locale]/opengraph-image')
+    const response = await GET({ params: { locale: 'de' } } as never)
+    expect(response.headers.get('content-type')).toBe('image/png')
+    const png = Buffer.from(await response.arrayBuffer())
+    expect(png.equals(await render('de'))).toBe(true)
+  }, 30_000)
 })
 
 describe('English is unchanged', () => {

@@ -1,8 +1,13 @@
-import * as React from 'react'
-import { createElement, Fragment, type ReactNode } from 'react'
-import { createTranslator, hasLocale, useLocale, useMessages } from 'next-intl'
-import { claimedLocale } from '@/i18n/claim'
-import { DEFAULT_LOCALE, LOCALES, type Locale } from '@/i18n/routing'
+import {
+  createContext,
+  createElement,
+  Fragment,
+  useContext,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react'
+import { createTranslator } from 'use-intl/core'
+import type { Locale } from '@/i18n/routing'
 import en from '@/messages/en.json'
 
 /**
@@ -15,16 +20,18 @@ import en from '@/messages/en.json'
  * locale with no file at all renders wholly in English.
  *
  * ⚠️ STILL A TYPED OBJECT, NOT `t('…')`. The site reads `copy.landing.hero.cta`
- * and keeps reading it that way. next-intl is used for what a typed import
- * could not give: the request-scoped locale and the server/client handoff
- * (`useMessages`, `NextIntlClientProvider`). The English fallback lives in ONE
- * place, `resolveCopy`, on the server; the client receives the already-merged
- * object, so no component ever handles a missing key.
+ * and keeps reading it that way. The page's locale and catalogue reach the
+ * components through ONE React context, {@link PageProvider}, which every
+ * React root on a page mounts — the build's server render and each island's
+ * hydration alike (MOTIR-10643, replacing next-intl's provider). The English
+ * fallback lives in ONE place, `resolveCopy`, at build; an island receives the
+ * already-merged object, so no component ever handles a missing key.
  *
  * Three ways to read it:
- *  • `useCopy()` — any component that is not `async`, server or client.
- *  • `await getCopy(locale)` — an `async` server component, with the locale
- *    from its `params` (`enterLocale`).
+ *  • `useCopy()` — any component that is not `async`, rendered at build or in
+ *    an island.
+ *  • `await getCopy(locale)` — an `async` page module, with the locale from
+ *    its `params` (`enterLocale`).
  *  • `englishCopy` — only page METADATA, the share image, the JSON-LD and the
  *    global 404, each of which another card localises.
  *    `tests/i18n/copyReaders.test.ts` holds that list.
@@ -84,14 +91,14 @@ export type CatalogueLoader = (locale: Locale) => Promise<unknown>
  * bundler turns `../messages/${locale}.json` into one chunk per file present in
  * `messages/` at build time; a translation card adds `messages/ja.json` and
  * this line already reaches it. Relative rather than `@/`, because that is the
- * form both Next's bundler and Vite resolve as a variable import.
+ * form Vite resolves as a variable import.
  */
 const loadCatalogue: CatalogueLoader = async (locale) =>
   (await import(`../messages/${locale}.json`)).default
 
 /**
  * "This locale has no catalogue file" — the ONE failure that means English.
- * Node and webpack say `MODULE_NOT_FOUND`; Vite's variable import says it has
+ * Node says `MODULE_NOT_FOUND`; Vite's variable import says it has
  * no such file. Anything else (a malformed file, a bundler fault) is rethrown.
  */
 function isMissingCatalogue(error: unknown): boolean {
@@ -109,7 +116,7 @@ function isMissingCatalogue(error: unknown): boolean {
 const resolved = new Map<Locale, Promise<Copy>>()
 
 /**
- * The page's catalogue, English per missing key — SERVER-side, memoised per
+ * The page's catalogue, English per missing key — at BUILD, memoised per
  * locale. `en` is the English object itself, never a load.
  *
  * `load` is the seam the fallback tests use; a caller in the app passes only
@@ -139,15 +146,13 @@ export function getCopy(
 
 /**
  * The namespaces a `'use client'` module reads — and so the only part of the
- * catalogue the locale layout sends to the browser.
+ * catalogue a page sends to the browser for its islands (`lib/island.tsx`).
  *
  * ⚠️ MEASURED, NOT TIDY. Handing the providers the whole catalogue put every
  * namespace into every page's payload, most of it `products` (26 KB) that no
  * client module reads: `/docs/mcp` measured 211,265 bytes that way and
  * 168,544 with this list (same build, same stub).
- * The global 404's provider is the second sender, and it matters as much:
- * Next puts that boundary into EVERY page's payload. A client module that
- * starts reading another namespace adds it here, and
+ * A client module that starts reading another namespace adds it here, and
  * `tests/i18n/copyReaders.test.ts` fails until it does.
  */
 export const CLIENT_COPY_NAMESPACES = [
@@ -173,66 +178,89 @@ export function clientCopy(
 }
 
 /*
- * ⚠️ A SERVER COMPONENT AND A CLIENT COMPONENT READ THE CATALOGUE DIFFERENTLY
- * (MOTIR-7955).
+ * ⚠️ ONE CONTEXT, READ THE SAME WAY AT BUILD AND IN AN ISLAND (MOTIR-10643).
  *
- * A client component reads `useMessages()` — the provider the locale layout
- * mounts, which names its locale and catalogue outright.
- *
- * A server component does NOT go through next-intl. Its server `useMessages()`
- * and `useLocale()` read `getConfig()`, which React-caches its FIRST answer for
- * the whole request — and the global `app/not-found.tsx`, rendered into every
- * page's payload, answers first, in English. Measured on `next dev`: on
- * `/fr/no-such-page` the locale layout and the page both claimed `fr` before
- * the 404 room rendered, and the room's `useLocale()` still said `en`. So the
- * server half reads the locale the tree claimed (`i18n/claim.ts`) at the
- * moment of the read, and the catalogue for it from `getCopy`.
- *
- * The React build tells the two apart: the server-components build has no
- * `useState`. Each half is chosen once, at module load, so neither calls a
- * hook conditionally.
+ * Under Next a server component and a client component read the catalogue
+ * through different paths, because next-intl's server config was cached per
+ * request and the global 404 answered first (MOTIR-7955). A built page has no
+ * request and no second tree: the Astro page renders ONE React root per page
+ * in ONE locale, and that root mounts `PageProvider` with the locale, the
+ * catalogue and the page's path. An island's root mounts the same provider in
+ * the browser with the island's share of the catalogue (`clientCopy`), so a
+ * component reads `useCopy()` whichever side it renders on.
  */
-const IN_SERVER_COMPONENT = !('useState' in React)
 
-/** The locale a server component renders in: the claimed one, else English. */
-function serverLocale(): Locale {
-  return claimedLocale() ?? DEFAULT_LOCALE
+/** What a page's React root knows: its locale, its catalogue, its path. */
+export interface PageValue {
+  locale: Locale
+  copy: Copy
+  /**
+   * The page's own address as built, locale prefix included (`/de/price`).
+   * The switcher and the header's current-page mark read it.
+   */
+  pathname: string
+  /**
+   * True on a page built once and served at many addresses — the not-found
+   * room, which answers every unknown path under its locale. Its path is then
+   * the location bar's, read in the browser after hydration.
+   */
+  servedAtAnyPath?: boolean
 }
 
-function useServerCopy(): Copy {
-  const locale = serverLocale()
-  // English is the object itself; any other locale is `getCopy`'s memoised
-  // promise, which `use` unwraps — the same promise on every render.
-  return locale === DEFAULT_LOCALE ? englishCopy : React.use(getCopy(locale))
+const PageContext = createContext<PageValue | null>(null)
+
+/** Mount at the root of every React tree a page renders. */
+export function PageProvider({
+  value,
+  children,
+}: Readonly<{ value: PageValue; children: ReactNode }>) {
+  return createElement(PageContext.Provider, { value }, children)
 }
 
-function useClientCopy(): Copy {
-  return useMessages() as unknown as Copy
+/** The whole page value, for a component that hands it on (`lib/island.tsx`). */
+export function usePage(): PageValue {
+  const page = useContext(PageContext)
+  if (page === null) {
+    throw new Error(
+      'A component read the page catalogue outside a PageProvider. Every React root a page renders mounts one (lib/copy.ts).',
+    )
+  }
+  return page
 }
 
-function useClientLocale(): Locale {
-  const locale = useLocale()
-  return hasLocale(LOCALES, locale) ? locale : DEFAULT_LOCALE
+/** The page's catalogue in a component that is not `async`. */
+export function useCopy(): Copy {
+  return usePage().copy
 }
 
 /**
- * The page's catalogue in a component that is not `async` — server or client.
- * On the client it is next-intl's `useMessages()`, which the locale layout's
- * `NextIntlClientProvider` fills; on the server, the claimed locale's
- * `getCopy` (see the note above). Both are the same merged object.
+ * The page's locale in a component that is not `async` — for `Intl`
+ * formatting and locale-keeping links.
  */
-export const useCopy: () => Copy = IN_SERVER_COMPONENT
-  ? useServerCopy
-  : useClientCopy
+export function usePageLocale(): Locale {
+  return usePage().locale
+}
+
+const noSubscription = () => () => {}
 
 /**
- * The page's locale in a component that is not `async` — server or client —
- * for `Intl` formatting and locale-keeping links. Read it through this rather
- * than next-intl's `useLocale()`, for the reason the note above gives.
+ * The address the reader is on, locale prefix included.
+ *
+ * The page's own built path — except on a page `servedAtAnyPath`, the
+ * not-found room, which is built once per locale and served for every unknown
+ * address under it: there the switcher on `/de/does-not-exist` must link to
+ * `/fr/does-not-exist`, not to the built `/fr/404`, so the path is the location
+ * bar's. `useSyncExternalStore` hydrates on the built value and moves to the
+ * browser's on the next render, so hydration never mismatches.
  */
-export const usePageLocale: () => Locale = IN_SERVER_COMPONENT
-  ? serverLocale
-  : useClientLocale
+export function usePagePathname(): string {
+  const { pathname, servedAtAnyPath } = usePage()
+  return useSyncExternalStore(
+    noSubscription,
+    () => (servedAtAnyPath ? window.location.pathname : pathname),
+    () => pathname,
+  )
+}
 
 /**
  * Fill `{name}` placeholders. Two strings carry them — the character counter

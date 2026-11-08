@@ -1,7 +1,8 @@
-import { beforeAll, describe, expect, it, vi } from 'vitest'
-import sitemap from '@/tests/helpers/sitemap'
-import { generateMetadata as generateDocumentMetadata } from '@/app/[locale]/legal/[slug]/page'
-import { generateMetadata as generateIndexMetadata } from '@/app/[locale]/legal/page'
+import { beforeAll, describe, expect, it } from 'vitest'
+import { siteSitemapEntries } from '@/lib/siteSitemap'
+import type { SitemapEntry } from '@/lib/sitemapXml'
+import { generateMetadata as generateDocumentMetadata } from '@/app/[locale]/legal/[slug]/LegalDocumentRoute'
+import { generateMetadata as generateIndexMetadata } from '@/app/[locale]/legal/LegalIndexRoute'
 import { format, getCopy } from '@/lib/copy'
 import { getLegalDocument, legalDocumentSlugs } from '@/lib/legal/documents'
 import {
@@ -12,10 +13,6 @@ import {
 import { siteUrl } from '@/lib/siteOrigin'
 import { DEFAULT_LOCALE, LOCALES, OG_LOCALE } from '@/i18n/routing'
 import { localizedPath } from '@/i18n/localizedPath'
-
-// `app/sitemap.ts` reads the request's host, and `next/headers` throws outside
-// a request scope. Empty headers read as the SITE's own host.
-vi.mock('next/headers', () => ({ headers: async () => new Headers() }))
 
 /*
  * MOTIR-8086 — a legal document's crawl data points at the English document.
@@ -125,9 +122,9 @@ describe('the /legal index head is unchanged', () => {
 })
 
 describe('the sitemap', () => {
-  let entries: Awaited<ReturnType<typeof sitemap>>
+  let entries: SitemapEntry[]
   beforeAll(async () => {
-    entries = await sitemap()
+    entries = siteSitemapEntries()
   })
 
   it.each(SLUGS)(

@@ -1,0 +1,28 @@
+---
+/*
+ * THE 404 ROOM, ONE PER LOCALE (MOTIR-4193 · MOTIR-7955 · MOTIR-10643).
+ *
+ * Built as `404.html` for English and `<locale>/404.html` for the other
+ * eleven. Workers' `not_found_handling: "404-page"` (`wrangler.jsonc`) answers
+ * a path that matches no file with the NEAREST `404.html` above it, so a
+ * mistyped `/de/…` gets the German room and anything else the English one —
+ * what `app/[locale]/not-found.tsx` and the global `app/not-found.tsx` did
+ * under Next, without a render per request.
+ *
+ * `robots: noindex` is the Next build's: its not-found document carried
+ * `<meta name="robots" content="noindex"/>` and no canonical.
+ */
+import LocaleNotFound from '@/app/[locale]/not-found'
+import SitePage from '@/src/layouts/SitePage.astro'
+import { localeStaticPaths, pageLocale } from '@/lib/staticPaths'
+
+export const getStaticPaths = localeStaticPaths
+const locale = pageLocale(Astro.params)
+---
+
+<SitePage
+  locale={locale}
+  page={LocaleNotFound}
+  extraMetadata={{ robots: { index: false } }}
+  servedAtAnyPath
+/>

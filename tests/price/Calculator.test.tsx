@@ -1,7 +1,7 @@
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { render } from '@/tests/helpers/withCopy'
+import { render as renderOnPage } from '@/tests/helpers/withCopy'
 import {
   CATEGORY_MODEL_EXAMPLES,
   Calculator,
@@ -25,7 +25,11 @@ import stale from '@/tests/fixtures/calculator/problem-stale-category.json'
  */
 
 vi.mock('@/lib/aiOrigin', () => ({ AI_ORIGIN: 'https://ai.example' }))
-vi.mock('next/navigation', () => ({ usePathname: () => '/price' }))
+const pathname = { value: '/price' }
+
+/** Render on the page at `pathname.value` (the built path the header reads). */
+const render: typeof renderOnPage = (ui, options = {}) =>
+  renderOnPage(ui, { pathname: pathname.value, ...options })
 
 const words = englishCopy.pricePage.calculator
 const plans = englishCopy.pricePage.plans

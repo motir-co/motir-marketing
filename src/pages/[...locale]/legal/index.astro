@@ -1,0 +1,22 @@
+---
+/*
+ * The legal index, inside the legal shell (MOTIR-4009 · MOTIR-10644).
+ */
+import LegalIndexRoute, {
+  generateMetadata,
+} from '@/app/[locale]/legal/LegalIndexRoute'
+import LegalLayout, {
+  generateMetadata as legalMetadata,
+} from '@/app/[locale]/legal/LegalLayout'
+import SitePage from '@/src/layouts/SitePage.astro'
+import { localeStaticPaths, pageLocale } from '@/lib/staticPaths'
+
+export const getStaticPaths = localeStaticPaths
+---
+
+<SitePage
+  locale={pageLocale(Astro.params)}
+  page={LegalIndexRoute}
+  layouts={[LegalLayout]}
+  metadata={[legalMetadata, generateMetadata]}
+/>

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
   PUBLIC_ADDRESS_KIND_HEADER,
   PUBLIC_HOST_HEADER,
@@ -191,32 +191,6 @@ describe('readPublicHost — what a page believes about its address', () => {
     expect(
       readPublicHost(headers({ [PUBLIC_ADDRESS_KIND_HEADER]: 'site' })),
     ).toEqual(SITE_HOST)
-  })
-})
-
-describe('requestPublicHost — the one ambient read on the surface', () => {
-  it('reads the router’s headers through `next/headers`', async () => {
-    // ⚠️ THE IMPORT IS LAZY IN THE MODULE UNDER TEST, and that is not incidental
-    // here either: `proxy.ts` imports this module, and `next/headers` does not
-    // exist in the proxy runtime — a top-level import would throw there before
-    // any routing ran. Mocking the specifier covers the dynamic import too.
-    vi.doMock('next/headers', () => ({
-      headers: async () =>
-        new Headers({
-          [PUBLIC_ADDRESS_KIND_HEADER]: 'workspace',
-          [PUBLIC_HOST_HEADER]: 'acme.motir.site',
-        }),
-    }))
-    try {
-      const { requestPublicHost } = await import('@/lib/publicHost')
-      await expect(requestPublicHost()).resolves.toEqual({
-        kind: 'workspace',
-        host: 'acme.motir.site',
-        origin: null,
-      })
-    } finally {
-      vi.doUnmock('next/headers')
-    }
   })
 })
 

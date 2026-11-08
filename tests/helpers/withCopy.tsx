@@ -1,34 +1,37 @@
 import type { ReactElement, ReactNode } from 'react'
-import { NextIntlClientProvider } from 'next-intl'
-import { render as rtlRender, type RenderOptions } from '@testing-library/react'
+import {
+  act,
+  render as rtlRender,
+  type RenderOptions,
+} from '@testing-library/react'
 import type { Locale } from '@/i18n/routing'
-import { type Copy, englishCopy } from '@/lib/copy'
+import { clientCopy, type Copy, englishCopy, PageProvider } from '@/lib/copy'
+import { hydrateIslands } from '@/lib/hydrateIslands'
 
 /**
- * Render inside the catalogue a page would have (MOTIR-7950).
+ * Render inside the page a component would be built in (MOTIR-7950 ·
+ * MOTIR-10643).
  *
- * Every component reads its words through `useCopy()`, which is next-intl's
- * `useMessages()`. In the app the locale layout's `NextIntlClientProvider`
- * supplies them; under jsdom nothing does, so a component rendered bare would
- * throw. This is the ONE place a test supplies that provider — English by
- * default, or any `{ locale, messages }` a test is about.
+ * Every component reads its words, its locale and its path through
+ * `PageProvider` (`lib/copy.ts`), which each page's React root mounts. Under
+ * jsdom nothing does, so a component rendered bare would throw. This is the
+ * ONE place a test supplies it — English at `/` by default, or any
+ * `{ locale, messages, pathname }` a test is about.
  */
 export interface CopyOptions {
   locale?: Locale
   messages?: Copy
+  pathname?: string
 }
 
 export function withCopy(
   ui: ReactNode,
-  { locale = 'en', messages = englishCopy }: CopyOptions = {},
+  { locale = 'en', messages = englishCopy, pathname = '/' }: CopyOptions = {},
 ): ReactElement {
   return (
-    <NextIntlClientProvider
-      locale={locale}
-      messages={messages as unknown as Record<string, unknown>}
-    >
+    <PageProvider value={{ locale, copy: messages, pathname }}>
       {ui}
-    </NextIntlClientProvider>
+    </PageProvider>
   )
 }
 
@@ -41,9 +44,32 @@ export function render(
   ui: ReactElement,
   options: RenderOptions & CopyOptions = {},
 ) {
-  const { locale, messages, ...rest } = options
+  const { locale, messages, pathname, ...rest } = options
   return rtlRender(ui, {
-    wrapper: ({ children }) => withCopy(children, { locale, messages }),
+    wrapper: ({ children }) =>
+      withCopy(children, { locale, messages, pathname }),
     ...rest,
   })
+}
+
+/**
+ * `render`, then hydrate the islands in what it rendered, exactly as the page
+ * script does in the browser (`lib/hydrateIslands.tsx`). An island renders as
+ * static HTML until it is hydrated, so a test that CLICKS inside one — the
+ * header's menus and its language list — renders through this.
+ */
+export async function renderHydrated(
+  ui: ReactElement,
+  options: RenderOptions & CopyOptions = {},
+) {
+  const result = render(ui, options)
+  const { locale = 'en', messages = englishCopy, pathname = '/' } = options
+  await act(async () => {
+    await hydrateIslands(result.container, {
+      locale,
+      copy: clientCopy(messages) as unknown as Copy,
+      pathname,
+    })
+  })
+  return result
 }

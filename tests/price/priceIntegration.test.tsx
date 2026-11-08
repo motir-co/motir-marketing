@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { render } from '@/tests/helpers/withCopy'
+import { renderHydrated } from '@/tests/helpers/withCopy'
 import { PricePage } from '@/app/_components/PricePage'
 import { PriceCard } from '@/app/_components/price/PriceCard'
 import { Calculator } from '@/app/_components/price/Calculator'
@@ -39,11 +39,6 @@ import { FORBIDDEN_TERMS } from './wordingTerms'
 
 const ORIGIN = 'https://ai.example'
 vi.mock('@/lib/aiOrigin', () => ({ AI_ORIGIN: 'https://ai.example' }))
-const refresh = vi.hoisted(() => vi.fn())
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/price',
-  useRouter: () => ({ refresh }),
-}))
 
 type Reply = () => Response | Promise<Response>
 interface Captured {
@@ -96,12 +91,13 @@ async function renderPage(locale: Locale = 'en') {
     fetchStub as unknown as typeof fetch,
     ORIGIN,
   )
-  const view = render(
+  // Hydrated as the browser does: the cadence toggle is an island.
+  const view = await renderHydrated(
     <PricePage
       plans={<PriceCard ladder={ladder} />}
       calculator={<Calculator />}
     />,
-    { locale, messages },
+    { locale, messages, pathname: '/price' },
   )
   await screen.findByRole('checkbox', { name: /^Balanced,/ }).catch(() => null)
   return { messages, view }

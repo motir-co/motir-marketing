@@ -13,7 +13,7 @@ import { describe, expect, it } from 'vitest'
  */
 
 const SHOWCASE = readFileSync('app/_components/DesignShowcase.tsx', 'utf8')
-const PAGE = readFileSync('app/[locale]/design/page.tsx', 'utf8')
+const PAGE = readFileSync('app/[locale]/design/DesignRoute.tsx', 'utf8')
 
 /** Source with comments removed — a rule quoted in a comment is not a declaration. */
 function code(source: string): string {

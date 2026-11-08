@@ -1,0 +1,19 @@
+---
+/*
+ * Motir AI Planner. Built once per locale (MOTIR-10644); the page module is the
+ * Next route's, rendered through the shared layout.
+ */
+import AiPlannerRoute, {
+  generateMetadata,
+} from '@/app/[locale]/products/ai-planner/AiPlannerRoute'
+import SitePage from '@/src/layouts/SitePage.astro'
+import { localeStaticPaths, pageLocale } from '@/lib/staticPaths'
+
+export const getStaticPaths = localeStaticPaths
+---
+
+<SitePage
+  locale={pageLocale(Astro.params)}
+  page={AiPlannerRoute}
+  metadata={[generateMetadata]}
+/>

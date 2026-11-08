@@ -1,4 +1,8 @@
-import { PLAN_LADDER_VERSION } from '@/lib/priceLadder'
+import { AI_ORIGIN } from '@/lib/aiOrigin'
+import {
+  PLAN_LADDER_VERSION,
+  PlanLadderUnavailableError,
+} from '@/lib/priceLadder'
 import { catalogSource, type CatalogSource } from './catalogSource'
 import { parseExplainerFigures, type ExplainerFigures } from './figuresParse'
 
@@ -13,8 +17,11 @@ export type { ExplainerFigures, ExplainerPlan } from './figuresParse'
  * It never throws and never returns part of a set. A `version` it does not know
  * is `unknown-version`; anything else that stops it from reading every figure —
  * no origin, a network error, a timeout, a non-OK answer, a body that is not
- * JSON or misses a figure — is `unreadable`. Either way the page renders its
- * figure-free wording.
+ * JSON or misses a figure — is `unreadable`. Either way `ExplainerPage`
+ * renders its figure-free wording. The BUILT page reads through
+ * `requireExplainerFigures`, which fails the build instead (MOTIR-10644): a
+ * static page is replaced by its next build, so the build stops rather than
+ * replacing a page with figures by one without.
  *
  * The lane factors are not here: the engine applies them and does not return
  * them, and whether the page shows them as figures is the owner's open decision
@@ -73,4 +80,17 @@ export async function readExplainerFigures(
   } finally {
     clearTimeout(timer)
   }
+}
+
+/**
+ * The figures, for the page built from them: the read, or a thrown
+ * `PlanLadderUnavailableError` that fails the build (MOTIR-10644).
+ */
+export async function requireExplainerFigures(
+  read: () => Promise<ExplainerResult> = () => readExplainerFigures(),
+  origin: string | null = AI_ORIGIN,
+): Promise<ExplainerFigures> {
+  const result = await read()
+  if (result.state !== 'figures') throw new PlanLadderUnavailableError(origin)
+  return result.figures
 }

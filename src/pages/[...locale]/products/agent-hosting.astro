@@ -1,0 +1,19 @@
+---
+/*
+ * Agent hosting. Built once per locale (MOTIR-10644); the page module is the
+ * Next route's, rendered through the shared layout.
+ */
+import AgentHostingRoute, {
+  generateMetadata,
+} from '@/app/[locale]/products/agent-hosting/AgentHostingRoute'
+import SitePage from '@/src/layouts/SitePage.astro'
+import { localeStaticPaths, pageLocale } from '@/lib/staticPaths'
+
+export const getStaticPaths = localeStaticPaths
+---
+
+<SitePage
+  locale={pageLocale(Astro.params)}
+  page={AgentHostingRoute}
+  metadata={[generateMetadata]}
+/>

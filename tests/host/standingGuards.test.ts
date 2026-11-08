@@ -19,7 +19,7 @@ const ROOT = process.cwd()
 const tracked = (dir: string): string[] =>
   execFileSync('git', ['ls-files', dir], { cwd: ROOT, encoding: 'utf8' })
     .split('\n')
-    .filter((f) => /\.(ts|tsx|mts)$/.test(f))
+    .filter((f) => /\.(ts|tsx|mts|astro)$/.test(f))
 
 const read = (file: string) => readFileSync(join(ROOT, file), 'utf8')
 
@@ -33,8 +33,10 @@ const SOURCES = [
   ...tracked('app'),
   ...tracked('lib'),
   ...tracked('e2e'),
+  ...tracked('src'),
+  ...tracked('i18n'),
   'proxy.ts',
-  'next.config.ts',
+  'astro.config.mjs',
 ]
 
 describe('ONE READER PER BUILD-TIME VARIABLE', () => {
@@ -73,15 +75,6 @@ describe('THE GUARDS THAT FAIL A BUILD', () => {
     expect(code('lib/appOrigin.ts')).toContain(
       "throw new MotirAppOriginError('is not set')",
     )
-  })
-
-  it('the tenant domain is asserted from next.config.ts, which a build always evaluates', () => {
-    // ⚠️ MEASURED, NOT ASSUMED. `NEXT_PUBLIC_MOTIR_TENANT_DOMAIN` is consumed by
-    // `proxy.ts` alone, and Next BUNDLES the proxy without executing it — a
-    // production build with the variable unset completed green. `lib/
-    // tenantDomain.ts` carries the finding; this is the line that would have to
-    // be deleted for it to come back.
-    expect(code('next.config.ts')).toContain('assertTenantDomainConfigured')
   })
 })
 

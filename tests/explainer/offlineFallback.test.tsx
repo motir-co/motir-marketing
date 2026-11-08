@@ -14,7 +14,8 @@ import { CATEGORIES_PATH } from '@/app/_components/price/calculatorApi'
 import { ExplainerPage } from '@/app/[locale]/how-the-calculation-works/_components/ExplainerPage'
 import { SECTION_IDS } from '@/app/[locale]/how-the-calculation-works/_components/copy'
 import { figureFormat } from '@/app/[locale]/how-the-calculation-works/_components/figureFormat'
-import HowTheCalculationWorksRoute from '@/app/[locale]/how-the-calculation-works/page'
+import HowTheCalculationWorksRoute from '@/app/[locale]/how-the-calculation-works/HowTheCalculationWorksRoute'
+import { PlanLadderUnavailableError } from '@/lib/priceLadder'
 import recorded from '@/tests/fixtures/price/plans.json'
 import unknownVersion from '@/tests/fixtures/price/plans-unknown-version.json'
 
@@ -27,7 +28,9 @@ import unknownVersion from '@/tests/fixtures/price/plans-unknown-version.json'
  * the network.
  */
 
-vi.mock('next/navigation', () => ({ usePathname: () => '/' }))
+// The built route reads from the configured origin; the reads below that
+// inject their own use the same one.
+vi.mock('@/lib/aiOrigin', () => ({ AI_ORIGIN: 'https://ai.example' }))
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -112,23 +115,43 @@ describe('the explainer with no live figures', () => {
     })
   })
 
-  it('renders the route itself without throwing when the engine is blocked', async () => {
+  /*
+   * ⚠️ THE BUILT PAGE DOES NOT SHIP THIS STATE (MOTIR-10644). `/how-the-
+   * calculation-works` is a static page read once per build, and a build that
+   * cannot read the figures stops, so the deployed page keeps its last copy
+   * with figures. The words-only body above is `ExplainerPage`'s, for a
+   * caller that hands it none.
+   */
+  it.each(ENGINE)(
+    'fails the build of the route itself on %s',
+    async (_, reply) => {
+      vi.stubGlobal('fetch', vi.fn(reply))
+      await expect(
+        HowTheCalculationWorksRoute({
+          params: Promise.resolve({ locale: 'en' }),
+        }),
+      ).rejects.toBeInstanceOf(PlanLadderUnavailableError)
+    },
+  )
+
+  it('renders the route itself, with every section and no note, from a readable catalog', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => {
-        throw new TypeError('fetch failed')
+      vi.fn(async (url: string) =>
+        url.endsWith(PLAN_LADDER_PATH)
+          ? json(recorded)
+          : json({ status: 503 }, 503),
+      ),
+    )
+    render(
+      await HowTheCalculationWorksRoute({
+        params: Promise.resolve({ locale: 'en' }),
       }),
     )
-    const page = await HowTheCalculationWorksRoute({
-      params: Promise.resolve({ locale: 'en' }),
-    })
-    render(page)
     expect(document.querySelectorAll('section[id^="s"]')).toHaveLength(
       SECTION_IDS.length,
     )
-    expect(
-      document.querySelector('[data-element="fallback-note"]'),
-    ).not.toBeNull()
+    expect(document.querySelector('[data-element="fallback-note"]')).toBeNull()
   })
 })
 

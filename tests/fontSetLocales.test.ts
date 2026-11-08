@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { LOCALE_FONT_SET } from '@motir/design-system'
-import { routing } from '@/i18n/routing'
+import { LOCALES } from '@/i18n/routing'
 
 /*
  * EVERY LANGUAGE motir.co SPEAKS HAS A FONT SET (MOTIR-7952).
@@ -14,9 +14,7 @@ import { routing } from '@/i18n/routing'
 
 describe('the installed font sets cover the site’s locales', () => {
   it('maps exactly the locales the site routes', () => {
-    expect(Object.keys(LOCALE_FONT_SET).sort()).toEqual(
-      [...routing.locales].sort(),
-    )
+    expect(Object.keys(LOCALE_FONT_SET).sort()).toEqual([...LOCALES].sort())
   })
 
   it('draws zh, zh-tw, ja and ko in four different sets', () => {

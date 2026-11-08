@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { useSitePathname } from '@/i18n/sitePathname'
 import { ArrowRight, ArrowUpRight, ChevronDown, Menu } from 'lucide-react'
-import { buttonVariants, cn } from '@motir/design-system'
+import { buttonVariants, cn, ImmersiveTilt } from '@motir/design-system'
 import { type Copy, useCopy, usePageLocale } from '@/lib/copy'
 import type { Locale } from '@/i18n/routing'
 import { PRODUCT_MARK, productGroupsFor, productItemsFor } from './products'
@@ -128,7 +128,6 @@ function ProductsMenu({ host }: { host: PublicHost }) {
   const locale = usePageLocale()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
-  const onSite = host.kind === 'site'
 
   const close = useCallback(() => setOpen(false), [])
   useDismiss(rootRef, open, close)
@@ -169,7 +168,6 @@ function ProductsMenu({ host }: { host: PublicHost }) {
                 <ChromeLink
                   key={product.slug}
                   href={productHref(host, product.slug, locale)}
-                  internal={onSite && !PRODUCT_DOCS[product.slug]}
                   {...(PRODUCT_DOCS[product.slug] ? NEW_TAB : {})}
                   onClick={() => setOpen(false)}
                   className="grid grid-cols-[10px_minmax(0,1fr)] gap-x-3 gap-y-0.5 rounded-(--radius-control) px-(--spacing-control-x) py-(--spacing-control-y) no-underline hover:bg-(--el-surface-soft) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--el-accent-on-surface)"
@@ -237,13 +235,18 @@ export function SiteHeader({
   const locale = usePageLocale()
   const [menuOpen, setMenuOpen] = useState(false)
   const pathname = useSitePathname()
-  const onSite = host.kind === 'site'
   // The give-way ladder (MOTIR-7947 revision 2): the widths each rung needs
   // are this locale's, measured, not shared breakpoints.
   const ladder = LADDER_CLASSES[locale]
 
   return (
     <header className={cn(overlay && 'absolute inset-x-0 top-0 z-30')}>
+      {/* The 3D / Immersive style's pointer tilt, which animates the page's
+          `data-tilt` panels. It is an effect with no markup, and it rides the
+          header so that the header stays the only island a page's chrome
+          hydrates (MOTIR-10643). Inert under every other style and under
+          reduced motion. */}
+      <ImmersiveTilt />
       <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-(--spacing-card-padding) sm:py-4">
         <div className="flex min-w-0 items-center gap-8">
           {/* motir.co's own root — internal ON THE SITE, and an absolute link
@@ -251,11 +254,10 @@ export function SiteHeader({
             project's root rather than ours (MOTIR-4372). This comment used to
             call it "the ONE internal link on the page", which was true of the
             host it was written on and of no other. Every destination that is a
-            different ORIGIN stays a plain `<a>`: `next/link` prefetches and
-            client-routes, neither of which means anything across origins. */}
+            different ORIGIN stays a plain `<a>` — and on the built site every
+            link is one (`ChromeLink`, MOTIR-10643). */}
           <ChromeLink
             href={siteLinkFor(host, SITE_ROOT, locale)}
-            internal={onSite}
             aria-label={copy.nav.brandAriaLabel}
             className="flex flex-none items-center"
           >
@@ -277,7 +279,6 @@ export function SiteHeader({
                 <ChromeLink
                   key={item.path}
                   href={siteLinkFor(host, item.path, locale)}
-                  internal={onSite}
                   aria-current={current ? 'page' : undefined}
                   className={cn(
                     NAV_ITEM,
@@ -378,28 +379,24 @@ export function SiteHeader({
             ...productItemsFor(copy).map((product) => ({
               href: productHref(host, product.slug, locale),
               label: product.name,
-              internal: onSite && !PRODUCT_DOCS[product.slug],
               current: false,
               newTab: Boolean(PRODUCT_DOCS[product.slug]),
             })),
             ...navItemsFor(copy).map((item) => ({
               href: siteLinkFor(host, item.path, locale),
               label: item.label,
-              internal: onSite,
               current: isCurrent(host, item.path, pathname),
               feature: 'feature' in item,
             })),
             {
               href: SIGN_IN,
               label: copy.nav.signIn,
-              internal: false,
               current: false,
             },
           ].map((item) => (
             <ChromeLink
               key={item.href}
               href={item.href}
-              internal={item.internal}
               aria-current={item.current ? 'page' : undefined}
               {...('newTab' in item && item.newTab ? NEW_TAB : {})}
               className={cn(

@@ -1,18 +1,14 @@
 // @vitest-environment node
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
+import { siteSitemapEntries } from '@/lib/siteSitemap'
 import { sitemapIndexXml, urlsetXml } from '@/lib/sitemapXml'
 
 /*
  * MOTIR-8842 — the sitemap as three routes: an index and the site half, both
- * built, and the per-host project half. The entries themselves are asserted in
- * `tests/host/crawlSurface.test.ts`; this is the document they are written as.
+ * built (by `astro build` since MOTIR-10646), and the per-host project half.
+ * The site entries themselves are asserted in `tests/entitySignal.test.ts`;
+ * this is the document they are written as.
  */
-
-afterEach(() => {
-  vi.doUnmock('next/headers')
-  vi.unstubAllGlobals()
-  vi.resetModules()
-})
 
 describe('urlsetXml', () => {
   it('writes loc, alternates, lastmod, changefreq and priority, escaped', () => {
@@ -67,51 +63,33 @@ describe('sitemapIndexXml', () => {
   })
 })
 
-describe('the three routes', () => {
+describe('the two built routes', () => {
+  // Astro endpoints, written once by `astro build` (MOTIR-10646). The project
+  // half, `/sitemap-projects.xml`, is a Worker route; its case waits in
+  // `tests/sitemapProjectsRoute.test.ts` for the Worker-routes story.
   it('/sitemap.xml indexes the site half and the project half on motir.co', async () => {
-    const { GET } = await import('@/app/sitemap.xml/route')
-    const res = GET()
+    const { GET } = await import('@/src/pages/sitemap.xml')
+    const res = await GET({} as never)
 
     expect(res.headers.get('content-type')).toBe('application/xml')
     const xml = await res.text()
-    expect(xml).toContain('<loc>https://motir.co/sitemap-site.xml</loc>')
-    expect(xml).toContain('<loc>https://motir.co/sitemap-projects.xml</loc>')
+    expect(xml).toContain('<sitemapindex')
+    expect([...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1])).toEqual([
+      'https://motir.co/sitemap-site.xml',
+      'https://motir.co/sitemap-projects.xml',
+    ])
   })
 
   it('/sitemap-site.xml is motir.co’s own pages and reads no request', async () => {
-    // No `next/headers` mock: the route is built, so it has no request scope.
-    const { GET } = await import('@/app/sitemap-site.xml/route')
-    const xml = await GET().text()
+    const { GET } = await import('@/src/pages/sitemap-site.xml')
+    const res = await GET({} as never)
+    const xml = await res.text()
 
+    expect(res.headers.get('content-type')).toBe('application/xml')
+    expect(xml).toBe(urlsetXml(siteSitemapEntries()))
     expect(xml).toContain('<loc>https://motir.co/</loc>')
     expect(xml).toContain('<loc>https://motir.co/fr/explore</loc>')
     expect(xml).not.toContain('/p/MOTIR')
-  })
-
-  it('/sitemap-projects.xml lists the projects whose canonical is motir.co', async () => {
-    vi.resetModules()
-    vi.doMock('next/headers', () => ({ headers: async () => new Headers() }))
-    vi.stubGlobal('fetch', async () =>
-      Response.json({
-        projects: [
-          {
-            identifier: 'MOTIR',
-            updatedAt: '2026-09-02T00:00:00.000Z',
-            primaryHost: 'motir.co',
-          },
-          {
-            identifier: 'PROD',
-            updatedAt: '2026-09-01T00:00:00.000Z',
-            primaryHost: 'roadmap.acme.com',
-          },
-        ],
-        nextCursor: null,
-      }),
-    )
-    const { GET } = await import('@/app/sitemap-projects.xml/route')
-    const xml = await (await GET()).text()
-
-    expect(xml).toContain('<loc>https://motir.co/p/MOTIR/changelog</loc>')
-    expect(xml).not.toContain('PROD')
+    expect(xml).not.toContain('/products/')
   })
 })

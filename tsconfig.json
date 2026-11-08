@@ -14,21 +14,65 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
     "paths": {
       "@/*": ["./*"]
     }
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
-  ],
-  "exclude": ["node_modules"]
+  "include": [".astro/types.d.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "proxy.ts",
+    "lib/requestLog.ts",
+    "tests/crawlPolicy.test.tsx",
+    "tests/host/customerHostRemoval.test.ts",
+    "tests/host/hostRouter.test.ts",
+    "tests/host/readPagesMoveGate.test.tsx",
+    "tests/host/retiredHostGate.test.ts",
+    "tests/host/storySeams.test.tsx",
+    "tests/i18n/detectionMatrix.test.tsx",
+    "tests/i18n/routing.test.ts",
+    "tests/i18n/zhTwStoryGate.test.ts",
+    "tests/legal/bindingEnglishNoteGate.test.tsx",
+    "app/[locale]/p",
+    "app/[locale]/explore",
+    "app/[locale]/ideas",
+    "app/[locale]/motir-builds-itself",
+    "app/sitemap-projects.xml",
+    "lib/requestPublicHost.ts",
+    "lib/explore.ts",
+    "lib/publicProject.ts",
+    "lib/sitemapEntries.ts",
+    "tests/helpers/sitemap.ts",
+    "app/_brand/ogRenderGate.ts",
+    "tests/brand/ogColours.test.ts",
+    "tests/explore/exploreParams.test.ts",
+    "tests/explore/gallery.test.tsx",
+    "tests/host/canonical.test.tsx",
+    "tests/host/crawlSurface.test.ts",
+    "tests/host/tenantLinks.test.tsx",
+    "tests/i18n/fallbackIntegration.test.tsx",
+    "tests/i18n/internalLinks.test.tsx",
+    "tests/i18n/localeMetadataLive.test.ts",
+    "tests/ideas/ideaDetail.test.tsx",
+    "tests/ideas/ideaList.test.tsx",
+    "tests/ideas/ideaLocaleMarks.test.tsx",
+    "tests/ideas/ideasPage.test.tsx",
+    "tests/mainLandmark.test.tsx",
+    "tests/og/ogRenderGate.test.ts",
+    "tests/publicProject/crawlIndex.test.ts",
+    "tests/publicProject/localeRender.test.tsx",
+    "tests/publicProject/noHardcodedCopy.test.tsx",
+    "tests/publicProject/projectShell.test.tsx",
+    "tests/publicProject/publicApiSeam.test.tsx",
+    "tests/publicProject/publicProjectRead.test.ts",
+    "tests/publicProject/readPageRedirects.test.ts",
+    "tests/publicProject/requestPublicHost.test.ts",
+    "tests/publicProject/rowsAndStates.test.tsx",
+    "tests/publicProject/standingRules.test.ts",
+    "tests/publicProject/subscribeForm.test.tsx",
+    "tests/publicProject/tabReads.test.ts",
+    "tests/publicProject/watchLive.test.tsx",
+    "tests/sitemapProjectsRoute.test.ts"
+  ]
 }

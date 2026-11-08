@@ -1,0 +1,24 @@
+---
+/*
+ * Getting started with the API; the contract version comes from the spec. Built once per locale
+ * (MOTIR-10645) in the docs shell, rendered through the shared layout.
+ */
+import GettingStartedRoute, {
+  generateMetadata,
+} from '@/app/[locale]/docs/api/getting-started/GettingStartedRoute'
+import DocsLayout, {
+  generateMetadata as docsMetadata,
+} from '@/app/[locale]/docs/DocsLayout'
+import DocsApiLayout from '@/app/[locale]/docs/api/DocsApiLayout'
+import SitePage from '@/src/layouts/SitePage.astro'
+import { localeStaticPaths, pageLocale } from '@/lib/staticPaths'
+
+export const getStaticPaths = localeStaticPaths
+---
+
+<SitePage
+  locale={pageLocale(Astro.params)}
+  page={GettingStartedRoute}
+  layouts={[DocsLayout, DocsApiLayout]}
+  metadata={[docsMetadata, generateMetadata]}
+/>

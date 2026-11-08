@@ -2,7 +2,7 @@ import { cn } from '@motir/design-system'
 import { useCopy } from '@/lib/copy'
 import type { PublicHost } from '@/lib/publicHost'
 import { SiteFooter } from './SiteFooter'
-import { SiteHeader } from './SiteHeader'
+import { SiteHeaderIsland } from '../_islands'
 
 /**
  * THE CHROME EVERY motir.co SURFACE WEARS, AND THE ONE PLACE THE `main`
@@ -134,7 +134,9 @@ export function SiteShell({
         {copy.nav.skipToContent}
       </a>
 
-      <SiteHeader host={host} overlay={overlayHeader} />
+      {/* The header is the page's island: everything else in the shell is
+          HTML only (MOTIR-10643). */}
+      <SiteHeaderIsland host={host} overlay={overlayHeader} />
 
       {/* `tabIndex={-1}` is what makes the skip link WORK rather than merely
           move the URL fragment: without it the anchor scrolls the landmark

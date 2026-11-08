@@ -1,5 +1,5 @@
 import { screen, waitFor } from '@testing-library/react'
-import { render } from '@/tests/helpers/withCopy'
+import { renderHydrated } from '@/tests/helpers/withCopy'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { CodeBlock } from '@/app/[locale]/docs/_components/DocSchema'
@@ -53,7 +53,7 @@ afterEach(() => {
 describe('CodeBlock’s copy affordance', () => {
   it('puts the block’s EXACT code on the clipboard — newlines and continuations included', async () => {
     const writeText = stubClipboard(() => Promise.resolve())
-    render(<CodeBlock caption={CAPTION} code={CODE} />)
+    await renderHydrated(<CodeBlock caption={CAPTION} code={CODE} />)
 
     await userEvent.click(
       screen.getByRole('button', { name: copyButtonLabel(CAPTION) }),
@@ -64,9 +64,9 @@ describe('CodeBlock’s copy affordance', () => {
     expect(writeText).toHaveBeenCalledWith(CODE)
   })
 
-  it('names itself by CAPTION, so two panes on one page never announce identically', () => {
+  it('names itself by CAPTION, so two panes on one page never announce identically', async () => {
     stubClipboard(() => Promise.resolve())
-    render(
+    await renderHydrated(
       <>
         <CodeBlock caption="pull" code="docker pull x" />
         <CodeBlock caption="run" code="docker run x" />
@@ -87,7 +87,7 @@ describe('CodeBlock’s copy affordance', () => {
     // too, so driving a click under fake ones deadlocks the two against each
     // other — and the duration under test is 1.6 s, which is cheap to just
     // wait out. The assertion is the same either way.
-    render(<CodeBlock caption={CAPTION} code={CODE} />)
+    await renderHydrated(<CodeBlock caption={CAPTION} code={CODE} />)
     const button = screen.getByRole('button', {
       name: copyButtonLabel(CAPTION),
     })
@@ -104,7 +104,7 @@ describe('CodeBlock’s copy affordance', () => {
 
   it('reports the REFUSAL — label, note and state — when writeText rejects', async () => {
     stubClipboard(() => Promise.reject(new Error('NotAllowedError')))
-    render(<CodeBlock caption={CAPTION} code={CODE} />)
+    await renderHydrated(<CodeBlock caption={CAPTION} code={CODE} />)
     const button = screen.getByRole('button', {
       name: copyButtonLabel(CAPTION),
     })
@@ -123,7 +123,7 @@ describe('CodeBlock’s copy affordance', () => {
       configurable: true,
       writable: true,
     })
-    render(<CodeBlock caption={CAPTION} code={CODE} />)
+    await renderHydrated(<CodeBlock caption={CAPTION} code={CODE} />)
     const button = screen.getByRole('button', {
       name: copyButtonLabel(CAPTION),
     })
@@ -136,7 +136,7 @@ describe('CodeBlock’s copy affordance', () => {
 
   it('⚠️ the FAILED state does NOT time out — it is still there long past the copied duration', async () => {
     stubClipboard(() => Promise.reject(new Error('NotAllowedError')))
-    render(<CodeBlock caption={CAPTION} code={CODE} />)
+    await renderHydrated(<CodeBlock caption={CAPTION} code={CODE} />)
     const button = screen.getByRole('button', {
       name: copyButtonLabel(CAPTION),
     })
@@ -159,7 +159,7 @@ describe('CodeBlock’s copy affordance', () => {
     stubClipboard(() =>
       refuse ? Promise.reject(new Error('no')) : Promise.resolve(),
     )
-    render(<CodeBlock caption={CAPTION} code={CODE} />)
+    await renderHydrated(<CodeBlock caption={CAPTION} code={CODE} />)
     const button = screen.getByRole('button', {
       name: copyButtonLabel(CAPTION),
     })
@@ -176,7 +176,7 @@ describe('CodeBlock’s copy affordance', () => {
 
   it('clears the failure when focus leaves the pane', async () => {
     stubClipboard(() => Promise.reject(new Error('no')))
-    render(
+    await renderHydrated(
       <>
         <CodeBlock caption={CAPTION} code={CODE} />
         <button type="button">elsewhere</button>
@@ -197,7 +197,9 @@ describe('CodeBlock’s copy affordance', () => {
 
   it('is operable by KEYBOARD, and the pane stays reachable for scrolling', async () => {
     const writeText = stubClipboard(() => Promise.resolve())
-    const { container } = render(<CodeBlock caption={CAPTION} code={CODE} />)
+    const { container } = await renderHydrated(
+      <CodeBlock caption={CAPTION} code={CODE} />,
+    )
 
     // The pane keeps its own tab stop — an overflowing block must stay
     // scrollable by keyboard, and the button must not have taken that away.
@@ -219,7 +221,7 @@ describe('CodeBlock’s copy affordance', () => {
     stubClipboard(() =>
       refuse ? Promise.reject(new Error('no')) : Promise.resolve(),
     )
-    render(<CodeBlock caption={CAPTION} code={CODE} />)
+    await renderHydrated(<CodeBlock caption={CAPTION} code={CODE} />)
     const button = screen.getByRole('button', {
       name: copyButtonLabel(CAPTION),
     })

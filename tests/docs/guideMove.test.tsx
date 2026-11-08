@@ -4,15 +4,16 @@ import ts from 'typescript'
 import { render } from '@/tests/helpers/withCopy'
 import { resolveAsync } from '@/tests/helpers/resolveAsync'
 import { describe, expect, it, vi } from 'vitest'
-import SentryPage from '@/app/[locale]/docs/(guides)/sentry/page'
-import SkillsPage from '@/app/[locale]/docs/(guides)/skills/page'
-import DifficultyPage from '@/app/[locale]/docs/(guides)/difficulty/page'
-import ConnectorPage from '@/app/[locale]/docs/(guides)/claude-code-connector/page'
-import PluginPage from '@/app/[locale]/docs/(guides)/claude-code-plugin/page'
+import SentryPage from '@/app/[locale]/docs/(guides)/sentry/SentryRoute'
+import SkillsPage from '@/app/[locale]/docs/(guides)/skills/SkillsRoute'
+import DifficultyPage from '@/app/[locale]/docs/(guides)/difficulty/DifficultyRoute'
+import ConnectorPage from '@/app/[locale]/docs/(guides)/claude-code-connector/ClaudeCodeConnectorRoute'
+import PluginPage from '@/app/[locale]/docs/(guides)/claude-code-plugin/ClaudeCodePluginRoute'
 import { documentInvariants } from '@/lib/docsDocuments'
 import { guideDate } from '@/lib/docsGuideValues'
 import { SKILLS_RELEASE_TAG } from '@/lib/skillsGuide'
 import { EN_PAGE } from '@/tests/helpers/locale'
+import { pageFileOf } from '@/tests/helpers/docsRoutes'
 import baseline from './fixtures/guide-move-baseline.json'
 
 // The ten translations are in the repository now; this file asserts the page when a
@@ -345,7 +346,7 @@ describe('the difficulty tables hold numbers, symbols and model names only', () 
  * of more than three words is prose, and prose belongs in a document or the
  * catalogue.
  */
-describe('no page.tsx holds an English sentence', () => {
+describe('no page module holds an English sentence', () => {
   function strings(text: string): string[] {
     const source = ts.createSourceFile(
       'page.tsx',
@@ -381,8 +382,8 @@ describe('no page.tsx holds an English sentence', () => {
   }
 
   for (const slug of Object.keys(PAGES)) {
-    it(`${slug}/page.tsx`, () => {
-      const file = join('app/[locale]/docs/(guides)', slug, 'page.tsx')
+    it(`${slug}'s page module`, () => {
+      const file = pageFileOf(`/docs/${slug}`)
       const prose = strings(readFileSync(file, 'utf8')).filter(
         (text) => text.split(/\s+/).filter(Boolean).length > 3,
       )

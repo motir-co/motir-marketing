@@ -417,9 +417,12 @@ export function hasIdeaFilters(params: IdeasParams): boolean {
 
 /* ── the reads (the ONLY network hops this surface makes) ─────────────────
  *
- * Server-side, revalidated hourly: the store changes when its owner curates
- * it, not per request, and an hour is how long a retired idea may linger —
- * the window the story promises. motir-core's `Cache-Control` matches it. */
+ * The store changes when its owner curates it, not per request, and an hour is
+ * how long a retired idea may linger — the window the story promises.
+ * motir-core's `Cache-Control` matches it. Under Next the reads carried
+ * `next: { revalidate }`; the built landing reads once per build (MOTIR-10644),
+ * and the live `/ideas` surface the Worker-routes story ports keeps the hour
+ * as its cache window. */
 
 export const IDEAS_REVALIDATE_SECONDS = 3600
 
@@ -448,9 +451,7 @@ export class IdeasUnavailableError extends Error {
 
 async function read(path: string): Promise<Response> {
   try {
-    return await fetch(`${API_BASE}${path}`, {
-      next: { revalidate: IDEAS_REVALIDATE_SECONDS },
-    })
+    return await fetch(`${API_BASE}${path}`)
   } catch (cause) {
     throw new IdeasUnavailableError(path, null, { cause })
   }

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 import type { Copy } from '@/lib/copy'
 import { openGraphLocales, siteCard } from '@/lib/localeMetadata'
 import { SITE_ORIGIN, siteUrl } from '@/lib/siteOrigin'
@@ -8,7 +8,7 @@ import type { Locale } from '@/i18n/routing'
  * The root metadata. MOTIR-1152 shipped the title and description and left the
  * ENTITY SIGNAL to MOTIR-1154 (8.3.7); this is that card, so the rest of it
  * arrives here — `metadataBase`, the canonical, the OpenGraph / Twitter shape
- * that makes `app/[locale]/opengraph-image.tsx` render as a large card, and the Search
+ * that makes the share card (`app/_brand/localeShareCard.tsx`) render large, and the Search
  * Console meta tag. The JSON-LD graph is a `<script>` rather than metadata and
  * is injected in the tree below.
  *

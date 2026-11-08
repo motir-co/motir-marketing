@@ -15,8 +15,16 @@ import { TRACKER_SEAT_FEE_USD_PER_MONTH } from '../../lib/seatFee'
  * ⚠️ THE ENGINE IS THE STUB. `e2e/stub/publicApiStub.ts` answers motir-ai's
  * public routes from the integration gate's recordings: the ladder to the
  * page's SERVER-side read, the categories and the estimate to the browser. A
- * spec switches the stub's answer with `POST /__stub/price`, and the lane reads
- * the ladder fresh on every render (`MOTIR_PLAN_LADDER_REVALIDATE_S=0`).
+ * spec switches the calculator's answers with `POST /__stub/price`.
+ *
+ * ⚠️ THE LADDER IS READ AT BUILD (MOTIR-10649). `/price` is built ahead, so its
+ * five plans are the ladder the stub answered when the lane built the site —
+ * the recorded one — and no spec can change them between two loads. A ladder
+ * motir-ai cannot answer fails the build (`requirePlanLadder`), so the page
+ * has no plans-unavailable state to walk. The journeys that switched the
+ * ladder ("a changed ladder shows with no code edit", "the ladder unavailable /
+ * unknown-version") and the receipt's count of server-side ladder reads went
+ * with the per-request render.
  * Every expected figure is read from the same recordings; the only literal
  * amount is the seat fee, imported from `lib/seatFee.ts`.
  *
@@ -31,7 +39,6 @@ const fixture = (path: string) =>
     readFileSync(join(process.cwd(), 'tests', 'fixtures', path), 'utf8'),
   )
 const ladder = fixture('price/plans.json')
-const changed = fixture('price/plans-b.json')
 const pro = fixture('calculator/estimate-pro.json')
 const proTwo = fixture('calculator/estimate-pro-two.json')
 const proThree = fixture('calculator/estimate-pro-three.json')
@@ -250,7 +257,6 @@ test('a prospect reads the plans, toggles annual and estimates their usage, as M
   const log = await (
     await request.get(`${STUB_ORIGIN}/__stub/price/log`)
   ).json()
-  expect(log.plansHits).toBeGreaterThan(0)
   for (const body of log.estimateBodies) {
     const several = body.categories.length > 1
     expect(Object.keys(body).sort()).toEqual(
@@ -305,42 +311,6 @@ test('the server markup holds both cadence prices, and the browser never reads t
   }
   expect(seen.some((r) => r.url.includes('app.motir.co'))).toBe(false)
 })
-
-test('a changed ladder shows with no code edit', async ({ page }) => {
-  await stub(page, 'plans=changed')
-  await page.goto('/price')
-  await expect(
-    plans(page).first().getByRole('heading', { level: 3 }),
-  ).toHaveText(changed.plans[0].name)
-  await expect(plans(page).first()).toContainText(
-    fill(t('en', 'pricePage.plans.creditsAllotment'), {
-      n: n(changed.plans[0].monthlyCredits),
-    }),
-  )
-})
-
-for (const scenario of ['unavailable', 'unknown-version']) {
-  test(`the ladder ${scenario}: plans-unavailable, and the calculator still works`, async ({
-    page,
-  }) => {
-    await stub(page, `plans=${scenario}`)
-    const res = await page.goto('/price')
-    expect(res?.status()).toBe(200)
-    await expect(page.locator('#plans').getByRole('alert')).toContainText(
-      t('en', 'pricePage.plans.unavailableTitle'),
-    )
-    await expect(page.locator('#plans [data-price]')).toHaveCount(0)
-    for (const plan of ladder.plans)
-      await expect(
-        page.locator('#plans').getByText(plan.name, { exact: true }),
-      ).toHaveCount(0)
-    await expect(page.locator('#plans')).toContainText(
-      t('en', 'pricePage.plans.perOrg'),
-    )
-    await estimate(page, ['20', '40'], ['10', '20'], ['balanced'])
-    await expect(output(page).getByTestId('calculator-credits')).toBeVisible()
-  })
-}
 
 test('the engine blocked, or an unknown version: the calm message, no number, the page intact', async ({
   page,

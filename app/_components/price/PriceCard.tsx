@@ -12,7 +12,7 @@ import {
   INCLUDED_TRACKER_SEATS,
   TRACKER_SEAT_FEE_USD_PER_MONTH,
 } from '@/lib/seatFee'
-import { PlansUnavailable, PriceCadence } from './PriceCadence'
+import { PlansUnavailableIsland, PriceCadenceIsland } from '../../_islands'
 
 /*
  * THE PRICE CARD (MOTIR-8382 · MOTIR-9684), built to design/price/price.mock.html
@@ -61,7 +61,7 @@ export function PriceCard({ ladder }: { ladder: PlanLadderRead }) {
   if (ladder.kind === 'unavailable') {
     return (
       <div className="grid gap-4">
-        <PlansUnavailable />
+        <PlansUnavailableIsland />
         {seats}
       </div>
     )
@@ -87,7 +87,7 @@ export function PriceCard({ ladder }: { ladder: PlanLadderRead }) {
     : null
   return (
     <div className="grid gap-4">
-      <PriceCadence saveBadge={saveBadge}>
+      <PriceCadenceIsland saveBadge={saveBadge}>
         <div
           role="list"
           aria-label={pageCopy.plansLabel}
@@ -109,7 +109,7 @@ export function PriceCard({ ladder }: { ladder: PlanLadderRead }) {
             </div>
           ))}
         </div>
-      </PriceCadence>
+      </PriceCadenceIsland>
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="grid gap-1">

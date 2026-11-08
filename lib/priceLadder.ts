@@ -3,31 +3,22 @@ import { AI_ORIGIN } from './aiOrigin'
 /**
  * The price card's ONE source of figures (MOTIR-8382 · MOTIR-9684): motir-ai's
  * public plan ladder, `GET /v1/public/plans` (motir-ai `docs/contract.md`
- * §4e). Read on the server with a short revalidate, so a catalog re-price shows
- * with no deploy of this site.
+ * §4e). Read ONCE PER BUILD (MOTIR-10644): `/price` and
+ * `/how-the-calculation-works` are static pages, so a re-price reaches motir.co
+ * at the next build, not within minutes. Keeping that prompt is CI's job:
+ * motir-ai sends a `motir-plan-ladder-changed` repository_dispatch on a
+ * re-price, motir-marketing's CI rebuilds and redeploys on it, and the daily
+ * scheduled build is the backstop.
  *
  * FAILS CLOSED: no origin, a network error, a non-OK answer, a problem+json, a
  * malformed body or a `version` this page does not know each answer
- * `{ kind: 'unavailable' }` — never a partial ladder.
+ * `{ kind: 'unavailable' }` — never a partial ladder — and a page built from
+ * the ladder reads it through `requirePlanLadder`, which fails the BUILD on
+ * that answer, so a page with no figures never replaces the last good one.
  */
 
 /** The ladder response version this page reads. Separate from the estimate's. */
 export const PLAN_LADDER_VERSION = 1
-
-/**
- * How long a read is reused, in seconds. A cache duration, not a figure. The
- * public routes rate-limit per client, and every visitor's read comes from this
- * server's one address, so production must reuse it; the browser lane sets
- * `MOTIR_PLAN_LADDER_REVALIDATE_S=0` to switch the stub's answer between loads.
- */
-export const PLAN_LADDER_REVALIDATE_S = 300
-
-export function planLadderRevalidate(
-  raw: string | undefined = process.env.MOTIR_PLAN_LADDER_REVALIDATE_S,
-): number {
-  const n = raw === undefined || raw === '' ? NaN : Number(raw)
-  return Number.isInteger(n) && n >= 0 ? n : PLAN_LADDER_REVALIDATE_S
-}
 
 export const PLAN_LADDER_PATH = '/v1/public/plans'
 
@@ -62,6 +53,34 @@ export const HOST_PLAN_KEY = 'host'
 
 const UNAVAILABLE = { kind: 'unavailable' } as const
 
+/** Thrown at build when a page that shows the ladder cannot read it. */
+export class PlanLadderUnavailableError extends Error {
+  override readonly name = 'PlanLadderUnavailableError'
+
+  constructor(origin: string | null) {
+    super(
+      origin === null
+        ? `The plan ladder has no origin: set NEXT_PUBLIC_MOTIR_AI_ORIGIN.`
+        : `The plan ladder at ${origin}${PLAN_LADDER_PATH} could not be read, ` +
+            `so the pages built from it would show no figure. The build stops ` +
+            `and the deployed site keeps its last good copy.`,
+    )
+  }
+}
+
+/**
+ * The ladder, for a page built from it: the read, or a thrown
+ * `PlanLadderUnavailableError` that fails the build.
+ */
+export async function requirePlanLadder(
+  fetcher: typeof fetch = fetch,
+  origin: string | null = AI_ORIGIN,
+): Promise<PlanLadder> {
+  const read = await readPlanLadder(fetcher, origin)
+  if (read.kind === 'unavailable') throw new PlanLadderUnavailableError(origin)
+  return read
+}
+
 export async function readPlanLadder(
   fetcher: typeof fetch = fetch,
   origin: string | null = AI_ORIGIN,
@@ -83,8 +102,7 @@ export async function fetchPlanLadderBody(
   try {
     const res = await fetcher(`${origin}${PLAN_LADDER_PATH}`, {
       headers: { accept: 'application/json' },
-      next: { revalidate: planLadderRevalidate() },
-    } as RequestInit)
+    })
     const type = res.headers.get('content-type') ?? ''
     if (!res.ok || !type.includes('application/json')) return null
     return await res.json()

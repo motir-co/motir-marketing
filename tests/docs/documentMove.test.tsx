@@ -10,8 +10,8 @@ import { join } from 'node:path'
 import { render } from '@/tests/helpers/withCopy'
 import { resolveAsync } from '@/tests/helpers/resolveAsync'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import CliPage from '@/app/[locale]/docs/(guides)/cli/page'
-import PublicAddressPage from '@/app/[locale]/docs/(guides)/public-address/page'
+import CliPage from '@/app/[locale]/docs/(guides)/cli/CliRoute'
+import PublicAddressPage from '@/app/[locale]/docs/(guides)/public-address/PublicAddressRoute'
 import { documentInvariants, readLedger } from '@/lib/docsDocuments'
 import { DOCS_CATALOGUE_ONLY_ROUTES, DOCS_ROUTES } from '@/lib/docsSurfaces'
 import { EN_PAGE } from '@/tests/helpers/locale'
@@ -197,19 +197,12 @@ describe('the default server renders in the page’s own <code>, outside the pro
   })
 })
 
-describe('the fetch-failure branch renders the introduction and the unreachable part', () => {
-  it('says so, in the document’s words, with no catalogue value on the page', async () => {
+describe('the fetch-failure branch is a failed build, not a page (MOTIR-10645)', () => {
+  it('rejects naming the catalogue, so the unreachable part is never rendered', async () => {
     stubFetch(503)
-    const container = render(
-      (await resolveAsync(await CliPage(EN_PAGE))) as never,
-    ).container
-    const text = container.textContent ?? ''
-    expect(text).toContain('The Motir CLI talks to')
-    expect(text).toContain('The work item is the system of record')
-    expect(text).not.toContain('The card is the system of record')
-    expect(text).toContain('temporarily unreachable')
-    expect(text).not.toContain('Install')
-    expect(text).not.toContain('@zq/cli-fixture')
+    await expect(CliPage(EN_PAGE)).rejects.toThrow(
+      /could not read the CLI command catalogue/,
+    )
   })
 })
 

@@ -4,7 +4,7 @@ import { render } from '@/tests/helpers/withCopy'
 import { EN_PAGE } from '@/tests/helpers/locale'
 import { resolveAsync } from '@/tests/helpers/resolveAsync'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import McpToolsPage from '@/app/[locale]/docs/(guides)/mcp/tools/page'
+import McpToolsPage from '@/app/[locale]/docs/(guides)/mcp/tools/McpToolsRoute'
 import {
   McpToolCatalogueShapeError,
   parseMcpToolCatalogue,

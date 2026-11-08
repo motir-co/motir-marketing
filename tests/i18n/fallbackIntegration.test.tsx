@@ -31,7 +31,7 @@ vi.mock('@/lib/ideas', async (importOriginal) => ({
     .mockResolvedValue({ items: [], categories: [], total: 0 }),
 }))
 
-const { default: Page } = await import('@/app/[locale]/page')
+const { default: Page } = await import('@/app/[locale]/LandingRoute')
 const { ProjectHeader } =
   await import('@/app/[locale]/p/[identifier]/_components/ProjectHeader')
 const { LOCALES } = await import('@/i18n/routing')

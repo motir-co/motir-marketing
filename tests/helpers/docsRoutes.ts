@@ -5,7 +5,8 @@ import { vi } from 'vitest'
 import { type Locale } from '@/i18n/routing'
 import { APP_ORIGIN } from '@/lib/appOrigin'
 import { getCopy } from '@/lib/copy'
-import { render } from '@/tests/helpers/withCopy'
+import { localizedPath } from '@/i18n/localizedPath'
+import { renderHydrated } from '@/tests/helpers/withCopy'
 import { resolveAsync } from '@/tests/helpers/resolveAsync'
 
 /*
@@ -20,16 +21,20 @@ import { resolveAsync } from '@/tests/helpers/resolveAsync'
 
 const DOCS_ROOT = join(process.cwd(), 'app', '[locale]', 'docs')
 
-/** Every `page.tsx` under `app/[locale]/docs`, found rather than listed. */
+/**
+ * Every page module under `app/[locale]/docs` — a `<Name>Route.tsx`, which a
+ * page under `src/pages/[...locale]/docs` renders (MOTIR-10645) — found rather
+ * than listed.
+ */
 export function docsPages(dir: string = DOCS_ROOT): string[] {
   return readdirSync(dir).flatMap((entry) => {
     const full = join(dir, entry)
     if (statSync(full).isDirectory()) return docsPages(full)
-    return entry === 'page.tsx' ? [full] : []
+    return /^[A-Z]\w*Route\.tsx$/.test(entry) ? [full] : []
   })
 }
 
-/** `app/[locale]/docs/(guides)/sandbox/page.tsx` → `/docs/sandbox`. Route groups add no segment. */
+/** `app/[locale]/docs/(guides)/sandbox/SandboxRoute.tsx` → `/docs/sandbox`. Route groups add no segment. */
 export function routeOf(file: string): string {
   const segments = relative(join(process.cwd(), 'app', '[locale]'), file)
     .split(sep)
@@ -203,14 +208,21 @@ export async function renderDocsRoute(
   const tree = (await resolveAsync(
     (await Page(pageProps(locale))) as React.ReactNode,
   )) as React.ReactElement
-  const { container, unmount } = render(tree, {
+  // Hydrated, as the built page is in a browser, so what a check clicks is the
+  // island (MOTIR-10645) at the page's own address.
+  const { container, unmount } = await renderHydrated(tree, {
     locale,
     messages: await getCopy(locale),
+    pathname: localizedPath(locale, routeOf(file)),
   })
+  // An island's props are JSON in an attribute, never text a reader sees.
+  const shown = container.cloneNode(true) as HTMLElement
+  for (const island of shown.querySelectorAll('[data-props]'))
+    island.removeAttribute('data-props')
   return {
     container,
     text: container.textContent ?? '',
-    spaced: spacedText(container.innerHTML),
+    spaced: spacedText(shown.innerHTML),
     unmount,
   }
 }

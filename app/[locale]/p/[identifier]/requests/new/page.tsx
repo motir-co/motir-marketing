@@ -2,12 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { actHref, loadProject } from '@/lib/publicProject'
-import {
-  publicPathFor,
-  publicUrlFor,
-  requestPublicHost,
-  SITE_HOST,
-} from '@/lib/publicHost'
+import { publicPathFor, publicUrlFor, SITE_HOST } from '@/lib/publicHost'
+import { requestPublicHost } from '@/lib/requestPublicHost'
 import { ProjectHeader } from '../../_components/ProjectHeader'
 import { ErrorState } from '../../_components/States'
 import { format, formatRich, getCopy } from '@/lib/copy'

@@ -1,5 +1,3 @@
-import type { MetadataRoute } from 'next'
-
 /*
  * The sitemap protocol's XML, spelled by hand (MOTIR-8842).
  *
@@ -9,7 +7,26 @@ import type { MetadataRoute } from 'next'
  * serializer. It writes what Next wrote — `<loc>`, the `xhtml:link` alternates,
  * `<lastmod>`, `<changefreq>`, `<priority>`, in that order — so a crawler reads
  * the same document it read before the split.
+ *
+ * Since MOTIR-10646 the routes are Astro endpoints written by `astro build`
+ * (`src/pages/sitemap.xml.ts`, `src/pages/sitemap-site.xml.ts`), and the entry
+ * type is this module's own: the shape `MetadataRoute.Sitemap` had, without
+ * the `next` import.
  */
+
+/** How often a page is expected to change, as the sitemap protocol spells it. */
+export type ChangeFrequency =
+  'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never'
+
+/** One `<url>` of a sitemap. */
+export interface SitemapEntry {
+  url: string
+  lastModified?: string | Date
+  changeFrequency?: ChangeFrequency
+  priority?: number
+  /** The page's language versions, hreflang to absolute URL. */
+  alternates?: { languages?: Record<string, string> }
+}
 
 const XML_HEADER = '<?xml version="1.0" encoding="UTF-8"?>\n'
 const SITEMAP_NS = 'http://www.sitemaps.org/schemas/sitemap/0.9'
@@ -33,7 +50,7 @@ function lastModified(value: string | Date): string {
 }
 
 /** One `<urlset>` document for a list of entries. */
-export function urlsetXml(entries: MetadataRoute.Sitemap): string {
+export function urlsetXml(entries: readonly SitemapEntry[]): string {
   const anyAlternates = entries.some((e) => e.alternates?.languages)
   const open = anyAlternates
     ? `<urlset xmlns="${SITEMAP_NS}" xmlns:xhtml="${XHTML_NS}">`
@@ -44,7 +61,7 @@ export function urlsetXml(entries: MetadataRoute.Sitemap): string {
       entry.alternates?.languages ?? {},
     )) {
       lines.push(
-        `<xhtml:link rel="alternate" hreflang="${escapeXml(hreflang)}" href="${escapeXml(String(href))}" />`,
+        `<xhtml:link rel="alternate" hreflang="${escapeXml(hreflang)}" href="${escapeXml(href)}" />`,
       )
     }
     if (entry.lastModified)

@@ -4,18 +4,17 @@ import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ts from 'typescript'
 import { describe, expect, it, vi } from 'vitest'
-import SandboxPage from '@/app/[locale]/docs/(guides)/sandbox/page'
+import SandboxPage from '@/app/[locale]/docs/(guides)/sandbox/SandboxRoute'
 import {
-  ProfileLabel,
   SetupSteps,
   type SetupStepsText,
 } from '@/app/[locale]/docs/(guides)/sandbox/SetupSteps'
 import { STEP_IDS } from '@/app/[locale]/docs/(guides)/sandbox/stepIds'
 import { documentInvariants } from '@/lib/docsDocuments'
 import { SANDBOX_PICKER_OPTIONS } from '@/lib/sandboxProfiles'
-import { render } from '@/tests/helpers/withCopy'
+import { render, renderHydrated } from '@/tests/helpers/withCopy'
 import { EN_PAGE } from '@/tests/helpers/locale'
-import { normalise } from './fixtures/apiMoveCases'
+import { normalise, shownHtml } from './fixtures/apiMoveCases'
 import baseline from './fixtures/sandbox-move-baseline.json'
 
 // The ten translations are in the repository now; this file asserts the page when a
@@ -60,7 +59,7 @@ const fixture = baseline as Record<
 >
 
 async function read(profile: (typeof SANDBOX_PICKER_OPTIONS)[number]) {
-  const { container } = render(await SandboxPage(EN_PAGE))
+  const { container } = await renderHydrated(await SandboxPage(EN_PAGE))
   await userEvent.click(screen.getByRole('radio', { name: profile.label }))
   await waitFor(() => {
     expect(container.textContent).toContain(`motir-sandbox:${profile.id}`)
@@ -69,7 +68,7 @@ async function read(profile: (typeof SANDBOX_PICKER_OPTIONS)[number]) {
     )
   })
   return {
-    text: normalise(container.innerHTML),
+    text: normalise(shownHtml(container)),
     payloads: [...container.querySelectorAll('pre')].map(
       (pre) => pre.textContent ?? '',
     ),
@@ -253,7 +252,7 @@ function sentences(file: string): string[] {
 }
 
 describe('no English in the TSX', () => {
-  for (const file of ['page.tsx', 'SetupSteps.tsx']) {
+  for (const file of ['SandboxRoute.tsx', 'SetupSteps.tsx']) {
     it(`${file} holds no word group`, () => {
       const path = join('app/[locale]/docs/(guides)/sandbox', file)
       const prose = sentences(path)
@@ -275,11 +274,15 @@ describe('SetupSteps renders only what it is given', () => {
       alsoSupported: token('picker.alsoSupported'),
       or: token('picker.or'),
       base: token('picker.base'),
-      summary: (
-        <>
-          {token('picker.summary')}
-          <ProfileLabel />
-        </>
+      // One sentence per option, each naming its own agent (MOTIR-10645).
+      summary: Object.fromEntries(
+        SANDBOX_PICKER_OPTIONS.map((option) => [
+          option.id,
+          <>
+            {token('picker.summary')}
+            {option.label}
+          </>,
+        ]),
       ),
     },
     chips: { command: token('chip.command'), ui: token('chip.ui') },

@@ -2,8 +2,6 @@
 import { readFileSync, existsSync, readdirSync } from 'node:fs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-  docsFetchInit,
-  failBuildIfPrerendering,
   McpToolCatalogueShapeError,
   catalogueTextLocale,
   countCatalogueTools,
@@ -419,7 +417,7 @@ describe('the catalogue is consumed, never copied', () => {
     )
   })
 
-  it('requests the English URL with no query, and ?locale= for another locale', async () => {
+  it('requests the English URL with no query, and ?locale= for another locale — each URL once', async () => {
     fetchMock.mockResolvedValue({
       ok: true,
       status: 200,
@@ -429,17 +427,10 @@ describe('the catalogue is consumed, never copied', () => {
     await fetchMcpToolCatalogue()
     await fetchMcpToolCatalogue('en')
     await fetchMcpToolCatalogue('ko')
-    expect(fetchMock.mock.calls.map((call) => String(call[0]))).toEqual([
-      base,
-      base,
-      `${base}?locale=ko`,
-    ])
-    expect(fetchMock.mock.calls[0]![1]).toEqual({
-      cache: 'force-cache',
-    })
-    expect(fetchMock.mock.calls[2]![1]).toEqual({
-      cache: 'force-cache',
-    })
+    await fetchMcpToolCatalogue('ko')
+    // `undefined` and `'en'` are the same URL, read once for the build
+    // (MOTIR-10645); a plain fetch, with none of Next's cache options.
+    expect(fetchMock.mock.calls).toEqual([[base], [`${base}?locale=ko`]])
   })
 
   it('THROWS when the artifact is unreachable — there is no fallback list', async () => {
@@ -453,7 +444,7 @@ describe('the catalogue is consumed, never copied', () => {
     })
 
     await expect(fetchMcpToolCatalogue()).rejects.toThrow(
-      'mcp tool catalogue 503',
+      'could not read the MCP tool catalogue at https://app.test.motir.co/api/docs/mcp-tools.json: HTTP 503',
     )
   })
 
@@ -511,8 +502,8 @@ describe('the MCP pages name no tools, because nothing here could check them', (
   })
 
   for (const page of [
-    'app/[locale]/docs/(guides)/mcp/tools/page.tsx',
-    'app/[locale]/docs/(guides)/mcp/page.tsx',
+    'app/[locale]/docs/(guides)/mcp/tools/McpToolsRoute.tsx',
+    'app/[locale]/docs/(guides)/mcp/McpRoute.tsx',
   ]) {
     it(`names no tool in ${page}`, () => {
       expect(toolNameLiterals(readFileSync(page, 'utf8'))).toEqual([])
@@ -540,57 +531,32 @@ describe('the MCP pages name no tools, because nothing here could check them', (
   }
 })
 
-describe('the generated reference pages are built at deploy, never rendered in the serving process', () => {
+describe('the generated reference pages are built ahead, never rendered in the serving process', () => {
   // A request-time render of these pages is what took motir.co down on
-  // 2026-10-16/17. They are prerendered by `next build` (MOTIR-8842): the
-  // artifacts are read once, with `force-cache`, and neither `revalidate` nor
-  // `dynamic` is exported — `force-static` is left off on purpose, because it
-  // would turn the browser lane's `connection()` into a no-op.
+  // 2026-10-16/17 (MOTIR-8842). They are static pages now (MOTIR-10645): each
+  // artifact is read once per build (`lib/docs.ts`, measured in
+  // `buildReads.test.tsx`), and a failed read fails the build — so no page
+  // catches one and renders an "unreachable" state into a 200.
   const PAGES = [
-    'app/[locale]/docs/api/page.tsx',
-    'app/[locale]/docs/(guides)/mcp/page.tsx',
-    'app/[locale]/docs/(guides)/mcp/tools/page.tsx',
-    'app/[locale]/docs/(guides)/cli/page.tsx',
+    'app/[locale]/docs/api/ApiReferenceRoute.tsx',
+    'app/[locale]/docs/api/DocsApiLayout.tsx',
+    'app/[locale]/docs/api/getting-started/GettingStartedRoute.tsx',
+    'app/[locale]/docs/(guides)/mcp/McpRoute.tsx',
+    'app/[locale]/docs/(guides)/mcp/tools/McpToolsRoute.tsx',
+    'app/[locale]/docs/(guides)/cli/CliRoute.tsx',
   ]
 
-  it('reads the artifacts from the build cache, and per request only in the browser lane', () => {
-    expect(docsFetchInit(undefined)).toEqual({ cache: 'force-cache' })
-    expect(docsFetchInit('')).toEqual({ cache: 'force-cache' })
-    expect(docsFetchInit('/repo/content/docs')).toEqual({
-      next: { revalidate: 0 },
-    })
-  })
-
-  it.each(PAGES)('%s exports no revalidate and no dynamic', (page) => {
+  it.each(PAGES)('%s catches no failed read', (page) => {
     const source = readFileSync(page, 'utf8')
-    expect(source).not.toMatch(/export const (revalidate|dynamic)\b/)
-  })
-
-  it.each(PAGES)('%s lets a failed read fail the build', (page) => {
-    expect(readFileSync(page, 'utf8')).toContain(
-      'failBuildIfPrerendering(error)',
+    expect(source).not.toMatch(/\bcatch\b/)
+    expect(source).not.toMatch(
+      /apiUnreachable|mcpToolsUnreachable|parts\.unreachable/,
     )
   })
 
-  describe('failBuildIfPrerendering', () => {
-    const boom = new Error('openapi spec 502')
-    afterEach(() => vi.unstubAllEnvs())
-
-    it('rethrows during `next build`', () => {
-      vi.stubEnv('NEXT_PHASE', 'phase-production-build')
-      vi.stubEnv('MOTIR_DOCS_LIVE_CONTENT_ROOT', '')
-      expect(() => failBuildIfPrerendering(boom)).toThrow(boom)
-    })
-
-    it('returns at request time, so the page says the artifact is unreachable', () => {
-      vi.stubEnv('NEXT_PHASE', 'phase-production-server')
-      expect(() => failBuildIfPrerendering(boom)).not.toThrow()
-    })
-
-    it('returns in the browser lane’s build, whose `failing` journey asserts the unreachable state', () => {
-      vi.stubEnv('NEXT_PHASE', 'phase-production-build')
-      vi.stubEnv('MOTIR_DOCS_LIVE_CONTENT_ROOT', '/repo/content/docs')
-      expect(() => failBuildIfPrerendering(boom)).not.toThrow()
-    })
+  it('reads no Next cache option and no Next build phase', () => {
+    const source = readFileSync('lib/docs.ts', 'utf8')
+    expect(source).not.toMatch(/force-cache|revalidate|NEXT_PHASE/)
+    expect(source).not.toMatch(/docsFetchInit|failBuildIfPrerendering/)
   })
 })

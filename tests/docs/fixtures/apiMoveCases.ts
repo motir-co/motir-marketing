@@ -162,6 +162,19 @@ export function normalise(html: string): string {
     .replace(/\( /g, '(')
 }
 
+/**
+ * The container's markup without its islands' props. An island carries its
+ * props as JSON in `data-props` (MOTIR-10645), and a code pane's props hold its
+ * code — whose `>` the tag-stripping regex in {@link normalise} would read as
+ * the end of the tag. The words a reader sees are never there.
+ */
+export function shownHtml(container: HTMLElement): string {
+  const shown = container.cloneNode(true) as HTMLElement
+  for (const island of shown.querySelectorAll('[data-props]'))
+    island.removeAttribute('data-props')
+  return shown.innerHTML
+}
+
 export interface Capture {
   text: string
   ids: string[]
@@ -174,7 +187,7 @@ export async function capture(page: unknown): Promise<Capture> {
     (await resolveAsync(await Page(EN_PAGE))) as never,
   )
   return {
-    text: normalise(container.innerHTML),
+    text: normalise(shownHtml(container)),
     ids: [...container.querySelectorAll('[id]')].map(
       (e) => e.getAttribute('id') ?? '',
     ),

@@ -1,4 +1,4 @@
-import { DocsRail } from './DocsRail'
+import { DocsRailIsland } from '@/app/_islands'
 import type { RailOperation } from '@/lib/docs'
 
 /*
@@ -63,7 +63,7 @@ export function DocsShell({
        a basis of zero on the `/docs/api` row (86400px of operations) asks the
        layout to re-derive from nothing what the content already states. */
     <div className="grid grid-cols-[minmax(0,1fr)] md:grid-cols-[264px_minmax(0,1fr)] md:grow">
-      <DocsRail operations={operations} />
+      <DocsRailIsland operations={operations} />
       <div className="w-full max-w-[46rem] px-(--spacing-card-padding) py-10">
         {children}
       </div>

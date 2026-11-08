@@ -24,9 +24,9 @@ import {
  * ⚠️ THE ENGINE IS THE STUB. The page reads the plan catalog and the
  * categories SERVER-side from motir-ai's public routes, which
  * `e2e/stub/publicApiStub.ts` answers from the integration gate's recordings;
- * `POST /__stub/price?plans=…&categories=…` switches the answer and `reset=1`
- * puts it back, and the lane reads fresh on every render
- * (`MOTIR_PLAN_LADDER_REVALIDATE_S=0`). Every expected figure is read from
+ * the page is built ahead (MOTIR-10649), so it reads them once, when the lane
+ * builds the site, and shows the recorded answer. Every expected figure is
+ * read from
  * `tests/fixtures/price/plans.json` and every expected string from the
  * catalogues through `t`; none is typed here.
  *
@@ -160,28 +160,6 @@ async function perUserOnlyInSeats(page: Page, locale: Locale) {
     expect(elsewhere, `${locale}: "${phrase}"`).not.toContain(
       phrase.toLowerCase(),
     )
-  }
-}
-
-/** The figure-free page: ten sections, the note, no figure, nothing alarming. */
-async function figureFree(page: Page, locale: Locale) {
-  await expect(body(page)).toHaveAttribute('data-state', 'figure-free')
-  await tenSections(page, locale)
-  await expect(page.locator('[data-element="fallback-note"]')).toHaveText(
-    t(locale, 'explainer.figuresUnavailableNote'),
-  )
-  await expect(page.locator('[data-figure]')).toHaveCount(0)
-  // Next's route announcer is an empty `alert` outside the page body.
-  await expect(page.locator('main').getByRole('alert')).toHaveCount(0)
-  await expect(body(page).getByRole('button')).toHaveCount(0)
-  await expect(body(page).locator('[class*="danger"]')).toHaveCount(0)
-  const fmt = format(locale)
-  const text = (await body(page).textContent()) ?? ''
-  for (const plan of [...ladder.plans, ...ladder.largerPlans]) {
-    expect(text).not.toContain(fmt.credits(plan.monthlyCredits))
-    for (const price of Object.values(plan.priceUsdByCadence) as number[]) {
-      expect(text).not.toContain(fmt.usd(price))
-    }
   }
 }
 
@@ -381,37 +359,10 @@ test('how the calculation works, as Story MOTIR-8383 asks to be accepted', async
   // address would follow it to Japanese, so the walk forgets it.
   await page.context().clearCookies()
 
-  // ── 8 · THE ENGINE BLOCKED ────────────────────────────────────────────
-  chapter('The engine blocked: the figure-free page, calm, in en, ja and de')
-  await stub(page, 'plans=unavailable&categories=unavailable')
-  consoleErrors.length = 0
-  for (const locale of ['en', 'ja', 'de'] as const) {
-    await open(page, locale)
-    await figureFree(page, locale)
-    await expect(
-      section(page, 's2').locator('[data-element="category-chips"]'),
-    ).toHaveText(t(locale, 'explainer.s2.categoriesFigureFree'))
-    await page
-      .locator('[data-element="fallback-note"]')
-      .scrollIntoViewIfNeeded()
-    await beat(page)
-    await section(page, 's5').scrollIntoViewIfNeeded()
-    await beat(page)
-  }
-  expect(consoleErrors).toEqual([])
-
-  // ── 9 · FORBIDDEN WORDING ─────────────────────────────────────────────
-  chapter(
-    'No Enterprise, contact-sales, top-up-only or $ in any language, offline',
-  )
-  for (const locale of LOCALES) {
-    await open(page, locale)
-    await expect(body(page)).toHaveAttribute('data-state', 'figure-free')
-    await noForbiddenWording(page, locale)
-    await perUserOnlyInSeats(page, locale)
-  }
-  await stub(page, 'reset=1')
-  await beat(page, 600)
+  // Cases 8 (the engine blocked) and 9 (no forbidden wording, offline) walked
+  // the figure-free page, which a built site no longer has: a ladder motir-ai
+  // cannot answer fails the build (MOTIR-10649). `tests/explainer/
+  // offlineFallback.test.tsx` renders that state and proves the build failure.
 
   // ── 10 · A 390px PHONE ────────────────────────────────────────────────
   chapter('A 390px phone in German and Japanese')

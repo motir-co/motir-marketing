@@ -1,7 +1,7 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { render } from '@/tests/helpers/withCopy'
+import { render, renderHydrated } from '@/tests/helpers/withCopy'
 import { PriceCard } from '@/app/_components/price/PriceCard'
 import { englishCopy, format, getCopy } from '@/lib/copy'
 import { LOCALE_BCP47, type Locale } from '@/i18n/routing'
@@ -9,10 +9,10 @@ import { PLANS_SIGN_UP } from '@/lib/destinations'
 import {
   annualSaving,
   PLAN_LADDER_PATH,
-  PLAN_LADDER_REVALIDATE_S,
   parsePlanLadder,
-  planLadderRevalidate,
+  PlanLadderUnavailableError,
   readPlanLadder,
+  requirePlanLadder,
   type LadderPlan,
   type PlanLadder,
 } from '@/lib/priceLadder'
@@ -25,11 +25,9 @@ import recorded from '@/tests/fixtures/price/plans.json'
  * literal amount allowed is the seat fee, which is not a ladder figure.
  */
 
-const refresh = vi.hoisted(() => vi.fn())
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/price',
-  useRouter: () => ({ refresh }),
-}))
+// The unavailable state's retry loads the page again.
+const reloadPage = vi.hoisted(() => vi.fn())
+vi.mock('@/lib/reloadPage', () => ({ reloadPage }))
 
 const copy = englishCopy.pricePage.plans
 const ladder = parsePlanLadder(recorded) as PlanLadder
@@ -143,15 +141,13 @@ describe('parsePlanLadder — the larger pool plans', () => {
 })
 
 describe('readPlanLadder', () => {
-  it('fetches the public ladder with the revalidate window', async () => {
+  it('fetches the public ladder, asking for JSON', async () => {
     const fetcher = vi.fn(async () => jsonResponse(recorded))
     const read = await readPlanLadder(fetcher, 'https://ai.example')
     expect(read.kind).toBe('ladder')
     expect(fetcher).toHaveBeenCalledWith(
       `https://ai.example${PLAN_LADDER_PATH}`,
-      expect.objectContaining({
-        next: { revalidate: PLAN_LADDER_REVALIDATE_S },
-      }),
+      { headers: { accept: 'application/json' } },
     )
   })
 
@@ -183,12 +179,27 @@ describe('readPlanLadder', () => {
       kind: 'unavailable',
     })
   })
+})
 
-  it('takes the lane override for the revalidate window, and only a whole count', () => {
-    expect(planLadderRevalidate(undefined)).toBe(PLAN_LADDER_REVALIDATE_S)
-    expect(planLadderRevalidate('0')).toBe(0)
-    expect(planLadderRevalidate('-3')).toBe(PLAN_LADDER_REVALIDATE_S)
-    expect(planLadderRevalidate('soon')).toBe(PLAN_LADDER_REVALIDATE_S)
+describe('requirePlanLadder — the read a built page makes', () => {
+  it('is the ladder when it can be read', async () => {
+    const fetcher = vi.fn(async () => jsonResponse(recorded))
+    expect(await requirePlanLadder(fetcher, 'https://ai.example')).toEqual(
+      ladder,
+    )
+  })
+
+  it('fails the build, naming the address, when it cannot', async () => {
+    const fetcher = vi.fn(async () => jsonResponse({}, { status: 503 }))
+    const read = requirePlanLadder(fetcher, 'https://ai.example')
+    await expect(read).rejects.toBeInstanceOf(PlanLadderUnavailableError)
+    await expect(read).rejects.toThrow(`https://ai.example${PLAN_LADDER_PATH}`)
+  })
+
+  it('fails the build, naming the variable, with no origin', async () => {
+    await expect(requirePlanLadder(fetch, null)).rejects.toThrow(
+      'NEXT_PUBLIC_MOTIR_AI_ORIGIN',
+    )
   })
 })
 
@@ -328,7 +339,7 @@ describe('the price card', () => {
 
   it('switches cadence with the toggle, and shows the saving badge only on Annual', async () => {
     const user = userEvent.setup()
-    const { container } = render(<PriceCard ladder={ladder} />)
+    const { container } = await renderHydrated(<PriceCard ladder={ladder} />)
     const wrapper = container.querySelector('[data-cadence]')!
     const badge = savingBadgeOf(recorded.plans)
     expect(wrapper).toHaveAttribute('data-cadence', 'monthly')
@@ -346,7 +357,7 @@ describe('the price card', () => {
   describe('the Annual saving badge follows the ladder (MOTIR-10156)', () => {
     it('moves with a re-price: a new saving replaces the recorded one', async () => {
       const cheaper = repriced((monthly) => monthly * 12 * 0.8)
-      render(<PriceCard ladder={cheaper} />)
+      await renderHydrated(<PriceCard ladder={cheaper} />)
       await showAnnual()
       expect(savingBadgeOf(cheaper.plans)).not.toBe(
         savingBadgeOf(recorded.plans),
@@ -360,7 +371,7 @@ describe('the price card', () => {
       const mixed = repriced(
         (monthly, i) => monthly * 12 * (i === 0 ? 0.9 : 0.75),
       )
-      render(<PriceCard ladder={mixed} />)
+      await renderHydrated(<PriceCard ladder={mixed} />)
       await showAnnual()
       const badge = savingBadgeOf(mixed.plans)
       expect(badge).toBe(
@@ -376,7 +387,9 @@ describe('the price card', () => {
 
     it('shows no badge when no card saves anything on Annual', async () => {
       const noSaving = repriced((monthly) => monthly * 12)
-      const { container } = render(<PriceCard ladder={noSaving} />)
+      const { container } = await renderHydrated(
+        <PriceCard ladder={noSaving} />,
+      )
       await showAnnual()
       expect(container.querySelector('[data-cadence]')).toHaveAttribute(
         'data-cadence',
@@ -389,7 +402,10 @@ describe('the price card', () => {
       'is worded and formatted for %s',
       async (locale) => {
         const messages = await getCopy(locale)
-        render(<PriceCard ladder={ladder} />, { locale, messages })
+        await renderHydrated(<PriceCard ladder={ladder} />, {
+          locale,
+          messages,
+        })
         await userEvent.setup().click(
           screen.getByRole('button', {
             name: messages.pricePage.plans.annual,
@@ -427,7 +443,7 @@ describe('the price card', () => {
 describe('the price card when the ladder cannot be read', () => {
   it('shows the unavailable state with no plan figure, and keeps the seat lines', async () => {
     const user = userEvent.setup()
-    render(<PriceCard ladder={{ kind: 'unavailable' }} />)
+    await renderHydrated(<PriceCard ladder={{ kind: 'unavailable' }} />)
     expect(screen.getByRole('alert')).toHaveTextContent(copy.unavailableTitle)
     expect(
       screen.queryByRole('list', { name: englishCopy.pricePage.plansLabel }),
@@ -444,7 +460,7 @@ describe('the price card when the ladder cannot be read', () => {
       ),
     ).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: copy.retry }))
-    expect(refresh).toHaveBeenCalled()
+    expect(reloadPage).toHaveBeenCalled()
   })
 })
 

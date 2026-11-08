@@ -2,7 +2,7 @@ import { WAVE_BAND_PATH } from '@motir/brand'
 
 /*
  * The Motir lockup with the mark on its rounded-square tile (2026-10
- * redesign) — the same tile shape the tab icon draws (`app/icon.svg`): a square,
+ * redesign) — the same tile shape the tab icon draws (`public/icon.svg`): a square,
  * corner radius 7/32 of its side, with the wave inset to 0.8067 of it.
  *
  * The colours are the design system's logo tokens: `--el-logo-mark` is the

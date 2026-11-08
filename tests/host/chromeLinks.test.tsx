@@ -1,7 +1,10 @@
 import { screen, within } from '@testing-library/react'
-import { render } from '@/tests/helpers/withCopy'
+import {
+  render as renderOnPage,
+  renderHydrated,
+} from '@/tests/helpers/withCopy'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { SiteShell } from '@/app/_components/SiteShell'
 import type { Locale } from '@/i18n/routing'
 import { englishCopy as copy } from '@/lib/copy'
@@ -41,8 +44,11 @@ import { SITE_ORIGIN, siteUrl } from '@/lib/siteOrigin'
  * about the eighth site link somebody adds next year.
  */
 
-const pathname = vi.hoisted(() => ({ value: '/' }))
-vi.mock('next/navigation', () => ({ usePathname: () => pathname.value }))
+const pathname = { value: '/' }
+
+/** Render on the page at `pathname.value` (the built path the header reads). */
+const render: typeof renderOnPage = (ui, options = {}) =>
+  renderOnPage(ui, { pathname: pathname.value, ...options })
 
 afterEach(() => {
   pathname.value = '/'
@@ -75,9 +81,10 @@ async function chromeHrefs(
   locale: Locale = 'en',
 ): Promise<string[]> {
   const user = userEvent.setup()
-  const { container } = render(<SiteShell host={host}>content</SiteShell>, {
-    locale,
-  })
+  const { container } = await renderHydrated(
+    <SiteShell host={host}>content</SiteShell>,
+    { locale, pathname: pathname.value },
+  )
   // The bar and the Menu panel are two branches rendering the same
   // items, which is exactly how a treatment ends up existing on desktop only
   // (`SiteHeader`'s own note). Opening the panel puts both in one sweep.
@@ -271,7 +278,10 @@ describe.each([
   it('points every entry at this same address and nowhere else', async () => {
     pathname.value = path
     const user = userEvent.setup()
-    const { container } = render(<SiteShell host={host}>content</SiteShell>)
+    const { container } = await renderHydrated(
+      <SiteShell host={host}>content</SiteShell>,
+      { pathname: path },
+    )
     const closed = [...container.querySelectorAll('a[href]')].length
     await user.click(screen.getByRole('button', { name: /^Language: / }))
     const group = screen.getByRole('group', {

@@ -1,18 +1,10 @@
 import { screen, within } from '@testing-library/react'
-import { render } from '@/tests/helpers/withCopy'
+import { render as renderOnPage } from '@/tests/helpers/withCopy'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { SiteHeader } from '@/app/_components/SiteHeader'
 import { SITE_HOST } from '@/lib/publicHost'
 import { englishCopy as copy } from '@/lib/copy'
-import sitemap from '@/tests/helpers/sitemap'
-import { siteUrl } from '@/lib/siteOrigin'
-
-// `app/sitemap.ts` and `app/robots.ts` read the request's host (MOTIR-4222),
-// and `next/headers` throws outside a request scope. Empty headers read as
-// the SITE's own host, which is what every case in this file is about; the
-// per-host arms live in `tests/host/crawlSurface.test.ts`.
-vi.mock('next/headers', () => ({ headers: async () => new Headers() }))
 
 /*
  * The nav entrance for `/design` (MOTIR-1043) — the site's FIRST internal
@@ -24,8 +16,11 @@ vi.mock('next/headers', () => ({ headers: async () => new Headers() }))
  * (panel 4) rather than describing it, for that reason.
  */
 
-const pathname = vi.hoisted(() => ({ value: '/' }))
-vi.mock('next/navigation', () => ({ usePathname: () => pathname.value }))
+const pathname = { value: '/' }
+
+/** Render on the page at `pathname.value` (the built path the header reads). */
+const render: typeof renderOnPage = (ui, options = {}) =>
+  renderOnPage(ui, { pathname: pathname.value, ...options })
 
 afterEach(() => {
   pathname.value = '/'
@@ -42,10 +37,10 @@ describe('the Design nav entry', () => {
     expect(link).toHaveAttribute('href', '/design')
   })
 
-  it('How Motir works and Docs are next/links — the bar is fully same-origin', () => {
+  it('How Motir works and Docs are site-relative links — the bar is fully same-origin', () => {
     render(<SiteHeader host={SITE_HOST} />)
     // Explore and Docs moved onto motir.co (MOTIR-4045 / MOTIR-4046), so both
-    // are site-relative (a `next/link`); nothing in the bar is cross-origin
+    // are site-relative; nothing in the bar is cross-origin
     // except the app doors (Sign in / Start free).
     expect(
       within(bar())
@@ -128,66 +123,5 @@ describe("the bar's right group keeps its give-way ladder from sm up (MOTIR-8135
       .parentElement as HTMLElement
     expect(group.className).toContain('min-w-0')
     expect(group.className).toContain('sm:flex-none')
-  })
-})
-
-describe('the sitemap', () => {
-  it('gains the /legal, /explore and /docs lines in the same changes that add the routes', async () => {
-    // Awaited since MOTIR-4118 made the route dynamic. No API in this
-    // environment, so the project entries are absent and the static list is
-    // what remains — see `tests/entitySignal.test.ts` for that arm's own case.
-    // Each page is listed once per locale since MOTIR-7956; its English entry
-    // is the one its own `en` alternate names, and the list of those is the
-    // list of pages. A legal document is listed ONCE, at its English address
-    // and with no alternates (MOTIR-8086), so that one entry is its English one.
-    const english = (await sitemap()).filter((entry) => {
-      const languages = entry.alternates?.languages as
-        Record<string, string> | undefined
-      return languages === undefined || languages.en === entry.url
-    })
-    expect(english.map((entry) => entry.url)).toEqual([
-      siteUrl('/'),
-      // 2026-10 redesign — "How Motir works", the developer page.
-      siteUrl('/how-it-works'),
-      // 2026-10 — "How to use Motir".
-      siteUrl('/how-to-use'),
-      // MOTIR-8382 — the price page.
-      siteUrl('/price'),
-      // MOTIR-8383 — how the calculation works.
-      siteUrl('/how-the-calculation-works'),
-      siteUrl('/design'),
-      siteUrl('/explore'),
-      siteUrl('/docs'),
-      ...[
-        '/docs/api',
-        '/docs/api/getting-started',
-        '/docs/api/stability',
-        '/docs/mcp',
-        '/docs/mcp/tools',
-        '/docs/cli',
-        '/docs/sandbox',
-        // MOTIR-4227 — the customer-facing address guide.
-        '/docs/public-address',
-        // MOTIR-6007 — the Sentry integration guide.
-        '/docs/sentry',
-        // MOTIR-6016 — the difficulty levels guide.
-        '/docs/difficulty',
-        // MOTIR-6717 — installing Motir's skills in your agent.
-        '/docs/skills',
-        // 2026-10 redesign — the Claude Code plugin and connector guides.
-        '/docs/claude-code-plugin',
-        '/docs/claude-code-connector',
-      ].map(siteUrl),
-      siteUrl('/legal'),
-      ...[
-        'terms',
-        'privacy',
-        'cookies',
-        'acceptable-use',
-        'dpa',
-        'subprocessors',
-        'model-providers',
-      ].map((slug) => siteUrl(`/legal/${slug}`)),
-    ])
   })
 })

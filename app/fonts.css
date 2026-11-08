@@ -1,0 +1,104 @@
+/*
+ * EVERY FACE motir.co DRAWS, DECLARED ONCE AND SERVED FROM THE SITE ITSELF
+ * (MOTIR-7952 · MOTIR-10643).
+ *
+ * Under Next, `app/fonts.ts` declared these faces through `next/font/google`,
+ * which downloaded them at build time and wrote the `@font-face` rules. The
+ * built site does the same with the fontsource packages: each `@import` below
+ * is a package's own `@font-face` sheet, Vite copies every font file it names
+ * into `dist/_astro/`, and no page names a Google host
+ * (`scripts/i18n/check-static-pages.ts` fails a build that does).
+ *
+ * The variable names are the ones `app/fonts.ts` gave its loaders, and they
+ * are set on `:root` rather than on an `<html>` class, which is all the class
+ * was for. `--font-*: '<family>'` with no fallbacks of its own, exactly as
+ * next/font's variable named only its face: `theme.css` supplies the fallback
+ * stack where it reads the variable.
+ *
+ * ── The six pairing faces ────────────────────────────────────────────────
+ *
+ * The Latin faces the six Type pairings name, as the RAW `-source` variables
+ * the token layer reads.
+ *
+ * ⚠️ THE VARIABLE NAME MUST BE THE `-source` ONE. `theme.css` declares the
+ * ROLE tokens as `--font-sans: var(--font-sans-source, <fallbacks>)`, and the
+ * `[data-type]` blocks re-point those roles. Naming one of these `--font-sans`
+ * would leave every `var(--font-*-source)` unresolved and quietly disable the
+ * whole type axis.
+ *
+ * Each sheet carries every `unicode-range` slice of its face — `latin-ext`
+ * included, so ą ę ł ś ź ż ó draw in the pairing's face — and the browser
+ * fetches a slice only when a rendered character falls in it, as it did under
+ * next/font. The default pairing's Latin files are preloaded by
+ * `app/fontPreloads.ts`; the three non-default pairings' are not, so only a
+ * visitor who picks one on `/design` pays for its face.
+ *
+ * `tests/typeFaces.test.ts` reads every `-source` variable the installed
+ * `theme.css` references and asserts this file defines each one.
+ *
+ * ── The font sets (Story MOTIR-7733 · MOTIR-7737) ────────────────────────
+ *
+ * One face per member of `@motir/design-system`'s `FONT_SET_REGISTRY`: the CJK
+ * faces a zh, ja or ko page's script is drawn in, BEHIND the pairing's Latin
+ * faces, under the variable `fontSetMemberVar(set, role, member)` names. A CJK
+ * mono role re-uses its set's sans face. LXGW WenKai TC is a member of BOTH
+ * Chinese sets, so it is read through a variable per set.
+ * `tests/fontSetFaces.test.ts` holds this file to the installed registry.
+ *
+ * ⚠️ DECLARING A FACE DOWNLOADS NOTHING BY ITSELF. The installed `theme.css`
+ * names a CJK family only under its own `:lang()` block, so an English page
+ * fetches no CJK file and a `ja` page no `zh` or `ko` file
+ * (`e2e/specs/fontSets.spec.ts` measures exactly that), and none is preloaded.
+ * Static faces load the set's two weights, `400` and `700`.
+ */
+
+/* The pairing faces. IBM Plex Mono is not a variable font, so the weights it
+   is used at are enumerated. */
+@import '@fontsource-variable/inter/wght.css';
+@import '@fontsource-variable/source-serif-4/wght.css';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
+@import '@fontsource-variable/space-grotesk/wght.css';
+@import '@fontsource-variable/fraunces/wght.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+@import '@fontsource/ibm-plex-mono/600.css';
+
+/* The font-set faces. */
+@import '@fontsource-variable/noto-sans-sc/wght.css';
+@import '@fontsource-variable/noto-serif-sc/wght.css';
+@import '@fontsource/lxgw-wenkai-tc/400.css';
+@import '@fontsource/lxgw-wenkai-tc/700.css';
+@import '@fontsource-variable/noto-sans-tc/wght.css';
+@import '@fontsource-variable/noto-serif-tc/wght.css';
+@import '@fontsource-variable/noto-sans-jp/wght.css';
+@import '@fontsource/m-plus-rounded-1c/400.css';
+@import '@fontsource/m-plus-rounded-1c/700.css';
+@import '@fontsource-variable/noto-serif-jp/wght.css';
+@import '@fontsource-variable/noto-sans-kr/wght.css';
+@import '@fontsource/nanum-gothic/400.css';
+@import '@fontsource/nanum-gothic/700.css';
+@import '@fontsource-variable/noto-serif-kr/wght.css';
+
+:root {
+  /* The pairing faces. */
+  --font-sans-source: 'Inter Variable';
+  --font-serif-source: 'Source Serif 4 Variable';
+  --font-mono-source: 'JetBrains Mono Variable';
+  --font-grotesk-source: 'Space Grotesk Variable';
+  --font-editorial-source: 'Fraunces Variable';
+  --font-mono-technical-source: 'IBM Plex Mono';
+
+  /* The font-set faces. */
+  --font-set-zh-Hans-sans-noto-sans-sc: 'Noto Sans SC Variable';
+  --font-set-zh-Hans-serif-noto-serif-sc: 'Noto Serif SC Variable';
+  --font-set-zh-Hans-serif-lxgw-wenkai-tc: 'LXGW WenKai TC';
+  --font-set-zh-Hant-sans-noto-sans-tc: 'Noto Sans TC Variable';
+  --font-set-zh-Hant-serif-noto-serif-tc: 'Noto Serif TC Variable';
+  --font-set-zh-Hant-serif-lxgw-wenkai-tc: 'LXGW WenKai TC';
+  --font-set-ja-sans-noto-sans-jp: 'Noto Sans JP Variable';
+  --font-set-ja-sans-m-plus-rounded-1c: 'M PLUS Rounded 1c';
+  --font-set-ja-serif-noto-serif-jp: 'Noto Serif JP Variable';
+  --font-set-ko-sans-noto-sans-kr: 'Noto Sans KR Variable';
+  --font-set-ko-sans-nanum-gothic: 'Nanum Gothic';
+  --font-set-ko-serif-noto-serif-kr: 'Noto Serif KR Variable';
+}

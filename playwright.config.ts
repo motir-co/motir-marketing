@@ -1,4 +1,3 @@
-import { join } from 'node:path'
 import { defineConfig, devices } from '@playwright/test'
 import { SKILLS_RELEASE_PIN } from './lib/skillsRelease'
 import {
@@ -19,13 +18,12 @@ import {
  *
  * ── ⚠️ THE BUILD IS PART OF THE `webServer` COMMAND, AND HAS TO BE ────────
  *
- * `NEXT_PUBLIC_MOTIR_APP_ORIGIN` is inlined by `next build`, so pointing the app
- * at the stub is a BUILD-time act — setting the variable when starting an
- * already-built server changes nothing, because the literal is in the bundle.
- * `lib/appOrigin.ts` explains why it works that way and throws at import when
- * the variable is unset, which is the guard that turns this from a silent
- * mis-point into a failed build. So the command below builds and then starts,
- * with the origin set for both.
+ * `astro build` renders every page ahead and inlines the origins into the
+ * islands' bundle (`astro.config.mjs`, `define`), so pointing the site at the
+ * stub is a BUILD-time act — setting a variable when starting the server over an
+ * already-built `dist/` changes nothing. `lib/appOrigin.ts` throws at import when
+ * the app origin is unset, which turns a silent mis-point into a failed build.
+ * So the command below builds and then serves.
  *
  * The cost is honest and worth naming: this lane builds the app. It is why the
  * job has its own timeout in `ci.yml` and why it is a separate job rather than
@@ -64,6 +62,37 @@ import {
 
 export default defineConfig({
   testDir: './e2e/specs',
+  /*
+   * ⚠️ THE PER-REQUEST SPECS, LEFT OUT BY FILE NAME (MOTIR-10649).
+   *
+   * This lane serves the static build alone, so a spec whose subject renders
+   * per request — `/p/**`, `/explore`, `/explore/topic/*`, `/ideas`,
+   * `/motir-builds-itself`, `/sitemap-projects.xml` — or is the bare-`/`
+   * language detection cannot pass here. Those routes are the Worker-routes
+   * story's (MOTIR-10635), and it re-includes each file by deleting its entry. The `-live`
+   * files are the per-request halves of specs whose static cases still run.
+   */
+  testIgnore: [
+    'acceptance-ideas.spec.ts',
+    'acceptance-ideas-categories.spec.ts',
+    'acceptance-ideas-localized.spec.ts',
+    'acceptance-public-project.spec.ts',
+    'acceptance-read-pages-move.spec.ts',
+    'acceptance-public-address.spec.ts',
+    'project-acts.spec.ts',
+    'project-crawl.spec.ts',
+    'project-detail.spec.ts',
+    'project-overview.spec.ts',
+    'project-tabs.spec.ts',
+    'acceptance-eleven-languages-live.spec.ts',
+    'acceptance-docs-eleven-languages-live.spec.ts',
+    'smoke-live.spec.ts',
+    'locale-links-live.spec.ts',
+    'not-found-live.spec.ts',
+    'landmark-live.spec.ts',
+    'languageSwitcher-live.spec.ts',
+    'acceptance-legal-binding-english-live.spec.ts',
+  ].map((file) => `**/${file}`),
   // ⚠️ A LANE THAT PASSES WITH NO TESTS IS NOT A LANE. The card asks for this in
   // terms — "the job fails if the spec is removed (no empty-suite pass)" — and
   // Playwright's default is to exit 0 on an empty run.
@@ -110,66 +139,50 @@ export default defineConfig({
       env: { MOTIR_PUBLIC_API_STUB_PORT: String(STUB_PORT) },
     },
     {
-      // Build AND start, with the origin set for both — see the note above.
+      // ⚠️ THE STATIC BUILD, SERVED AS CLOUDFLARE SERVES IT (MOTIR-10649).
       //
-      // ⚠️ IT RUNS THE STANDALONE SERVER, NOT `next start`, AND THAT IS THE
-      // POINT OF THE LANE. `next.config.ts` sets `output: 'standalone'` because
-      // the host implies it, and Next says outright that `next start` "does not
-      // work with 'output: standalone'" — it warns and serves something else. A
-      // browser lane exercising a server the release never runs is a lane that
-      // can be green while the image is broken, which is the one failure this
-      // job exists to prevent.
+      // `astro build` renders every page ahead, and the pages that read an
+      // artifact read it NOW: the docs (`/docs/api`, `/docs/cli`, `/docs/mcp`,
+      // `/docs/mcp/tools`) fetch the OpenAPI spec, the CLI list and the MCP
+      // catalogue, and `/price` and `/how-the-calculation-works` fetch the plan
+      // ladder. So the build must read the STUB, and the stub must already be
+      // listening: Playwright starts `webServer` entries one after another, in
+      // this order, and waits for each one's `url` before starting the one after it, so the
+      // entry above is up before this command runs. A build that reached no
+      // stub fails loudly (a docs artifact that cannot be read fails the build,
+      // `lib/docs.ts`), so it can never fall through to a live host — neither
+      // origin below is ever left unset.
       //
-      // The two `cp`s are there because the standalone bundle carries its own
-      // minimal `node_modules` and NOT `.next/static` or `public`, so a server
-      // started without them answers documents whose every asset 404s. The
-      // release runs on Vercel from the same `next build`; this lane runs that
-      // build as one Node server.
+      // `wrangler dev --assets dist` then serves `dist/` with the repository's
+      // `wrangler.jsonc`: static assets only, no Worker script, so Cloudflare's
+      // own trailing-slash, `_redirects`, `_headers` and 404-page handling is
+      // what the specs measure. It needs no Cloudflare login, so the job needs
+      // no secret.
+      //
+      // The specs whose subject is a per-request route are on `testIgnore`
+      // above; the Worker-routes story serves them.
       command: [
         'pnpm build',
-        'cp -r .next/static .next/standalone/.next/static',
-        'cp -r public .next/standalone/public',
-        'node .next/standalone/server.js',
+        `node_modules/.bin/wrangler dev --ip 127.0.0.1 --port ${SITE_PORT} --assets dist`,
       ].join(' && '),
       url: SITE_ORIGIN,
       reuseExistingServer: !process.env['CI'],
       timeout: 300_000,
       env: {
         NEXT_PUBLIC_MOTIR_APP_ORIGIN: STUB_ORIGIN,
-        // ⚠️ SET EXPLICITLY RATHER THAN INHERITED (MOTIR-4220). `ci.yml` sets
-        // this at WORKFLOW level, to the production base domain, because
-        // `build` and `deploy` need it there — and a lane that inherited it
-        // would be testing a different namespace from the one its tenant host
-        // (`acme.localhost`) belongs to. Same rule, same reason, as the origin
-        // above; `e2e/stub/origin.ts` carries the full note.
-        NEXT_PUBLIC_MOTIR_TENANT_DOMAIN: 'localhost',
-        // /price reads motir-ai's public routes (MOTIR-8382): the stub here,
-        // never the live engine — and every read fresh, so a spec can switch
-        // the stub's answer between page loads.
+        // /price and /how-the-calculation-works read motir-ai's plan ladder at
+        // build, and the calculator reads the categories and the estimate from
+        // the browser: both from the stub, never the live engine.
         NEXT_PUBLIC_MOTIR_AI_ORIGIN: STUB_ORIGIN,
-        MOTIR_PLAN_LADDER_REVALIDATE_S: '0',
-        NEXT_TELEMETRY_DISABLED: '1',
+        // ⚠️ SET EXPLICITLY RATHER THAN INHERITED (MOTIR-4220): `ci.yml` sets it
+        // at workflow level, to the production base domain.
+        NEXT_PUBLIC_MOTIR_TENANT_DOMAIN: 'localhost',
         // The docs install commands name the committed floor in this lane
         // (MOTIR-8802): `scripts/skills/resolve-release.ts` honours a value
         // already set, so the build never reaches GitHub and the spec's
         // expected tag cannot drift under it.
         SKILLS_RELEASE_TAG: SKILLS_RELEASE_PIN,
-        // ⚠️ THE LANE READS /docs FROM THE REPOSITORY, PER REQUEST (MOTIR-8072).
-        // Set for the build AND the server, like the origin above: at build time
-        // it turns every /docs page dynamic (`DocsDocument` calls `connection()`
-        // when it is set), and at run time it points the standalone server — which
-        // `chdir`s into `.next/standalone` and would read the copy traced there —
-        // at the repository's own `content/docs`. So the acceptance walk's step 8
-        // can edit `sentry/en.md` and see `/de/docs/sentry` go stale. The image and
-        // CI's `build` job never set it, so production stays prerendered; this is
-        // the one place the lane deliberately renders /docs differently from what
-        // ships, and `lib/docsDocuments.ts` (`liveDocsContentRoot`) says why.
-        // `process.cwd()` is the repository root, as for `e2e/support/catalogue.ts`.
-        MOTIR_DOCS_LIVE_CONTENT_ROOT: join(process.cwd(), 'content', 'docs'),
-        // The standalone server reads its own port and host; `next start`'s
-        // `--port` flag does not reach it.
-        PORT: String(SITE_PORT),
-        HOSTNAME: '127.0.0.1',
+        WRANGLER_SEND_METRICS: 'false',
       },
     },
   ],

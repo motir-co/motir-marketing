@@ -1,0 +1,30 @@
+---
+/*
+ * One legal document per file in `content/legal/`, in every locale
+ * (MOTIR-4009 · MOTIR-10644). The slugs are the directory's glob, so a
+ * document ships by existing. Every locale's copy is canonical to the
+ * unprefixed English document, with no hreflang set (`englishOnlyAlternates`).
+ */
+import LegalDocumentRoute, {
+  generateMetadata,
+} from '@/app/[locale]/legal/[slug]/LegalDocumentRoute'
+import LegalLayout, {
+  generateMetadata as legalMetadata,
+} from '@/app/[locale]/legal/LegalLayout'
+import SitePage from '@/src/layouts/SitePage.astro'
+import { legalDocumentSlugs } from '@/lib/legal/documents'
+import { localeSlugStaticPaths, pageLocale } from '@/lib/staticPaths'
+
+export function getStaticPaths() {
+  return localeSlugStaticPaths('slug', legalDocumentSlugs())
+}
+const { slug } = Astro.params
+---
+
+<SitePage
+  locale={pageLocale(Astro.params)}
+  page={LegalDocumentRoute}
+  layouts={[LegalLayout]}
+  params={{ slug }}
+  metadata={[legalMetadata, generateMetadata]}
+/>

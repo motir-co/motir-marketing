@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { render } from '@/tests/helpers/withCopy'
 import { EN_PAGE } from '@/tests/helpers/locale'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import McpPage from '@/app/[locale]/docs/(guides)/mcp/page'
+import McpPage from '@/app/[locale]/docs/(guides)/mcp/McpRoute'
 import { APP_ORIGIN } from '@/lib/appOrigin'
 import {
   CLAUDE_AI_ROUTE_CHECKED_ON,
@@ -289,22 +289,16 @@ describe('/docs/mcp is a wiring GUIDE, not a definition', () => {
     expect(text).toContain('Off by default')
   })
 
-  it('UNREACHABLE degrades the scope table only — the wiring still renders', async () => {
-    // ⚠️ THE JUDGEMENT THIS CARD MAKES, stated as a test. `/docs/mcp/tools`
-    // renders the unreachable state instead of a page, because its whole body
-    // IS the catalogue. Here the catalogue is one section of eight, and the
-    // wiring — the reason a reader is on this page — needs no network at all.
-    // Blanking the page would strand a reader on the one thing that still
-    // worked.
+  it('UNREACHABLE fails the build — the scope table is never built without its catalogue', async () => {
+    // Under Next this page degraded the scope table alone and kept the wiring,
+    // because a reader met it at request time. A built page is never read at a
+    // moment the catalogue is unreachable, and a degraded page would ship as a
+    // 200 until the next build (MOTIR-10645): so the read throws and the build
+    // stops, naming the artifact.
     stubCatalogue({}, 503)
-    const { container } = render(await McpPage(EN_PAGE))
-    const text = container.textContent ?? ''
-    expect(text).toContain('The scope table is temporarily unreachable')
-    expect(text).toContain('claude mcp add')
-    expect(
-      [...container.querySelectorAll('pre')].length,
-      'the config blocks survive an unreachable catalogue',
-    ).toBeGreaterThanOrEqual(mcpClients().length)
+    await expect(McpPage(EN_PAGE)).rejects.toThrow(
+      /could not read the MCP tool catalogue at .*: HTTP 503/,
+    )
   })
 })
 

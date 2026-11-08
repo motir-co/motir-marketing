@@ -94,9 +94,10 @@ test('legal pages stay English, as Story MOTIR-7740 asks to be accepted', async 
 
   // ── 1 ─────────────────────────────────────────────────────────────────────
   chapter('1 · French Terms from the footer, under its note')
-  const landing = await page.goto('/')
-  expect(new URL(page.url()).pathname).toBe('/fr')
-  expect(landing?.request().redirectedFrom()).not.toBeNull()
+  // A French browser's arrival on `/` is request-time detection, which the
+  // Worker routes own: `acceptance-legal-binding-english-live.spec.ts` walks
+  // it. The static walk opens the French landing itself (MOTIR-10649).
+  await page.goto('/fr')
   await expect(html(page)).toHaveAttribute('lang', 'fr')
   const terms = page
     .locator('footer')
@@ -143,8 +144,11 @@ test('legal pages stay English, as Story MOTIR-7740 asks to be accepted', async 
   await expect(link).toHaveAttribute('href', '/en/legal/terms')
   await link.hover()
   await beat(page)
+  // `/en/*` answers 308 to the unprefixed address in the static build
+  // (`lib/redirects.ts`), so the link lands on `/legal/terms`, the same
+  // English document.
   await Promise.all([
-    page.waitForURL(`${SITE_ORIGIN}/en/legal/terms`),
+    page.waitForURL(`${SITE_ORIGIN}/legal/terms`),
     link.click(),
   ])
   await expect(html(page)).toHaveAttribute('lang', 'en')
@@ -157,17 +161,9 @@ test('legal pages stay English, as Story MOTIR-7740 asks to be accepted', async 
   expect(englishBody).toBe(frenchBody)
   expect(await localeCookie(page)).toBe(cookieBefore)
   await beat(page, 1500)
-  // The next unprefixed motir.co page still opens in French. `page.request`
-  // shares the context's cookies but not `page.route`, so it is handed the
-  // browser's language explicitly.
-  const bare = await page.request.get('/', {
-    maxRedirects: 0,
-    headers: { 'accept-language': 'fr-FR,fr;q=0.9' },
-  })
-  expect(bare.status()).toBe(307)
-  expect(new URL(bare.headers()['location']!, SITE_ORIGIN).pathname).toBe('/fr')
-  await page.goto('/')
-  await expect(page).toHaveURL(`${SITE_ORIGIN}/fr`)
+  // The next unprefixed page opening in French is the remembered language
+  // beating the bare address, a per-request answer: the `-live` file has it.
+  await page.goto('/fr')
   await expect(html(page)).toHaveAttribute('lang', 'fr')
   await beat(page, 1200)
 

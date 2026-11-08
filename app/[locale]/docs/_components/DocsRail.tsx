@@ -3,7 +3,6 @@
 import { localizedPath } from '@/i18n/localizedPath'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import Link from 'next/link'
 import { useSitePathname } from '@/i18n/sitePathname'
 import { type Copy, format, useCopy, usePageLocale } from '@/lib/copy'
 import type { RailOperation } from '@/lib/docs'
@@ -254,13 +253,13 @@ export function DocsRail({
             const current = pathname === surface.href
             return (
               <li key={surface.href}>
-                <Link
+                <a
                   href={localizedPath(locale, surface.href)}
                   aria-current={current ? 'page' : undefined}
                   className={`${ROW} ${current ? ROW_CURRENT : ROW_REST}`}
                 >
                   {surface.label}
-                </Link>
+                </a>
               </li>
             )
           })}
@@ -280,13 +279,13 @@ export function DocsRail({
                   const current = pathname === page.href
                   return (
                     <li key={page.href}>
-                      <Link
+                      <a
                         href={localizedPath(locale, page.href)}
                         aria-current={current ? 'page' : undefined}
                         className={`${ROW} ${current ? ROW_CURRENT : ROW_REST}`}
                       >
                         {page.label}
-                      </Link>
+                      </a>
                     </li>
                   )
                 })}
@@ -342,7 +341,7 @@ export function DocsRail({
                   <ul className="mb-1 list-none p-0">
                     {group.operations.map((operation) => (
                       <li key={operation.id}>
-                        <Link
+                        <a
                           href={localizedPath(
                             locale,
                             `/docs/api#${operation.id}`,
@@ -360,7 +359,7 @@ export function DocsRail({
                           <span className="truncate font-(family-name:--font-mono) text-[12px]">
                             {operation.path}
                           </span>
-                        </Link>
+                        </a>
                       </li>
                     ))}
                   </ul>
