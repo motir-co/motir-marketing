@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { HandDrawnFilter } from '@motir/design-system'
 import type { Locale } from '@/i18n/routing'
-import { ImmersiveTiltIsland } from '../_islands'
 import { RootJsonLd } from './RootJsonLd'
 
 /*
@@ -30,12 +29,10 @@ export function SiteBody({
 }>) {
   return (
     <>
-      {/* The two style engines the app mounts too: the pointer tilt the 3D /
-          Immersive style animates `data-tilt` panels with — an island, since
-          it is an effect — and the roughen filter the Hand-Drawn style
-          references. Both are inert under every other style (and the tilt
-          under reduced motion). */}
-      <ImmersiveTiltIsland />
+      {/* The roughen filter the Hand-Drawn style references, inert under
+          every other style. The other style engine the app mounts, the 3D /
+          Immersive pointer tilt, is an effect and rides the header island
+          (`SiteHeader`). */}
       <HandDrawnFilter />
       {children}
       {/*

@@ -22,8 +22,6 @@ import { createElement, type ComponentType, type ReactNode } from 'react'
 export const ISLANDS = {
   SiteHeader: () =>
     import('@/app/_components/SiteHeader').then((m) => m.SiteHeader),
-  ImmersiveTilt: () =>
-    import('@motir/design-system').then((m) => m.ImmersiveTilt),
   HeroBrief: () =>
     import('@/app/_components/landing/HeroBrief').then((m) => m.HeroBrief),
   HeroWaves: () =>

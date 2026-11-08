@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { useSitePathname } from '@/i18n/sitePathname'
 import { ArrowRight, ArrowUpRight, ChevronDown, Menu } from 'lucide-react'
-import { buttonVariants, cn } from '@motir/design-system'
+import { buttonVariants, cn, ImmersiveTilt } from '@motir/design-system'
 import { type Copy, useCopy, usePageLocale } from '@/lib/copy'
 import type { Locale } from '@/i18n/routing'
 import { PRODUCT_MARK, productGroupsFor, productItemsFor } from './products'
@@ -241,6 +241,12 @@ export function SiteHeader({
 
   return (
     <header className={cn(overlay && 'absolute inset-x-0 top-0 z-30')}>
+      {/* The 3D / Immersive style's pointer tilt, which animates the page's
+          `data-tilt` panels. It is an effect with no markup, and it rides the
+          header so that the header stays the only island a page's chrome
+          hydrates (MOTIR-10643). Inert under every other style and under
+          reduced motion. */}
+      <ImmersiveTilt />
       <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-(--spacing-card-padding) sm:py-4">
         <div className="flex min-w-0 items-center gap-8">
           {/* motir.co's own root — internal ON THE SITE, and an absolute link

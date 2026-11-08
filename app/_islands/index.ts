@@ -1,4 +1,3 @@
-import { ImmersiveTilt } from '@motir/design-system'
 import { island } from '@/lib/island'
 import { CopyControls } from '../[locale]/docs/_components/CopyControls'
 import { DocsRail } from '../[locale]/docs/_components/DocsRail'
@@ -28,12 +27,6 @@ import { SiteHeader } from '../_components/SiteHeader'
 
 /** The site header: the Products menu, the Menu panel, the setup-prompt button and the language switcher. */
 export const SiteHeaderIsland = island('SiteHeader', SiteHeader)
-
-/**
- * The 3D / Immersive style's pointer tilt — an effect with no markup, mounted
- * once per page as `SiteDocument` did. Inert under every other style.
- */
-export const ImmersiveTiltIsland = island('ImmersiveTilt', ImmersiveTilt)
 
 /** The landing's and the product pages' brief box (MOTIR-10644). */
 export const HeroBriefIsland = island<

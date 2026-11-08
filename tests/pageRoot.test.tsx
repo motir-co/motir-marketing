@@ -58,10 +58,10 @@ describe('the page root', () => {
     expect(out).toMatch(
       /<section><article><p>page fr <i>fr<\/i><\/p><\/article><\/section>/,
     )
-    // The site body: the tilt island before the page, the entity graph after.
-    expect(out.indexOf('data-island="ImmersiveTilt"')).toBeLessThan(
-      out.indexOf('<section>'),
-    )
+    // The site body: the roughen filter before the page, the entity graph
+    // after, and no island of its own (the tilt rides the header, MOTIR-10643).
+    expect(out.indexOf('id="hd-rough"')).toBeLessThan(out.indexOf('<section>'))
+    expect(out).not.toContain('data-island=')
     expect(out.indexOf('application/ld+json')).toBeGreaterThan(
       out.indexOf('</section>'),
     )

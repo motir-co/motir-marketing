@@ -41,6 +41,7 @@
         "tests/explore/exploreParams.test.ts",
         "tests/explore/gallery.test.tsx",
         "tests/host/canonical.test.tsx",
+        "tests/host/crawlSurface.test.ts",
         "tests/host/tenantLinks.test.tsx",
         "tests/i18n/fallbackIntegration.test.tsx",
         "tests/i18n/internalLinks.test.tsx",

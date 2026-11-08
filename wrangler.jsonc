@@ -10,7 +10,8 @@
  *  • `not_found_handling: "404-page"` answers a path with no file with the
  *    nearest `404.html` above it and a 404 status — `de/404.html` for a
  *    mistyped `/de/…`, `404.html` for the rest.
- *  • `public/_redirects` carries the `/en` → `/` 308s.
+ *  • `_redirects`, which the build writes from `lib/redirects.ts`, carries
+ *    the `/en` → `/` 308s and the `/products/*` → docs 308s.
  *
  * The deploy job stays held until the CI story (MOTIR-10637) points it here;
  * `pnpm start` serves the build locally through `wrangler dev`.
