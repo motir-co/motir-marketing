@@ -217,6 +217,14 @@ export default defineConfig({
         'lib/explainer/*.ts',
         'app/?locale?/how-the-calculation-works/**/*.ts',
         'app/?locale?/how-the-calculation-works/**/*.tsx',
+        // MOTIR-10752 — the Worker's router, route table and log line, added
+        // WITH their tests (`tests/worker/`). `worker/index.ts` and
+        // `worker/processEnv.ts` are the runtime's entry and its env bridge:
+        // they read `cloudflare:workers`, which only the Workers runtime
+        // provides, and the browser lane is what exercises them.
+        'worker/router.ts',
+        'worker/routes.ts',
+        'worker/requestLog.ts',
       ].filter(notHeld),
       /*
        * ⚠️ EVERY EXCLUSION HAS A REASON, and the reasons are different — a list
@@ -373,6 +381,10 @@ export default defineConfig({
             branches: 90,
           },
           'lib/metadata.ts': { lines: 90, functions: 90, branches: 90 },
+          // MOTIR-10752 — measured first under `tests/worker/`, then pinned.
+          'worker/router.ts': { lines: 90, functions: 90, branches: 90 },
+          'worker/routes.ts': { lines: 90, functions: 90, branches: 90 },
+          'worker/requestLog.ts': { lines: 90, functions: 90, branches: 90 },
           'lib/scriptJson.ts': { lines: 90, functions: 90, branches: 90 },
           'lib/island.tsx': { lines: 90, functions: 90, branches: 90 },
           'lib/islands.ts': { lines: 90, functions: 90, branches: 90 },
