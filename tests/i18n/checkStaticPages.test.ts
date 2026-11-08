@@ -13,10 +13,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { LOCALE_BCP47, LOCALES, type Locale } from '@/i18n/routing'
 import {
   addressesOf,
+  addressOfUrl,
   checkStaticPages,
   htmlFileFor,
   listFiles,
   main,
+  ROOT_FILES,
+  sitemapLocations,
   STATIC_PAGES,
   type StaticPage,
 } from '@/scripts/i18n/check-static-pages'
@@ -44,7 +47,18 @@ function write(dir: string, file: string, text: string) {
 const page = (locale: Locale) =>
   `<!doctype html><html lang="${LOCALE_BCP47[locale]}" class="antialiased"><head></head><body></body></html>`
 
-/** A build holding every registered page in every locale, unless told not to. */
+/** The site URL of one address in one locale, as the sitemap spells it. */
+const urlOf = (locale: Locale, address: string) =>
+  `https://motir.co${locale === 'en' ? '' : `/${locale}`}${address === '/' && locale !== 'en' ? '' : address}`
+
+/** A `sitemap-site.xml` naming these URLs. */
+const urlset = (urls: readonly string[]) =>
+  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((url) => `<url>\n<loc>${url}</loc>\n</url>`).join('\n')}\n</urlset>\n`
+
+/**
+ * A build holding every registered page in every locale, the three root files,
+ * and a site sitemap listing every page plus `/explore` — unless told not to.
+ */
 function output(
   pages: readonly StaticPage[],
   skip?: { address: string; locale: Locale },
@@ -58,8 +72,22 @@ function output(
         write(dir, htmlFileFor(locale, address), page(locale))
       }
   write(dir, '_astro/site.css', 'body{}')
+  write(dir, 'robots.txt', 'User-Agent: *\nAllow: /\n')
+  write(dir, 'sitemap.xml', '<sitemapindex></sitemapindex>\n')
+  write(
+    dir,
+    'sitemap-site.xml',
+    urlset(
+      [...pages.flatMap(addressesOf), '/explore'].flatMap((address) =>
+        LOCALES.map((locale) => urlOf(locale, address)),
+      ),
+    ),
+  )
   return dir
 }
+
+/** Files every `output` holds besides its pages: the stylesheet and the root files. */
+const EXTRA_FILES = 1 + ROOT_FILES.length
 
 const PAGES: StaticPage[] = [
   { route: '/' },
@@ -89,13 +117,15 @@ describe('the check', () => {
     const result = checkStaticPages({ dir: output(PAGES), pages: PAGES })
     expect(result.problems).toEqual([])
     expect(result.pagesChecked).toBe(4 * LOCALES.length)
-    expect(result.fileCount).toBe(4 * LOCALES.length + 1)
+    expect(result.fileCount).toBe(4 * LOCALES.length + EXTRA_FILES)
   })
 
   it('fails a build missing one locale’s file, naming the route and the locale', () => {
     const dir = output(PAGES, { address: '/legal/privacy', locale: 'ko' })
     expect(checkStaticPages({ dir, pages: PAGES }).problems).toEqual([
       '/legal/privacy [ko]: no ko/legal/privacy.html in the build',
+      // …and the sitemap names it, so the cross-check says so too.
+      '/legal/privacy [ko]: sitemap-site.xml lists https://motir.co/ko/legal/privacy, and the build has no ko/legal/privacy.html',
     ])
   })
 
@@ -130,8 +160,98 @@ describe('the check', () => {
   it('fails an output over the Workers file limit', () => {
     const dir = output(PAGES)
     expect(checkStaticPages({ dir, pages: PAGES, limit: 10 }).problems).toEqual(
-      [`the output holds ${4 * LOCALES.length + 1} files, over 10`],
+      [`the output holds ${4 * LOCALES.length + EXTRA_FILES} files, over 10`],
     )
+  })
+})
+
+describe('the root files (MOTIR-10646)', () => {
+  it('registers robots.txt and the two sitemaps', () => {
+    expect(ROOT_FILES).toEqual([
+      'robots.txt',
+      'sitemap.xml',
+      'sitemap-site.xml',
+    ])
+  })
+
+  it.each(['robots.txt', 'sitemap.xml', 'sitemap-site.xml'])(
+    'fails a build missing %s, naming the file',
+    (file) => {
+      const dir = output(PAGES)
+      rmSync(path.join(dir, file))
+      expect(checkStaticPages({ dir, pages: PAGES }).problems).toEqual([
+        `${file}: not in the build`,
+      ])
+    },
+  )
+})
+
+describe('the sitemap cross-check (MOTIR-10646)', () => {
+  it('reads a URL as its locale and its English address', () => {
+    expect(addressOfUrl('https://motir.co/')).toEqual({
+      locale: 'en',
+      address: '/',
+    })
+    expect(addressOfUrl('https://motir.co/zh-tw')).toEqual({
+      locale: 'zh-tw',
+      address: '/',
+    })
+    expect(addressOfUrl('https://motir.co/de/docs/mcp')).toEqual({
+      locale: 'de',
+      address: '/docs/mcp',
+    })
+    expect(addressOfUrl('https://motir.co/legal/terms')).toEqual({
+      locale: 'en',
+      address: '/legal/terms',
+    })
+    // `/en` is not a locale prefix: English is unprefixed.
+    expect(addressOfUrl('https://motir.co/en/price')).toEqual({
+      locale: 'en',
+      address: '/en/price',
+    })
+  })
+
+  it('reads every <loc>, unescaped', () => {
+    expect(
+      sitemapLocations(
+        '<url><loc>https://motir.co/a?x=1&amp;y=&lt;&gt;&quot;&apos;</loc></url><url><loc>https://motir.co/b</loc></url>',
+      ),
+    ).toEqual(['https://motir.co/a?x=1&y=<>"\'', 'https://motir.co/b'])
+  })
+
+  it('fails a sitemap path with no built page, naming the path and the locale', () => {
+    const dir = output(PAGES)
+    write(
+      dir,
+      'sitemap-site.xml',
+      urlset([
+        'https://motir.co/',
+        'https://motir.co/fr/explore',
+        'https://motir.co/fr/products/mcp',
+      ]),
+    )
+    expect(checkStaticPages({ dir, pages: PAGES }).problems).toEqual([
+      '/products/mcp [fr]: sitemap-site.xml lists https://motir.co/fr/products/mcp, which is not a registered static page',
+    ])
+  })
+
+  it('fails a built file the registry does not name — the sitemap may list only registered pages', () => {
+    const dir = output(PAGES)
+    write(dir, 'design.html', page('en'))
+    write(dir, 'sitemap-site.xml', urlset(['https://motir.co/design']))
+    expect(checkStaticPages({ dir, pages: PAGES }).problems).toEqual([
+      '/design [en]: sitemap-site.xml lists https://motir.co/design, which is not a registered static page',
+    ])
+  })
+
+  it('lets /explore through in every locale: a Worker answers it', () => {
+    const dir = output(PAGES)
+    write(
+      dir,
+      'sitemap-site.xml',
+      urlset(LOCALES.map((locale) => urlOf(locale, '/explore'))),
+    )
+    expect(checkStaticPages({ dir, pages: PAGES }).problems).toEqual([])
   })
 })
 
@@ -182,6 +302,7 @@ describe('the registry', () => {
       checkStaticPages({ dir: broken, pages: STATIC_PAGES }).problems,
     ).toEqual([
       '/legal/subprocessors [ja]: no ja/legal/subprocessors.html in the build',
+      '/legal/subprocessors [ja]: sitemap-site.xml lists https://motir.co/ja/legal/subprocessors, and the build has no ja/legal/subprocessors.html',
     ])
   })
 
@@ -203,6 +324,17 @@ describe('the command', () => {
     expect(main(['--dir', broken])).toBe(1)
     expect(error).toHaveBeenCalledWith(
       'FAIL /404 [pl]: no pl/404.html in the build',
+    )
+  })
+
+  it('fails an output missing sitemap-site.xml, naming the file', () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const broken = output(STATIC_PAGES)
+    rmSync(path.join(broken, 'sitemap-site.xml'))
+    expect(main(['--dir', broken])).toBe(1)
+    expect(error).toHaveBeenCalledWith(
+      'FAIL sitemap-site.xml: not in the build',
     )
   })
 

@@ -39,14 +39,14 @@ import { ROOT, designTree, filesUnder } from './designTree'
 
 // A directory holding a PAGE file serves its own path.
 const PAGE_FILES = new Set(['page.tsx', 'page.ts', 'route.ts', 'route.tsx'])
-// A metadata file serves the directory's path plus its OWN name.
+// A metadata file serves the directory's path plus its OWN name. `robots.txt`
+// and the sitemaps are Astro endpoints now (MOTIR-10646), read by
+// `astroRoutes` below.
 const METADATA_FILES = new Set([
   'opengraph-image.tsx',
   'twitter-image.tsx',
   'icon.tsx',
   'apple-icon.tsx',
-  'sitemap.ts',
-  'robots.ts',
 ])
 
 /** The segment every localised page lives under (MOTIR-7948). */

@@ -31,7 +31,9 @@
         "app/sitemap-projects.xml",
         "lib/requestPublicHost.ts",
         "lib/explore.ts",
-        "lib/publicProject.ts"
+        "lib/publicProject.ts",
+        "lib/sitemapEntries.ts",
+        "tests/helpers/sitemap.ts"
       ],
       "tests": [
         "tests/brand/ogColours.test.ts",
@@ -61,28 +63,7 @@
         "tests/publicProject/subscribeForm.test.tsx",
         "tests/publicProject/tabReads.test.ts",
         "tests/publicProject/watchLive.test.tsx",
-        "tests/sitemapRoutes.test.ts"
-      ]
-    },
-    {
-      "owner": "MOTIR-10646",
-      "why": "robots.txt and the sitemaps, built ahead by the root-files card.",
-      "lint": true,
-      "sources": [
-        "app/robots.ts",
-        "app/sitemap.xml",
-        "app/sitemap-site.xml",
-        "lib/sitemapEntries.ts",
-        "lib/sitemapXml.ts",
-        "tests/helpers/sitemap.ts"
-      ],
-      "tests": [
-        "tests/entitySignal.test.ts",
-        "tests/explainer/page.test.tsx",
-        "tests/explainer/siteIntegration.test.ts",
-        "tests/legal/legalCrawl.test.ts",
-        "tests/legal/legalReachability.test.ts",
-        "tests/siteHeaderSitemap.test.ts"
+        "tests/sitemapProjectsRoute.test.ts"
       ]
     },
     {

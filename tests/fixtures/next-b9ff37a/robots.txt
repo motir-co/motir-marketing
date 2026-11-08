@@ -1,0 +1,21 @@
+User-Agent: *
+Allow: /
+Disallow: /explore?
+Disallow: /*/explore?
+Disallow: /explore/topic/*?
+Disallow: /*/explore/topic/*?
+Disallow: /ideas?
+Disallow: /*/ideas?
+
+User-Agent: AhrefsBot
+User-Agent: SemrushBot
+User-Agent: MJ12bot
+User-Agent: DotBot
+User-Agent: BLEXBot
+User-Agent: DataForSeoBot
+User-Agent: Bytespider
+User-Agent: PetalBot
+Disallow: /
+
+Host: https://motir.co/
+Sitemap: https://motir.co/sitemap.xml

@@ -132,10 +132,14 @@ export default defineConfig({
         // a built file plus a tenant route. Added WITH the files.
         'lib/sitemapEntries.ts',
         'lib/sitemapXml.ts',
-        'app/robots.ts',
-        'app/sitemap.xml/route.ts',
-        'app/sitemap-site.xml/route.ts',
         'app/sitemap-projects.xml/route.ts',
+        // MOTIR-10646 — robots and the two built sitemaps are Astro endpoints
+        // now, and the site half is its own module. Added WITH their tests.
+        'lib/robots.ts',
+        'lib/siteSitemap.ts',
+        'src/pages/robots.txt.ts',
+        'src/pages/sitemap.xml.ts',
+        'src/pages/sitemap-site.xml.ts',
         // MOTIR-7083 — the docs data modules Story MOTIR-6976 changed, added
         // WITH their top-up tests rather than after them. Before this story no
         // docs file was measured at all.
@@ -302,17 +306,6 @@ export default defineConfig({
           'proxy.ts': { lines: 90, functions: 90, branches: 85 },
           'lib/sitemapEntries.ts': { lines: 90, functions: 90, branches: 85 },
           'lib/sitemapXml.ts': { lines: 90, functions: 90, branches: 85 },
-          'app/robots.ts': { lines: 90, functions: 90, branches: 85 },
-          'app/sitemap.xml/route.ts': {
-            lines: 90,
-            functions: 90,
-            branches: 85,
-          },
-          'app/sitemap-site.xml/route.ts': {
-            lines: 90,
-            functions: 90,
-            branches: 85,
-          },
           'app/sitemap-projects.xml/route.ts': {
             lines: 90,
             functions: 90,
@@ -386,6 +379,10 @@ export default defineConfig({
           'lib/hydrateIslands.tsx': { lines: 90, functions: 90, branches: 90 },
           'lib/pageRoot.tsx': { lines: 90, functions: 90, branches: 90 },
           'lib/staticPaths.ts': { lines: 90, functions: 90, branches: 90 },
+          // MOTIR-10646 — measured first under their tests, pinned at the floor.
+          'lib/robots.ts': { lines: 90, functions: 90, branches: 90 },
+          'lib/siteSitemap.ts': { lines: 90, functions: 90, branches: 90 },
+          'src/pages/*.ts': { lines: 90, functions: 90, branches: 90 },
           'app/_islands/index.ts': { lines: 90, functions: 90, branches: 90 },
           'app/_components/SiteDocument.tsx': {
             lines: 90,

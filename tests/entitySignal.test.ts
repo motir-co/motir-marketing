@@ -1,10 +1,11 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
-import { beforeAll, describe, expect, it, vi } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { BRAND_GLYPH_HEX, waveBandSvg } from '@motir/brand'
-import robots from '@/app/robots'
+import { robotsRules, robotsTxt } from '@/lib/robots'
 import { FILTER_DISALLOW, REFUSED_CRAWLERS } from '@/lib/crawlPolicy'
-import sitemap from '@/tests/helpers/sitemap'
+import { siteSitemapEntries } from '@/lib/siteSitemap'
+import type { SitemapEntry } from '@/lib/sitemapXml'
 import {
   buildRootJsonLd,
   ORGANIZATION_ID,
@@ -15,12 +16,6 @@ import { englishCopy as copy } from '@/lib/copy'
 import { DOCS_ROUTES } from '@/lib/docsSurfaces'
 import { legalDocumentSlugs } from '@/lib/legal/documents'
 import { LOCALE_BCP47, LOCALES } from '@/i18n/routing'
-
-// `app/sitemap.ts` and `app/robots.ts` read the request's host (MOTIR-4222),
-// and `next/headers` throws outside a request scope. Empty headers read as
-// the SITE's own host, which is what every case in this file is about; the
-// per-host arms live in `tests/host/crawlSurface.test.ts`.
-vi.mock('next/headers', () => ({ headers: async () => new Headers() }))
 
 /*
  * The entity signal (MOTIR-1154 · 8.3.7).
@@ -36,15 +31,10 @@ vi.mock('next/headers', () => ({ headers: async () => new Headers() }))
  */
 
 describe('robots', () => {
-  // ⚠️ AWAITED NOW. MOTIR-4222 made this route per-host — it is served at every
-  // address the renderer answers for, and each must name ITS OWN sitemap. With
-  // no router headers in this harness it answers as `motir.co`, which is what
-  // the three assertions below are about; the per-host arms are covered in
-  // `tests/host/crawlSurface.test.ts`.
-  let result: Awaited<ReturnType<typeof robots>>
-  beforeAll(async () => {
-    result = await robots()
-  })
+  // The rules `lib/robots.ts` writes into `/robots.txt` at build (MOTIR-10646);
+  // the text itself is held to the Next build's file in `tests/robots.test.ts`.
+  const rules = robotsRules()
+  const text = robotsTxt()
 
   it('ALLOWS crawl — this file existing is not the deliverable, the flip is', () => {
     // MOTIR-1455 shipped it as `disallow: /` on purpose and named this card as
@@ -53,18 +43,17 @@ describe('robots', () => {
     // Every crawler still gets `/`: the `*` group disallows only the filter
     // URLs, and `Disallow: /` is reserved for the refused crawlers' own group
     // (`lib/crawlPolicy.ts`).
-    const rules = [result.rules].flat()
-    const everyone = rules.find((rule) => rule.userAgent === '*')
+    const everyone = rules.find((rule) => rule.userAgents.includes('*'))
     expect(everyone).toEqual({
-      userAgent: '*',
-      allow: '/',
-      disallow: [...FILTER_DISALLOW],
+      userAgents: ['*'],
+      allow: ['/'],
+      disallow: FILTER_DISALLOW,
     })
-    for (const path of [everyone!.disallow].flat()) {
+    for (const path of everyone!.disallow!) {
       expect(path, 'the * group never blocks a plain page').toContain('?')
     }
-    expect(rules.filter((rule) => rule.disallow === '/')).toEqual([
-      { userAgent: [...REFUSED_CRAWLERS], disallow: '/' },
+    expect(rules.filter((rule) => rule.disallow?.includes('/'))).toEqual([
+      { userAgents: REFUSED_CRAWLERS, disallow: ['/'] },
     ])
     for (const crawler of ['Googlebot', 'bingbot', 'GPTBot', 'ClaudeBot']) {
       expect(REFUSED_CRAWLERS, crawler).not.toContain(crawler)
@@ -72,24 +61,20 @@ describe('robots', () => {
   })
 
   it('references the sitemap ABSOLUTELY', () => {
-    expect(result.sitemap).toBe('https://motir.co/sitemap.xml')
+    expect(text).toContain('\nSitemap: https://motir.co/sitemap.xml\n')
   })
 
   it('declares the canonical host', () => {
-    expect(result.host).toBe('https://motir.co/')
+    expect(text).toContain('\nHost: https://motir.co/\n')
   })
 })
 
 describe('sitemap', () => {
-  // ⚠️ AWAITED, AND THE PROJECT ENTRIES ARE ABSENT HERE BY CONSTRUCTION.
-  // MOTIR-4118 made this route dynamic: it enumerates public projects from
-  // motir-core's index. There is no API in this environment, so
-  // `loadAllPublicProjects` returns nothing and the sitemap falls back to its
-  // static entries — which is the FAILED-INDEX arm, asserted below as its own
-  // case rather than left as an accident of the harness.
-  let entries: Awaited<ReturnType<typeof sitemap>>
+  // The SITE half, `/sitemap-site.xml`, which `astro build` writes
+  // (MOTIR-10646). The project half is `/sitemap-projects.xml`, a Worker route.
+  let entries: SitemapEntry[]
   beforeAll(async () => {
-    entries = await sitemap()
+    entries = siteSitemapEntries()
   })
 
   /**
@@ -201,13 +186,9 @@ describe('sitemap', () => {
     }
   })
 
-  it('still returns the static entries, and a list, when the index read FAILS', () => {
-    // MOTIR-4118's own requirement, and the reason it matters: a crawler
-    // re-reads a short sitemap, and backs off one that errors — taking the
-    // site's crawl budget with it. The project pages are reachable from
-    // `/explore`, which is in this list, so a failed index is a delay and not a
-    // hole.
-    expect(Array.isArray(entries)).toBe(true)
+  it('lists no project page — those are the project half, read per request', () => {
+    // The site half reads no index at all, so it cannot fail with one and
+    // cannot list a project (MOTIR-8842 · MOTIR-10646).
     expect(entries.length).toBeGreaterThan(0)
     expect(entries.some((entry) => entry.url.includes('/p/'))).toBe(false)
   })

@@ -1,19 +1,13 @@
 // @vitest-environment node
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
   getLegalDocument,
   legalDocumentSlugs,
   listLegalDocuments,
 } from '@/lib/legal/documents'
-import sitemap from '@/tests/helpers/sitemap'
-
-// `app/sitemap.ts` and `app/robots.ts` read the request's host (MOTIR-4222),
-// and `next/headers` throws outside a request scope. Empty headers read as
-// the SITE's own host, which is what every case in this file is about; the
-// per-host arms live in `tests/host/crawlSurface.test.ts`.
-vi.mock('next/headers', () => ({ headers: async () => new Headers() }))
+import { siteSitemapEntries } from '@/lib/siteSitemap'
 
 /**
  * REACHABILITY AND FRONT-MATTER PARITY (Story MOTIR-3909 · MOTIR-4011).
@@ -73,7 +67,7 @@ describe('every document in the directory is REACHABLE', () => {
     // The sitemap builds its legal entries from `legalDocumentSlugs()`, so this
     // asserts the composition rather than a copied list. Removing a document
     // from the sitemap's source makes it red.
-    const entries = await sitemap()
+    const entries = siteSitemapEntries()
     const urls = entries.map((entry) => entry.url)
     for (const slug of slugsOnDisk()) {
       expect(

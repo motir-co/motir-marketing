@@ -15,7 +15,14 @@
  *   3. any file in the output names a Google Fonts host — every face is served
  *      from the build itself (`app/fonts.css`);
  *   4. the output holds more files than one Workers version may (100,000 on
- *      Workers Paid).
+ *      Workers Paid);
+ *   5. a root file in {@link ROOT_FILES} — `robots.txt` and the two sitemaps —
+ *      is missing (MOTIR-10646);
+ *   6. `sitemap-site.xml` lists a URL that is not a registered page present in
+ *      the output for the locale the URL is in. The one exception is
+ *      {@link WORKER_ROUTES}: `/explore`, which the sitemap lists and a Worker
+ *      answers. The sitemap is a hand-ordered list, not this registry, so this
+ *      is what stops it naming a page the build does not write.
  *
  * and it prints the output's file count, which the story's pull request
  * states.
@@ -71,6 +78,25 @@ export const STATIC_PAGES: readonly StaticPage[] = [
   ...DOCS_ROUTES.map((route) => ({ route })),
 ]
 
+/**
+ * The files the build writes at the root of the output, locale-less: the
+ * Astro endpoints under `src/pages/` (MOTIR-10646).
+ */
+export const ROOT_FILES: readonly string[] = [
+  'robots.txt',
+  'sitemap.xml',
+  'sitemap-site.xml',
+]
+
+/** The sitemap whose every URL must be a built page. */
+export const SITE_SITEMAP = 'sitemap-site.xml'
+
+/**
+ * Paths the site sitemap lists that a Worker answers rather than a built file
+ * — the square, which renders per request (the Worker-routes story).
+ */
+export const WORKER_ROUTES: readonly string[] = ['/explore']
+
 /** The most files one Workers version may hold (Workers Paid). */
 export const WORKERS_FILE_LIMIT = 100_000
 
@@ -110,6 +136,35 @@ export function listFiles(dir: string): string[] {
     .sort()
 }
 
+/**
+ * The locale and the English address a site URL is in: `/de/docs/mcp` is
+ * `de` + `/docs/mcp`, `/zh-tw` is `zh-tw` + `/`, `/legal/terms` is English.
+ */
+export function addressOfUrl(
+  url: string,
+  locales: readonly Locale[] = LOCALES,
+): { locale: Locale; address: string } {
+  const pathname = new URL(url).pathname
+  const [first = '', ...rest] = pathname.split('/').filter(Boolean)
+  const locale = locales.find(
+    (candidate) => candidate !== DEFAULT_LOCALE && candidate === first,
+  )
+  if (locale === undefined) return { locale: DEFAULT_LOCALE, address: pathname }
+  return { locale, address: `/${rest.join('/')}` }
+}
+
+/** Every `<loc>` of a sitemap document, unescaped. */
+export function sitemapLocations(xml: string): string[] {
+  return [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((match) =>
+    match[1]!
+      .replaceAll('&lt;', '<')
+      .replaceAll('&gt;', '>')
+      .replaceAll('&quot;', '"')
+      .replaceAll('&apos;', "'")
+      .replaceAll('&amp;', '&'),
+  )
+}
+
 const TEXT =
   /\.(html|css|js|mjs|json|xml|txt|svg|webmanifest)$|^_redirects$|^_headers$/
 
@@ -124,12 +179,14 @@ export function checkStaticPages(input: {
   pages?: readonly StaticPage[]
   locales?: readonly Locale[]
   limit?: number
+  rootFiles?: readonly string[]
 }): CheckResult {
   const {
     dir,
     pages = STATIC_PAGES,
     locales = LOCALES,
     limit = WORKERS_FILE_LIMIT,
+    rootFiles = ROOT_FILES,
   } = input
   const files = listFiles(dir)
   const present = new Set(files)
@@ -152,6 +209,35 @@ export function checkStaticPages(input: {
             `${address} [${locale}]: <html lang="${lang ?? ''}">, not "${LOCALE_BCP47[locale]}"`,
           )
         }
+      }
+    }
+  }
+
+  for (const file of rootFiles) {
+    if (!present.has(file)) problems.push(`${file}: not in the build`)
+  }
+
+  if (present.has(SITE_SITEMAP)) {
+    const registered = new Set(
+      pages.flatMap((page) =>
+        addressesOf(page).flatMap((address) =>
+          locales.map((locale) => htmlFileFor(locale, address)),
+        ),
+      ),
+    )
+    const xml = readFileSync(path.join(dir, SITE_SITEMAP), 'utf8')
+    for (const url of sitemapLocations(xml)) {
+      const { locale, address } = addressOfUrl(url, locales)
+      if (WORKER_ROUTES.includes(address)) continue
+      const file = htmlFileFor(locale, address)
+      if (!registered.has(file)) {
+        problems.push(
+          `${address} [${locale}]: ${SITE_SITEMAP} lists ${url}, which is not a registered static page`,
+        )
+      } else if (!present.has(file)) {
+        problems.push(
+          `${address} [${locale}]: ${SITE_SITEMAP} lists ${url}, and the build has no ${file}`,
+        )
       }
     }
   }
@@ -181,7 +267,7 @@ export function main(argv: readonly string[]): number {
   const { problems, pagesChecked, fileCount } = checkStaticPages({ dir })
   for (const line of problems) console.error(`FAIL ${line}`)
   console.log(
-    `${STATIC_PAGES.length} registered page(s), ${pagesChecked} HTML file(s) checked across ${LOCALES.length} locales; ${fileCount} file(s) in the output: ${problems.length ? `${problems.length} problem(s)` : 'whole'}`,
+    `${STATIC_PAGES.length} registered page(s), ${pagesChecked} HTML file(s) checked across ${LOCALES.length} locales, ${ROOT_FILES.length} root file(s); ${fileCount} file(s) in the output: ${problems.length ? `${problems.length} problem(s)` : 'whole'}`,
   )
   return problems.length ? 1 : 0
 }

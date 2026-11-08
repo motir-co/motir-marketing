@@ -1,15 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { render } from '@testing-library/react'
 import { LOCALES } from '@/i18n/routing'
 import { localizedPath } from '@/i18n/localizedPath'
 import { getCopy } from '@/lib/copy'
 import { HOW_THE_CALCULATION_WORKS } from '@/lib/destinations'
-import { siteSitemapEntries } from '@/lib/sitemapEntries'
+import { siteSitemapEntries } from '@/lib/siteSitemap'
 import { siteUrl } from '@/lib/siteOrigin'
 import { PLAN_LADDER_PATH } from '@/lib/priceLadder'
 import { CATEGORIES_PATH } from '@/app/_components/price/calculatorApi'
 import { generateMetadata } from '@/app/[locale]/how-the-calculation-works/HowTheCalculationWorksRoute'
-import { withCopy } from '@/tests/helpers/withCopy'
 import recorded from '@/tests/fixtures/price/plans.json'
 
 /*
@@ -95,12 +93,14 @@ describe('the explainer route', () => {
       ),
     )
     vi.stubGlobal('fetch', fetcher)
-    vi.doMock('next/navigation', () => ({ usePathname: () => '/' }))
     const { default: Route } =
       await import('@/app/[locale]/how-the-calculation-works/HowTheCalculationWorksRoute')
+    // Loaded after the reset too, so the page and the provider share one
+    // catalogue module.
+    const { render } = await import('@/tests/helpers/withCopy')
 
     const ui = await Route({ params: Promise.resolve({ locale: 'en' }) })
-    const { container } = render(withCopy(ui))
+    const { container } = render(ui)
 
     expect(fetcher.mock.calls.map(([url]) => url).sort()).toEqual(
       [
