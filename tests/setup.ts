@@ -11,3 +11,24 @@ afterEach(() => {
   ]
   if (reads instanceof Map) reads.clear()
 })
+
+// jsdom has no `matchMedia`, and the header now mounts the 3D / Immersive
+// pointer tilt, which asks it for `prefers-reduced-motion` (MOTIR-10643). A
+// browser with no preference set answers `matches: false` to every query, so
+// that is the default here; a test that needs a preference stubs its own.
+if (typeof window !== 'undefined' && typeof window.matchMedia !== 'function') {
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    writable: true,
+    value: (media: string): MediaQueryList => ({
+      media,
+      matches: false,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }),
+  })
+}
