@@ -1,7 +1,19 @@
-import { createElement, useId, type ComponentType, type ReactNode } from 'react'
+import {
+  createElement,
+  isValidElement,
+  useId,
+  type ComponentType,
+  type ReactNode,
+} from 'react'
 import { renderToString } from 'react-dom/server'
 import { clientCopy, PageProvider, usePage, type Copy } from '@/lib/copy'
-import { IslandSlot, ISLAND_TAG, type IslandName } from '@/lib/islands'
+import {
+  decodeIslandProps,
+  IslandSlot,
+  ISLAND_NODE_KEY,
+  ISLAND_TAG,
+  type IslandName,
+} from '@/lib/islands'
 
 /*
  * A CLIENT ISLAND INSIDE A BUILT PAGE (MOTIR-10643).
@@ -42,23 +54,36 @@ import { IslandSlot, ISLAND_TAG, type IslandName } from '@/lib/islands'
  * (`IslandSlot`). The slot's content is HTML, never hydrated, so it ships
  * no JavaScript — what a server component's children inside a client
  * component were under Next.
+ *
+ * ⚠️ AND A PROP THAT IS A RENDERED NODE IS A SLOT TOO (MOTIR-10645). The
+ * sandbox guide's steps take their words as rendered Markdown, one node per
+ * part, and show some of them only for the agent the reader picks — so a node
+ * the first render never places must still reach the browser. Each React
+ * element among the props (at any depth) is rendered at build, with the page's
+ * whole catalogue, and travels in `data-props` as its markup
+ * (`{ [ISLAND_NODE_KEY]: html }`). Both sides hand the component that markup
+ * back as an `IslandSlot`, so the build's render and the hydration's agree,
+ * and the node itself ships no JavaScript.
  */
 
 type JsonValue = string | number | boolean | null | undefined
 
 /**
- * An island's props: what survives `JSON.stringify` and back. A function, an
- * element or a class instance maps to `never`, so passing one is a type error.
+ * An island's props: what survives `JSON.stringify` and back, plus rendered
+ * nodes, which travel as their markup. A function or a class instance maps to
+ * `never`, so passing one is a type error.
  */
-export type Serializable<T> = T extends JsonValue
+export type Serializable<T> = [T] extends [ReactNode]
   ? T
-  : T extends readonly (infer Item)[]
-    ? readonly Serializable<Item>[]
-    : T extends (...args: never[]) => unknown
-      ? never
-      : T extends object
-        ? { readonly [K in keyof T]: Serializable<T[K]> }
-        : never
+  : T extends JsonValue
+    ? T
+    : T extends readonly (infer Item)[]
+      ? readonly Serializable<Item>[]
+      : T extends (...args: never[]) => unknown
+        ? never
+        : T extends object
+          ? { readonly [K in keyof T]: Serializable<T[K]> }
+          : never
 
 type IslandProps<P> = Omit<P, 'children'>
 
@@ -79,18 +104,30 @@ export function island<P extends object>(
     // island's own ids hang off it, so no two islands on a page collide.
     const identifierPrefix = `${name}${useId()}`
     const Inner = Component as ComponentType<object>
-    // The slot renders with the page's whole catalogue: it is page markup.
+    // A slot renders with the page's whole catalogue: it is page markup.
+    const renderSlot = (node: ReactNode, suffix: string) =>
+      renderToString(<PageProvider value={page}>{node}</PageProvider>, {
+        identifierPrefix: `${identifierPrefix}${suffix}`,
+      })
     const slot =
-      children === undefined
-        ? undefined
-        : renderToString(<PageProvider value={page}>{children}</PageProvider>, {
-            identifierPrefix: `${identifierPrefix}slot`,
-          })
+      children === undefined ? undefined : renderSlot(children, 'slot')
+    let nodes = 0
+    const encode = (value: unknown): unknown => {
+      if (isValidElement(value))
+        return { [ISLAND_NODE_KEY]: renderSlot(value, `n${nodes++}`) }
+      if (Array.isArray(value)) return value.map(encode)
+      if (value !== null && typeof value === 'object')
+        return Object.fromEntries(
+          Object.entries(value).map(([key, item]) => [key, encode(item)]),
+        )
+      return value
+    }
+    const encoded = encode(props) as Record<string, unknown>
     const html = renderToString(
       <PageProvider
         value={{ ...page, copy: clientCopy(page.copy) as unknown as Copy }}
       >
-        <Inner {...props}>
+        <Inner {...decodeIslandProps(encoded)}>
           {slot === undefined ? undefined : <IslandSlot html={slot} />}
         </Inner>
       </PageProvider>,
@@ -98,7 +135,7 @@ export function island<P extends object>(
     )
     return createElement(ISLAND_TAG, {
       'data-island': name,
-      'data-props': JSON.stringify(props),
+      'data-props': JSON.stringify(encoded),
       'data-id-prefix': identifierPrefix,
       style: { display: 'contents' },
       dangerouslySetInnerHTML: { __html: html },

@@ -1,4 +1,4 @@
-import { createElement, type ComponentType } from 'react'
+import { createElement, type ComponentType, type ReactNode } from 'react'
 
 /*
  * THE ISLAND REGISTRY (MOTIR-10643) — every client component a built page
@@ -46,6 +46,20 @@ export const ISLANDS = {
     ),
   DesignShowcase: () =>
     import('@/app/_components/DesignShowcase').then((m) => m.DesignShowcase),
+  SetupPromptButton: () =>
+    import('@/app/_components/SetupPromptButton').then(
+      (m) => m.SetupPromptButton,
+    ),
+  DocsRail: () =>
+    import('@/app/[locale]/docs/_components/DocsRail').then((m) => m.DocsRail),
+  CopyControls: () =>
+    import('@/app/[locale]/docs/_components/CopyControls').then(
+      (m) => m.CopyControls,
+    ),
+  SetupSteps: () =>
+    import('@/app/[locale]/docs/(guides)/sandbox/SetupSteps').then(
+      (m) => m.SetupSteps,
+    ),
 } satisfies Record<string, () => Promise<ComponentType<never>>>
 
 export type IslandName = keyof typeof ISLANDS
@@ -70,4 +84,32 @@ export function IslandSlot({ html }: { html: string }) {
     style: { display: 'contents' },
     dangerouslySetInnerHTML: { __html: html },
   })
+}
+
+/**
+ * The key a rendered-node prop travels under in `data-props`: its markup,
+ * written at build (`lib/island.tsx`).
+ */
+export const ISLAND_NODE_KEY = '$motirNode'
+
+/**
+ * An island's props as the component receives them: every node a prop held,
+ * at any depth, back as its build-time markup in an `IslandSlot`. The build's
+ * render and the browser's hydration both read the props through this, so the
+ * two cannot render a node differently.
+ */
+export function decodeIslandProps(
+  props: Record<string, unknown>,
+): Record<string, unknown> {
+  const decode = (value: unknown): unknown => {
+    if (Array.isArray(value)) return value.map(decode)
+    if (value === null || typeof value !== 'object') return value
+    const html = (value as Record<string, unknown>)[ISLAND_NODE_KEY]
+    if (typeof html === 'string')
+      return createElement(IslandSlot, { html }) as ReactNode
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [key, decode(item)]),
+    )
+  }
+  return decode(props) as Record<string, unknown>
 }

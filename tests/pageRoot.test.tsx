@@ -10,6 +10,7 @@ import {
   localeSlugStaticPaths,
   localeStaticPaths,
   pageLocale,
+  servedPathname,
 } from '@/lib/staticPaths'
 import { serializeJsonForScript } from '@/lib/scriptJson'
 import { LOCALES } from '@/i18n/routing'
@@ -103,6 +104,16 @@ describe('the build paths', () => {
       'No page is built for the locale segment "en"',
     )
     expect(() => pageLocale({ locale: 'sv' })).toThrow('"sv"')
+  })
+
+  it('name a page by the address it is served at, not the file it is written to', () => {
+    expect(servedPathname('/index.html')).toBe('/')
+    expect(servedPathname('/de.html')).toBe('/de')
+    expect(servedPathname('/de/price.html')).toBe('/de/price')
+    expect(servedPathname('/docs/mcp.html')).toBe('/docs/mcp')
+    expect(servedPathname('/docs/mcp/index.html')).toBe('/docs/mcp')
+    expect(servedPathname('/legal/terms')).toBe('/legal/terms')
+    expect(servedPathname('/')).toBe('/')
   })
 
   it('hand a page module the params it had under Next', async () => {

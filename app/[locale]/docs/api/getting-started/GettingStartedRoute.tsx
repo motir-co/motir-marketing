@@ -1,9 +1,9 @@
 import { localePageMetadata } from '@/lib/localeMetadata'
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 import { APP_ORIGIN } from '@/lib/appOrigin'
 import { getCopy } from '@/lib/copy'
 import { enterLocale, type LocalePageProps } from '@/i18n/locale'
-import { failBuildIfPrerendering, fetchOpenApiSpec } from '@/lib/docs'
+import { fetchOpenApiSpec } from '@/lib/docs'
 import { DocsDocument } from '../../_components/DocsDocument'
 import { CodeBlock } from '../../_components/DocSchema'
 
@@ -38,12 +38,12 @@ import { CodeBlock } from '../../_components/DocSchema'
  * ⚠️ AND THE ONE NUMBER IN THE HEADER BLOCK IS DERIVED TOO. The deleted page
  * interpolated motir-core's `V1_CONTRACT_VERSION`, which this repository cannot
  * import — so the version comes from the served document's `info.version`, read
- * through the SAME memoized fetch `app/docs/api/layout.tsx` already makes for
- * the rail. That is one document per request, not two, and it is why a typed
+ * through the SAME once-per-build read `DocsApiLayout.tsx` already makes for
+ * the rail. That is one document per build, not two, and it is why a typed
  * literal was not the cheaper option: a committed version is stale exactly when
  * it is displayed, which is the copy MOTIR-4180 removed from this repository.
- * Unreachable ⇒ the block shows a PLACEHOLDER and the surrounding paragraph
- * says how to read the real one; it never shows a number that might be wrong.
+ * Unreachable ⇒ the build fails (MOTIR-10645); the page never shows a number
+ * that might be wrong, nor a placeholder baked into a 200.
  */
 
 export function generateMetadata({
@@ -61,18 +61,12 @@ export default async function GettingStartedPage({ params }: LocalePageProps) {
   const origin = APP_ORIGIN
 
   /*
-   * The contract version, from the document motir-core serves. The fetch is
-   * memoized per request and the layout above has already made it, so this
-   * costs nothing; an unreachable document leaves a placeholder rather than a
-   * number this repository invented.
+   * The contract version, from the document motir-core serves. The document is
+   * read once per build and the layout above has already read it, so this
+   * costs nothing; an unreadable document fails the build rather than leaving
+   * a number this repository invented.
    */
-  let contractVersion: string | null = null
-  try {
-    contractVersion = (await fetchOpenApiSpec()).info.version
-  } catch (error) {
-    failBuildIfPrerendering(error)
-    contractVersion = null
-  }
+  const contractVersion = (await fetchOpenApiSpec()).info.version
 
   return (
     <>
@@ -148,7 +142,7 @@ export default async function GettingStartedPage({ params }: LocalePageProps) {
 X-RateLimit-Remaining: 594
 X-RateLimit-Reset:     1785312000
 X-Request-Id:          c7771231-e18c-48bc-90c9-c1a9720436a4
-X-Motir-Api-Version:   ${contractVersion ?? '<the contract version>'}`}
+X-Motir-Api-Version:   ${contractVersion}`}
               />
             </div>
           ),

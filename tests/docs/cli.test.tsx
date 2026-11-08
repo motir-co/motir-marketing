@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { render } from '@/tests/helpers/withCopy'
 import { EN_PAGE } from '@/tests/helpers/locale'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import CliPage from '@/app/[locale]/docs/(guides)/cli/page'
+import CliPage from '@/app/[locale]/docs/(guides)/cli/CliRoute'
 import { groupCliCommands, parseCliCommands } from '@/lib/docs'
 
 /*
@@ -203,7 +203,7 @@ describe('the page keeps NO copy of what the catalogue carries', () => {
     // The card's own criterion, and it is a NEGATIVE for a reason: a positive
     // assertion that the URL appears on the page would pass on a typed one.
     const source = readFileSync(
-      'app/[locale]/docs/(guides)/cli/page.tsx',
+      'app/[locale]/docs/(guides)/cli/CliRoute.tsx',
       'utf8',
     )
     expect(source).not.toContain('https://app.motir.co')
@@ -234,7 +234,7 @@ describe('the page keeps NO copy of what the catalogue carries', () => {
      * the drift the card is actually about.
      */
     const source = readFileSync(
-      'app/[locale]/docs/(guides)/cli/page.tsx',
+      'app/[locale]/docs/(guides)/cli/CliRoute.tsx',
       'utf8',
     )
 
@@ -273,17 +273,15 @@ describe('the page keeps NO copy of what the catalogue carries', () => {
   })
 })
 
-describe('unreachable — the page says so, and still helps', () => {
-  it('renders the introduction and a route out, never a stale list', async () => {
+describe('unreachable — the build fails, never a stale list', () => {
+  it('rejects naming the catalogue, so no page ships without it (MOTIR-10645)', async () => {
+    // A built page is never read at a moment the catalogue is unreachable, so
+    // the state that used to render an introduction and a route out is now a
+    // red build: the paragraph would otherwise ship as a 200 until the next one.
     stubCliFetch({}, 503)
-    const { container } = render(await CliPage(EN_PAGE))
-    expect(container.textContent).toContain('temporarily unreachable')
-    // ⚠️ The introduction SURVIVES. Between this page shipping and motir-core's
-    // deploy landing, the route does not exist, so this is the state a reader
-    // meets — and stranding them on an error was never the point of the
-    // no-fallback contract.
-    expect(container.textContent).toContain('The Motir CLI talks to')
-    expect(container.textContent).not.toContain('@zq/cli-fixture')
+    await expect(CliPage(EN_PAGE)).rejects.toThrow(
+      /could not read the CLI command catalogue at .*: HTTP 503/,
+    )
   })
 })
 

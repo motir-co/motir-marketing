@@ -1,13 +1,9 @@
 import { localePageMetadata } from '@/lib/localeMetadata'
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 import type { ReactNode } from 'react'
 import { getCopy } from '@/lib/copy'
 import { enterLocale, type LocalePageProps } from '@/i18n/locale'
-import {
-  failBuildIfPrerendering,
-  fetchMcpToolCatalogue,
-  type McpToolCatalogue,
-} from '@/lib/docs'
+import { fetchMcpToolCatalogue, type McpToolCatalogue } from '@/lib/docs'
 import { guideDate } from '@/lib/docsGuideValues'
 import {
   CONNECTED_APPS_PATH,
@@ -49,8 +45,8 @@ import { renderDocsParts } from '../../_components/DocsDocument'
  * whose groups ARE the permissions and whose `gates` sentence is the shipped
  * i18n copy from the Roles & permissions screen. This repository keeps no
  * second copy of a scope list it could not check, and the no-fallback contract
- * applies here as everywhere else in this area: unreachable ⇒ the page says so
- * and the wiring above it still works, because the wiring needs no fetch.
+ * applies here as everywhere else in this area: the catalogue is read once per
+ * build, and an unreadable one fails the build (MOTIR-10645).
  *
  * ── IT LEADS WITH THE ROUTE THAT NEEDS NO TOKEN (MOTIR-7078) ───────────────
  * Since MOTIR-6973 the server is an OAuth resource: a Claude client signs in on
@@ -70,8 +66,8 @@ import { renderDocsParts } from '../../_components/DocsDocument'
  * table) and the values the prose must not restate. The document's parts: `body`
  * is the page from its introduction to the scopes paragraph; `what-next` is the
  * closing section, placed after the scope table; `column-*`, `granted` and
- * `off-by-default` are the labels the generated table wears; `unreachable`
- * renders only when the catalogue cannot be fetched.
+ * `off-by-default` are the labels the generated table wears. Its `unreachable`
+ * paragraph is never rendered on a built page.
  *
  * ⚠️ AND THIS FILE NAMES NO TOOL AND NO VENDOR CONFIG KEY.
  * `tests/docs/docs.test.ts` scans this source for a lowercase underscore-joined
@@ -191,21 +187,8 @@ export default async function McpPage({ params }: LocalePageProps) {
   const clients = mcpClients(facts)
   const routes = claudeRoutes(facts)
 
-  /*
-   * ⚠️ THE FETCH IS CAUGHT, and only this one section depends on it. The
-   * wiring — the whole reason a reader is on this page — is built from
-   * configuration and needs no network at all, so an unreachable catalogue
-   * degrades the scope table and nothing else. That is a different judgement
-   * from `/docs/mcp/tools`, whose ENTIRE body is the catalogue and which
-   * therefore renders the unreachable state instead of a page.
-   */
-  let catalogue: McpToolCatalogue | null = null
-  try {
-    catalogue = await fetchMcpToolCatalogue()
-  } catch (error) {
-    failBuildIfPrerendering(error)
-    catalogue = null
-  }
+  // The scope table's catalogue, read once per build; a failed read fails it.
+  const catalogue = await fetchMcpToolCatalogue()
 
   const routeCaptions: Record<string, { caption: string; copyLabel: string }> =
     {
@@ -299,21 +282,17 @@ export default async function McpPage({ params }: LocalePageProps) {
       </h1>
       {note}
       {parts.body}
-      {catalogue ? (
-        <Scopes
-          catalogue={catalogue}
-          gatesLang={locale === 'en' ? undefined : 'en'}
-          labels={{
-            scope: parts['column-scope'],
-            gates: parts['column-gates'],
-            default: parts['column-default'],
-            granted: parts.granted,
-            offByDefault: parts['off-by-default'],
-          }}
-        />
-      ) : (
-        parts.unreachable
-      )}
+      <Scopes
+        catalogue={catalogue}
+        gatesLang={locale === 'en' ? undefined : 'en'}
+        labels={{
+          scope: parts['column-scope'],
+          gates: parts['column-gates'],
+          default: parts['column-default'],
+          granted: parts.granted,
+          offByDefault: parts['off-by-default'],
+        }}
+      />
       {parts['what-next']}
     </>
   )

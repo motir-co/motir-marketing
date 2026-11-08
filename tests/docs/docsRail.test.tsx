@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 import { screen } from '@testing-library/react'
 import { render } from '@/tests/helpers/withCopy'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
   listOperations,
   operationAnchorId,
@@ -75,29 +75,25 @@ const SPEC = buildSpec()
 const OPERATIONS = listOperations(SPEC)
 const RAIL = railOperations(OPERATIONS)
 
-function stubPath(pathname: string) {
-  vi.doMock('next/navigation', () => ({ usePathname: () => pathname }))
-}
-
-afterEach(() => {
-  vi.doUnmock('next/navigation')
-  vi.resetModules()
-})
-
-/** Re-import the rail under a stubbed pathname. */
+/**
+ * Render the rail on a page at `pathname`. The rail reads the page's own path
+ * from the page context the layout writes (MOTIR-10645), so the path is the
+ * page's, never a router's.
+ */
 async function renderRail(
   pathname: string,
   withOperations = true,
   copyOptions: { locale?: 'es'; messages?: Copy } = {},
 ) {
-  stubPath(pathname)
-  vi.resetModules()
   const { DocsRail: Rail } =
     await import('@/app/[locale]/docs/_components/DocsRail')
-  return render(
-    <Rail operations={withOperations ? RAIL : undefined} />,
-    copyOptions,
-  )
+  return render(<Rail operations={withOperations ? RAIL : undefined} />, {
+    pathname:
+      copyOptions.locale === undefined
+        ? pathname
+        : `/${copyOptions.locale}${pathname}`,
+    ...copyOptions,
+  })
 }
 
 describe('the fixture really is the size the defect is about', () => {
@@ -379,18 +375,47 @@ describe('the route GROUP is what decides the operation tier', () => {
   /*
    * ⚠️ THE STRUCTURAL HALF OF THE ROUTE-PREFIX RULE. A server layout cannot read
    * a pathname, so "tiers 2 and 3 render if and only if the route is /docs/api
-   * or below" is expressed by WHERE THE FILE LIVES: only `app/[locale]/docs/api/layout.tsx`
-   * passes operations. This walks the tree from disk so a page added later
-   * cannot quietly acquire — or lose — the rail.
+   * or below" is expressed by WHERE THE FILE LIVES: only `app/[locale]/docs/api/DocsApiLayout.tsx`
+   * passes operations, and only the built pages under `src/pages/[...locale]/docs/api`
+   * render it (MOTIR-10645). This walks both trees from disk so a page added
+   * later cannot quietly acquire — or lose — the rail.
    */
-  function pagesUnder(dir: string, out: string[] = []): string[] {
+  function pagesUnder(
+    dir: string,
+    match: (entry: string) => boolean = (entry) => /Route\.tsx$/.test(entry),
+    out: string[] = [],
+  ): string[] {
     for (const entry of readdirSync(dir)) {
       const path = join(dir, entry)
-      if (statSync(path).isDirectory()) pagesUnder(path, out)
-      else if (entry === 'page.tsx') out.push(path)
+      if (statSync(path).isDirectory()) pagesUnder(path, match, out)
+      else if (match(entry)) out.push(path)
     }
     return out
   }
+
+  it('each built docs page renders the sub-area layout its route prefix names', () => {
+    const built = pagesUnder(
+      join('src', 'pages', '[...locale]', 'docs'),
+      (entry) => entry.endsWith('.astro'),
+    )
+    expect(built.length).toBe(14)
+    for (const page of built) {
+      const source = readFileSync(page, 'utf8')
+      const api = page.startsWith(
+        join('src', 'pages', '[...locale]', 'docs', 'api'),
+      )
+      expect(source, page).toContain(
+        api
+          ? 'layouts={[DocsLayout, DocsApiLayout]}'
+          : 'layouts={[DocsLayout, DocsGuidesLayout]}',
+      )
+      expect(source, page).toContain(
+        api
+          ? "from '@/app/[locale]/docs/api/"
+          : "from '@/app/[locale]/docs/(guides)/",
+      )
+    }
+  })
 
   it('every docs page sits under exactly one of the two sub-area layouts', () => {
     const pages = pagesUnder('app/[locale]/docs')
@@ -405,13 +430,13 @@ describe('the route GROUP is what decides the operation tier', () => {
 
   it('the API sub-area is the ONLY layout that passes operations', () => {
     const layouts = [
-      'app/[locale]/docs/layout.tsx',
-      'app/[locale]/docs/(guides)/layout.tsx',
-      'app/[locale]/docs/api/layout.tsx',
+      'app/[locale]/docs/DocsLayout.tsx',
+      'app/[locale]/docs/(guides)/DocsGuidesLayout.tsx',
+      'app/[locale]/docs/api/DocsApiLayout.tsx',
     ]
     const passing = layouts.filter((layout) =>
       readFileSync(layout, 'utf8').includes('operations={'),
     )
-    expect(passing).toEqual(['app/[locale]/docs/api/layout.tsx'])
+    expect(passing).toEqual(['app/[locale]/docs/api/DocsApiLayout.tsx'])
   })
 })

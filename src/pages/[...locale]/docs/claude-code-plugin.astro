@@ -1,0 +1,24 @@
+---
+/*
+ * The Claude Code plugin guide. Built once per locale
+ * (MOTIR-10645) in the docs shell, rendered through the shared layout.
+ */
+import ClaudeCodePluginRoute, {
+  generateMetadata,
+} from '@/app/[locale]/docs/(guides)/claude-code-plugin/ClaudeCodePluginRoute'
+import DocsLayout, {
+  generateMetadata as docsMetadata,
+} from '@/app/[locale]/docs/DocsLayout'
+import DocsGuidesLayout from '@/app/[locale]/docs/(guides)/DocsGuidesLayout'
+import SitePage from '@/src/layouts/SitePage.astro'
+import { localeStaticPaths, pageLocale } from '@/lib/staticPaths'
+
+export const getStaticPaths = localeStaticPaths
+---
+
+<SitePage
+  locale={pageLocale(Astro.params)}
+  page={ClaudeCodePluginRoute}
+  layouts={[DocsLayout, DocsGuidesLayout]}
+  metadata={[docsMetadata, generateMetadata]}
+/>

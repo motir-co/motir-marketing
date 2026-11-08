@@ -1,4 +1,3 @@
-import { cache } from 'react'
 import { APP_ORIGIN } from '@/lib/appOrigin'
 import type { Locale } from '@/i18n/routing'
 
@@ -9,7 +8,7 @@ import type { Locale } from '@/i18n/routing'
  * PUBLISHED as a served, versioned OpenAPI 3.1 document at
  * `/api/openapi/v1.json` — assembled from compile-time declarations, never a
  * hand-maintained file. This repository consumes that published artifact rather
- * than copying a spec that would drift: the reference page fetches it fresh, so
+ * than copying a spec that would drift: the build fetches it fresh, so
  * it is always exactly what motir-core serves, and `tests/docs/docs.test.ts`
  * asserts the URL it fetches is the published one and that no spec is committed.
  *
@@ -18,7 +17,7 @@ import type { Locale } from '@/i18n/routing'
  * documentation artifact at `/api/docs/mcp-tools.json` — derived from the same
  * permission registry that gates the tools, so a tool cannot reach the server
  * undocumented. This module consumes it exactly as it consumes the spec: fetched
- * fresh at request time, parsed through a function a fixture pins, and nothing
+ * once per build, parsed through a function a fixture pins, and nothing
  * committed. MOTIR-4180 removed a hand-copied list from this repository because
  * nothing here could check it; what replaced it is not a checked copy but no copy
  * at all.
@@ -34,72 +33,95 @@ import type { Locale } from '@/i18n/routing'
  * documentation rather than a registry, which is why they are allowed to live
  * here at all.
  *
- * ⚠️ THE ARTIFACTS ARE READ ONCE PER BUILD, NOT PER REQUEST AND NOT PER WINDOW
- * (MOTIR-8842, per the MOTIR-8838 decision). The three artifacts change when
- * motir-core DEPLOYS, not between two page views. Reading them per request cost
- * the site its uptime on 2026-10-16 (a ~4x crawl of `/docs` in eleven locales
- * parsed the 1 MB spec on every hit and both machines died of `JavaScript heap
- * out of memory`), and ISR (`revalidate = 300`) only made the same renders
- * rarer: a restart loop followed on 2026-10-17 with the fix deployed. So the
- * four pages that read them are prerendered by `next build`, which fetches each
- * artifact once ({@link docsFetchInit} is `force-cache`), and a fresh artifact
+ * ⚠️ THE ARTIFACTS ARE READ ONCE PER BUILD (MOTIR-8842, MOTIR-10645). The
+ * three artifacts change when motir-core DEPLOYS, not between two page views.
+ * Reading them per request cost the site its uptime on 2026-10-16 (a ~4x crawl
+ * of `/docs` in eleven locales parsed the 1 MB spec on every hit and both
+ * machines died of `JavaScript heap out of memory`). The site is now a static
+ * build (`astro build`), so no visitor ever causes a read: each artifact URL is
+ * fetched ONCE for the whole build ({@link readArtifactOnce}) and every page
+ * and locale that needs it shares that one promise, and a fresh artifact
  * arrives with the next build.
+ *
+ * ⚠️ AND A FAILED READ FAILS THE BUILD. A page that caught the failure and
+ * rendered "unreachable" would bake that paragraph into every locale's HTML
+ * and ship it as a 200 until the next build, which is the stale-and-invisible
+ * default the no-fallback rule above refuses. So nothing catches it: the read
+ * throws {@link DocsArtifactUnavailableError}, naming the artifact and its
+ * URL, and the deploy stops on the red build.
  */
 
-/**
- * The fetch options every artifact read uses.
- *
- * ⚠️ `force-cache` IN PRODUCTION IS WHAT KEEPS THE PAGES STATIC. Next 15+ does
- * not cache `fetch` by default, and an uncached fetch makes the page that awaits
- * it dynamic — so removing the segment `revalidate` without this would have
- * turned the four pages back into request-time renders, which is worse than the
- * ISR they replace. The build's data cache serves the one fetch to all twelve
- * locales.
- *
- * ⚠️ PER REQUEST IN THE BROWSER LANE, AND ONLY THERE. The lane swaps the stub's
- * catalogue between journeys (`POST /__stub/mcp-tools?mode=stripped`) and
- * expects the very next page view to show it. The lane already renders `/docs`
- * per request under `MOTIR_DOCS_LIVE_CONTENT_ROOT` (MOTIR-8072: `DocsDocument`
- * awaits `connection()`), and a page rendered per request still reads Next's
- * DATA cache — so the same switch turns the fetch cache off too. Unset or
- * empty, as in production, the read is the cached build-time one — the rule
- * `liveDocsContentRoot` (`lib/docsDocuments.ts`) applies.
- *
- * ⚠️ THE FOUR PAGES DO NOT EXPORT `dynamic = 'force-static'`, and that is
- * deliberate. `force-static` makes `connection()` a no-op, which would freeze
- * the lane's per-request read at its build-time catalogue. They are static
- * without it: nothing they await is dynamic once the fetch is `force-cache`,
- * and `tests/docs/docs.test.ts` plus `i18n:check-prerender` fail if one stops
- * being prerendered.
- *
- * ⚠️ IT READS THE VARIABLE ITSELF rather than importing `liveDocsContentRoot`:
- * `lib/docsDocuments.ts` imports `node:fs` and `node:crypto`, and a client
- * bundle reaches this module, so that import fails `next build`.
+/** A published artifact the build could not read: the build stops on it. */
+export class DocsArtifactUnavailableError extends Error {
+  constructor(
+    /** The artifact, in words: `the OpenAPI spec`. */
+    readonly artifact: string,
+    readonly url: string,
+    reason: string,
+  ) {
+    super(
+      `The docs build could not read ${artifact} at ${url}: ${reason}. ` +
+        'A docs page is never built without it (lib/docs.ts).',
+    )
+    this.name = 'DocsArtifactUnavailableError'
+  }
+}
+
+/*
+ * ⚠️ ONE READ PER URL FOR THE LIFE OF THE PROCESS. `astro build` renders every
+ * page in one process, so a module-level map is "once per build": the spec once
+ * for `/docs/api`, `/docs/api/getting-started` and the API rail in all twelve
+ * locales together, which is also what lets the rail's anchors and the page's
+ * section ids come from the same bytes. A failed read is kept too, so every
+ * page that needs it fails with the same error rather than retrying.
  */
-export function docsFetchInit(
-  live: string | undefined = process.env['MOTIR_DOCS_LIVE_CONTENT_ROOT'],
-): { cache: 'force-cache' } | { next: { revalidate: 0 } } {
-  return live ? { next: { revalidate: 0 } } : { cache: 'force-cache' }
+const READS = Symbol.for('motir.docsArtifactReads')
+const store = globalThis as typeof globalThis & {
+  [READS]?: Map<string, Promise<unknown>>
+}
+// On `globalThis` under a registered symbol, so the unit suite's setup can
+// forget the reads between tests without importing this module first.
+const reads = (store[READS] ??= new Map<string, Promise<unknown>>())
+
+/** Fetch `url` once, parse it once, and hand every caller the same promise. */
+function readArtifactOnce<T>(
+  artifact: string,
+  url: string,
+  parse: (value: unknown) => T,
+): Promise<T> {
+  const known = reads.get(url)
+  if (known !== undefined) return known as Promise<T>
+  const read = (async () => {
+    let res: Response
+    try {
+      res = await fetch(url)
+    } catch (error) {
+      throw new DocsArtifactUnavailableError(
+        artifact,
+        url,
+        error instanceof Error ? error.message : String(error),
+      )
+    }
+    if (!res.ok) {
+      throw new DocsArtifactUnavailableError(
+        artifact,
+        url,
+        `HTTP ${res.status}`,
+      )
+    }
+    return parse(await res.json())
+  })()
+  reads.set(url, read)
+  return read
 }
 
 /**
- * What a page does when an artifact read fails.
- *
- * ⚠️ AT BUILD, THE FAILURE FAILS THE BUILD (MOTIR-8842). The four pages catch a
- * failed read and render "unreachable" — the right answer to a visitor when the
- * page is rendered for them. Prerendered, the same catch would BAKE that
- * paragraph into every locale's HTML and ship it as a 200 until the next build,
- * which is the stale-and-invisible default the no-fallback rule above exists to
- * refuse. So the catch calls this first: during `next build` it rethrows, and
- * the deploy stops on the red build rather than serving an empty reference.
- * Everywhere else — `next dev`, a render at request time, the browser lane,
- * whose `failing` journey asserts the unreachable state — it returns and the
- * page says so.
+ * Forget every read, so the next call fetches again. A build never calls it;
+ * the unit suite clears the same map between tests (`tests/setup.ts`), each of
+ * which stubs `fetch` with its own documents.
  */
-export function failBuildIfPrerendering(error: unknown): void {
-  if (process.env['NEXT_PHASE'] !== 'phase-production-build') return
-  if (process.env['MOTIR_DOCS_LIVE_CONTENT_ROOT']) return
-  throw error
+export function forgetDocsArtifactReads(): void {
+  reads.clear()
 }
 
 /**
@@ -202,22 +224,22 @@ export interface ApiOperation {
 const SPEC_URL = `${APP_ORIGIN}/api/openapi/v1.json`
 
 /**
- * Fetch the published spec. Throws when the artifact is unreachable.
+ * Fetch the published spec, once per build. Throws when the artifact is
+ * unreachable.
  *
- * ⚠️ MEMOIZED PER RENDER (MOTIR-4396), and that is not an optimisation to trim.
- * Since the rail moved into `app/docs/api/layout.tsx`, TWO server components
- * read this document on one request — the layout, to build the operation tier,
- * and the page, to render the operations themselves. Without `cache` that is
- * two 720 KB fetches per page view. `cache` makes the second call return the
- * first's promise, so the layout and the page cannot disagree about the
- * document either: they are looking at the same bytes, which is what lets the
- * rail's anchors be guaranteed to match the page's section ids.
+ * ⚠️ SHARED BY THE RAIL AND THE PAGE (MOTIR-4396 · MOTIR-10645). The API
+ * sub-area's layout reads it to build the operation tier and the page reads it
+ * to render the operations; both get the one promise
+ * {@link readArtifactOnce} holds, so they cannot disagree about the document —
+ * which is what guarantees the rail's anchors match the page's section ids.
  */
-export const fetchOpenApiSpec = cache(async (): Promise<OpenApiDocument> => {
-  const res = await fetch(SPEC_URL, docsFetchInit())
-  if (!res.ok) throw new Error(`openapi spec ${res.status}`)
-  return (await res.json()) as OpenApiDocument
-})
+export function fetchOpenApiSpec(): Promise<OpenApiDocument> {
+  return readArtifactOnce(
+    'the OpenAPI spec',
+    SPEC_URL,
+    (value) => value as OpenApiDocument,
+  )
+}
 
 // ── `$ref` resolution ───────────────────────────────────────────────────────
 //
@@ -821,22 +843,21 @@ export function parseMcpToolCatalogue(value: unknown): McpToolCatalogue {
 }
 
 /**
- * Fetch the published catalogue. Throws when the artifact is unreachable.
+ * Fetch the published catalogue, once per build and locale URL. Throws when
+ * the artifact is unreachable.
  *
  * No argument or `'en'` requests exactly `CATALOGUE_URL`; any other locale adds
  * `?locale=` (MOTIR-8050). The code comes from the closed `LOCALES` set, so it
  * needs no encoding. An older server ignores the query and answers English.
  */
-export async function fetchMcpToolCatalogue(
+export function fetchMcpToolCatalogue(
   locale?: Locale,
 ): Promise<McpToolCatalogue> {
   const url =
     locale === undefined || locale === 'en'
       ? CATALOGUE_URL
       : `${CATALOGUE_URL}?locale=${locale}`
-  const res = await fetch(url, docsFetchInit())
-  if (!res.ok) throw new Error(`mcp tool catalogue ${res.status}`)
-  return parseMcpToolCatalogue(await res.json())
+  return readArtifactOnce('the MCP tool catalogue', url, parseMcpToolCatalogue)
 }
 
 /**
@@ -869,8 +890,8 @@ export function countCatalogueTools(catalogue: McpToolCatalogue): number {
 //
 // `GET /api/docs/cli-commands.json` on the app origin — motir-core's
 // `lib/apiDocs/cli.ts`, served by `app/api/docs/cli-commands.json/route.ts`.
-// Consumed exactly as the two documents above are: fetched fresh at request
-// time, parsed through a function a fixture pins, nothing committed.
+// Consumed exactly as the two documents above are: fetched once per build,
+// parsed through a function a fixture pins, nothing committed.
 //
 // ⚠️ WHY IT IS A SERVED DOCUMENT AND NOT AN `@motir/cli` IMPORT. `@motir/cli`
 // publishes `exports: { "./package.json": … }` and nothing else, so
@@ -1010,11 +1031,13 @@ export function parseCliCommands(value: unknown): CliCommandsDocument {
   }
 }
 
-/** Fetch the published catalogue. Throws when the artifact is unreachable. */
-export async function fetchCliCommands(): Promise<CliCommandsDocument> {
-  const res = await fetch(CLI_COMMANDS_URL, docsFetchInit())
-  if (!res.ok) throw new Error(`cli command catalogue ${res.status}`)
-  return parseCliCommands(await res.json())
+/** Fetch the published catalogue, once per build. Throws when it is unreachable. */
+export function fetchCliCommands(): Promise<CliCommandsDocument> {
+  return readArtifactOnce(
+    'the CLI command catalogue',
+    CLI_COMMANDS_URL,
+    parseCliCommands,
+  )
 }
 
 /**

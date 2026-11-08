@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import ApiPage from '@/app/[locale]/docs/api/page'
-import GettingStartedPage from '@/app/[locale]/docs/api/getting-started/page'
-import StabilityPage from '@/app/[locale]/docs/api/stability/page'
-import McpToolsPage from '@/app/[locale]/docs/(guides)/mcp/tools/page'
+import ApiPage from '@/app/[locale]/docs/api/ApiReferenceRoute'
+import GettingStartedPage from '@/app/[locale]/docs/api/getting-started/GettingStartedRoute'
+import StabilityPage from '@/app/[locale]/docs/api/stability/StabilityRoute'
+import McpToolsPage from '@/app/[locale]/docs/(guides)/mcp/tools/McpToolsRoute'
 import { APP_ORIGIN } from '@/lib/appOrigin'
 import { createElement, type ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
@@ -38,7 +38,8 @@ import {
  * test that was deleted afterwards: for each state of each page, the container's
  * `innerHTML` with every tag replaced by a space and whitespace-normalised, every
  * element `id` in document order, and the text of every <pre>. States: `api` and
- * `getting-started` with the spec served, `*-unreachable` with the fetch failing,
+ * `getting-started` with the spec served, `*-unreachable` with the fetch failing
+ * (a state no built page has since MOTIR-10645, kept here as the record),
  * `stability`, `mcp-tools` over a small catalogue (a tool with arguments, one
  * that takes none, one from a server that publishes no schemas, hints, a group
  * granted by default), `mcp-tools-production` over the recorded production
@@ -74,16 +75,6 @@ const REWORDINGS: Record<string, [string, string][]> = {
     ],
     [
       'The value above is the one the server is serving right now, read from the specification when this page was requested.',
-      NEW_VERSION_SENTENCE,
-    ],
-  ],
-  'getting-started-unreachable': [
-    [
-      `Every path is relative to the application host, which for this build is ${APP_ORIGIN}. The requests below are written against it, so you can copy one as it stands.`,
-      `Every path is relative to the application host this build points at, shown below. The requests are written against it, so you can copy one as it stands. host ${APP_ORIGIN}`,
-    ],
-    [
-      'The specification was unreachable when this page was rendered, so the block above leaves that line as a placeholder — API reference reads the current version straight off the document.',
       NEW_VERSION_SENTENCE,
     ],
   ],
@@ -127,13 +118,10 @@ function expectedText(state: string): string {
 
 const PAGES = {
   api: [ApiPage, () => stubFetch(SPEC)],
-  'api-unreachable': [ApiPage, () => stubFetch({}, 503)],
   'getting-started': [GettingStartedPage, () => stubFetch(SPEC)],
-  'getting-started-unreachable': [GettingStartedPage, () => stubFetch({}, 503)],
   stability: [StabilityPage, () => undefined],
   'mcp-tools': [McpToolsPage, () => stubFetch(CATALOGUE)],
   'mcp-tools-production': [McpToolsPage, () => stubFetch(PRODUCTION_CATALOGUE)],
-  'mcp-tools-unreachable': [McpToolsPage, () => stubFetch({}, 503)],
 } as const
 
 describe('the four pages read the same after the move', () => {
@@ -262,16 +250,25 @@ describe('the sentences around generated content come from the catalogue', () =>
     expect(text).toContain('does not publish this tool')
   })
 
-  it('/docs/mcp/tools says so when the catalogue is unreachable', async () => {
+  /*
+   * ⚠️ THE UNREACHABLE STATES ARE NO LONGER PAGES (MOTIR-10645). A built page
+   * has no request at which an artifact could be unreachable, and a paragraph
+   * saying so would ship as a 200 until the next build — so the read throws,
+   * naming the artifact, and the build fails. The baseline's `*-unreachable`
+   * snapshots stay in the fixture as the record of what those states read.
+   */
+  it('/docs/mcp/tools fails the build when the catalogue is unreachable', async () => {
     stubFetch({}, 503)
-    const { text } = await capture(McpToolsPage)
-    expect(text).toContain('The tool catalogue is temporarily unreachable.')
+    await expect(capture(McpToolsPage)).rejects.toThrow(
+      /the MCP tool catalogue at .*: HTTP 503/,
+    )
   })
 
-  it('/docs/api says so when the specification is unreachable', async () => {
+  it('/docs/api fails the build when the specification is unreachable', async () => {
     stubFetch({}, 503)
-    const { text } = await capture(ApiPage)
-    expect(text).toContain(englishCopy.docs.apiUnreachable)
+    await expect(capture(ApiPage)).rejects.toThrow(
+      /the OpenAPI spec at .*: HTTP 503/,
+    )
   })
 
   it('the count lines inflect: one operation, one tool', async () => {

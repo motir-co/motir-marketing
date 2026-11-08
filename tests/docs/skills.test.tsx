@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { render } from '@/tests/helpers/withCopy'
 import { resolveAsync } from '@/tests/helpers/resolveAsync'
 import { describe, expect, it } from 'vitest'
-import SkillsDocsPage from '@/app/[locale]/docs/(guides)/skills/page'
+import SkillsDocsPage from '@/app/[locale]/docs/(guides)/skills/SkillsRoute'
 import { englishCopy } from '@/lib/copy'
 import { docsSurfacesFor } from '@/lib/docsSurfaces'
 import {

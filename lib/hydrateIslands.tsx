@@ -2,6 +2,7 @@ import type { ComponentType } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
 import { PageProvider, type PageValue } from '@/lib/copy'
 import {
+  decodeIslandProps,
   IslandSlot,
   ISLAND_SLOT_TAG,
   ISLAND_TAG,
@@ -24,7 +25,8 @@ import {
  * so what they click is the hydrated island, exactly as in the browser.
  *
  * An island built with children holds them in its own `<motir-slot>`; that
- * markup goes back to the component as its children, untouched.
+ * markup goes back to the component as its children, untouched; a prop that
+ * was a rendered node goes back the same way (`decodeIslandProps`).
  */
 
 /** The island's own slot: the first one whose nearest island is this one. */
@@ -46,10 +48,9 @@ async function hydrate(element: HTMLElement, page: PageValue): Promise<Root> {
   const load = ISLANDS[name]
   if (load === undefined) throw new Error(`Unknown island "${name}"`)
   const Component = (await load()) as ComponentType<Record<string, unknown>>
-  const props = JSON.parse(element.dataset.props ?? '{}') as Record<
-    string,
-    unknown
-  >
+  const props = decodeIslandProps(
+    JSON.parse(element.dataset.props ?? '{}') as Record<string, unknown>,
+  )
   const slot = ownSlot(element)
   return hydrateRoot(
     element,

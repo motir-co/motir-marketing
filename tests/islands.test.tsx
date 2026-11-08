@@ -14,6 +14,8 @@ import {
 } from '@/lib/copy'
 import { island } from '@/lib/island'
 import {
+  decodeIslandProps,
+  ISLAND_NODE_KEY,
   ISLAND_SLOT_TAG,
   ISLAND_TAG,
   ISLANDS,
@@ -222,6 +224,75 @@ describe('an island in the browser', () => {
     expect(document.getElementById('slotted')).toBe(slotted)
     expect(slotted).toHaveTextContent(englishCopy.legal.allDocuments)
     act(() => roots[0]!.unmount())
+  })
+
+  it('carries a rendered-node prop as its markup, at any depth, and shows one the first render never placed (MOTIR-10645)', async () => {
+    const Picker = ({
+      words,
+    }: {
+      words: { title: ReactNode; byChoice: Record<string, ReactNode> }
+      tags: readonly string[]
+    }) => {
+      const [choice, setChoice] = useState('a')
+      return (
+        <div>
+          <h2>{words.title}</h2>
+          <button onClick={() => setChoice('b')}>pick b</button>
+          <p data-choice={choice}>{words.byChoice[choice]}</p>
+        </div>
+      )
+    }
+    vi.spyOn(ISLANDS, 'SetupSteps').mockResolvedValue(
+      Picker as unknown as Awaited<ReturnType<(typeof ISLANDS)['SetupSteps']>>,
+    )
+    // The nodes read a namespace the browser never receives: page markup.
+    const Legal = () => <em>{useCopy().legal.allDocuments}</em>
+    const PickerIsland = island('SetupSteps', Picker)
+    document.body.innerHTML = renderToStaticMarkup(
+      <PageProvider value={PAGE}>
+        <PickerIsland
+          tags={['x', 'y']}
+          words={{
+            title: <Legal />,
+            byChoice: {
+              a: <b id="node-a">first</b>,
+              b: <i id="node-b">second</i>,
+            },
+          }}
+        />
+      </PageProvider>,
+    )
+    const built = document.querySelector(ISLAND_TAG) as HTMLElement
+    const props = JSON.parse(built.dataset.props!)
+    expect(props.tags).toEqual(['x', 'y'])
+    expect(props.words.byChoice.b[ISLAND_NODE_KEY]).toBe(
+      '<i id="node-b">second</i>',
+    )
+    expect(built.querySelector('h2')).toHaveTextContent(
+      englishCopy.legal.allDocuments,
+    )
+    expect(document.getElementById('node-b')).toBeNull()
+
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    let roots: Awaited<ReturnType<typeof hydrateIslands>> = []
+    await act(async () => {
+      roots = await hydrateIslands(document, {
+        ...PAGE,
+        copy: clientCopy(englishCopy) as unknown as Copy,
+      })
+    })
+    expect(errors).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('button', { name: 'pick b' }))
+    expect(document.getElementById('node-b')).toHaveTextContent('second')
+    expect(document.getElementById('node-a')).toBeNull()
+    act(() => roots[0]!.unmount())
+  })
+
+  it('leaves props with no rendered node as they were', () => {
+    expect(decodeIslandProps({ a: [1, null, { b: 'c' }], d: true })).toEqual({
+      a: [1, null, { b: 'c' }],
+      d: true,
+    })
   })
 
   it('refuses an island the registry does not name', async () => {

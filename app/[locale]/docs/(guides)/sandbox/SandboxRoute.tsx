@@ -1,11 +1,16 @@
 import { localePageMetadata } from '@/lib/localeMetadata'
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 import type { ReactNode } from 'react'
 import { getCopy } from '@/lib/copy'
-import { SANDBOX_AUTH_VOLUME, SANDBOX_PROFILES } from '@/lib/sandboxProfiles'
+import {
+  SANDBOX_AUTH_VOLUME,
+  SANDBOX_PICKER_OPTIONS,
+  SANDBOX_PROFILES,
+} from '@/lib/sandboxProfiles'
 import { CodeBlock } from '../../_components/DocSchema'
 import { renderDocsParts } from '../../_components/DocsDocument'
-import { ProfileLabel, SetupSteps, type SetupStepsText } from './SetupSteps'
+import { SetupStepsIsland } from '@/app/_islands'
+import type { SetupStepsText } from './SetupSteps'
 import { STEP_IDS } from './stepIds'
 import { enterLocale, type LocalePageProps } from '@/i18n/locale'
 
@@ -173,14 +178,29 @@ export default async function SandboxPage({ params }: LocalePageProps) {
     dockerPull: 'docker pull',
     dockerRun: 'docker run',
     signOutCommand: `docker volume rm ${SANDBOX_AUTH_VOLUME}`,
-    profileLabel: <ProfileLabel />,
   }
   const { parts, names, note } = await renderDocsParts({
     slug: 'sandbox',
     locale,
     slots,
-    values,
+    values: { ...values, profileLabel: SANDBOX_PICKER_OPTIONS[0]!.label },
   })
+  /*
+   * The picker's summary names the chosen agent where the translation puts it
+   * (`{{value:profileLabel}}`). A built page cannot fill that in when the reader
+   * picks, so the sentence is rendered once per option, with that option's
+   * name, and the island shows the one picked (MOTIR-10645).
+   */
+  const summary: Record<string, ReactNode> = {}
+  for (const option of SANDBOX_PICKER_OPTIONS) {
+    const rendered = await renderDocsParts({
+      slug: 'sandbox',
+      locale,
+      slots,
+      values: { ...values, profileLabel: option.label },
+    })
+    summary[option.id] = rendered.parts['picker-summary']
+  }
 
   const steps = Object.fromEntries(
     STEP_IDS.map((id) => [
@@ -209,7 +229,7 @@ export default async function SandboxPage({ params }: LocalePageProps) {
       alsoSupported: parts['picker-also-supported'],
       or: parts['picker-or'],
       base: parts['picker-base'],
-      summary: parts['picker-summary'],
+      summary,
     },
     chips: { command: parts['chip-command'], ui: parts['chip-editor'] },
     intro: parts['steps-intro'],
@@ -235,7 +255,7 @@ export default async function SandboxPage({ params }: LocalePageProps) {
       </h1>
       {note}
       {parts.body}
-      <SetupSteps text={text} />
+      <SetupStepsIsland text={text} />
       <hr className="mt-8 border-0 border-t border-(--el-border)" />
       {parts.why}
     </>

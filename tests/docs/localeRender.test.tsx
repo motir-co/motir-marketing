@@ -661,7 +661,7 @@ describe('no raw key, marker or placeholder reaches a reader (case 15)', () => {
  * which, to a screen reader and a translator alike, it is:
  *
  *   · `/docs/mcp` — the scope table's `gates` cell (`{group.gates}`,
- *     `app/[locale]/docs/(guides)/mcp/page.tsx`) is the catalogue's English
+ *     `app/[locale]/docs/(guides)/mcp/McpRoute.tsx`) is the catalogue's English
  *     sentence in a bare `<td>`.
  *   · `/docs/mcp/tools` — `ToolArguments` renders each argument's served
  *     `description` in a bare `<td>`; `SchemaTable` has a `descriptionLang`

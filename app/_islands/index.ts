@@ -1,5 +1,8 @@
 import { ImmersiveTilt } from '@motir/design-system'
 import { island } from '@/lib/island'
+import { CopyControls } from '../[locale]/docs/_components/CopyControls'
+import { DocsRail } from '../[locale]/docs/_components/DocsRail'
+import { SetupSteps } from '../[locale]/docs/(guides)/sandbox/SetupSteps'
 import { RackStage } from '../[locale]/how-it-works/_components/RackStage'
 import { StackArt } from '../[locale]/how-to-use/_components/StackArt'
 import { DesignShowcase } from '../_components/DesignShowcase'
@@ -10,6 +13,7 @@ import {
   PlansUnavailable,
   PriceCadence,
 } from '../_components/price/PriceCadence'
+import { SetupPromptButton } from '../_components/SetupPromptButton'
 import { SiteHeader } from '../_components/SiteHeader'
 
 /*
@@ -62,3 +66,24 @@ export const StackArtIsland = island('StackArt', StackArt)
 
 /** `/design`'s showcase and its appearance pickers. */
 export const DesignShowcaseIsland = island('DesignShowcase', DesignShowcase)
+
+/** `/docs`'s setup-prompt button (MOTIR-10645). */
+export const SetupPromptButtonIsland = island(
+  'SetupPromptButton',
+  SetupPromptButton,
+)
+
+/**
+ * The docs rail: its filter, and the current page and operation marked from
+ * the page's own path (MOTIR-10645).
+ */
+export const DocsRailIsland = island('DocsRail', DocsRail)
+
+/** A docs code pane's caption row: the copy button and its failure note. */
+export const CopyControlsIsland = island('CopyControls', CopyControls)
+
+/**
+ * `/docs/sandbox`'s agent picker and the setup steps it rewrites. Its words
+ * are the document's rendered parts, which travel as markup.
+ */
+export const SetupStepsIsland = island('SetupSteps', SetupSteps)

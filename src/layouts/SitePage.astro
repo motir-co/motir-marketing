@@ -28,6 +28,7 @@ import {
   type PageComponent,
 } from '@/lib/pageRoot'
 import { serializeJsonForScript } from '@/lib/scriptJson'
+import { servedPathname } from '@/lib/staticPaths'
 import {
   clearStoredAppearanceScript,
   siteAppearanceAttributes,
@@ -70,7 +71,12 @@ const head = resolveMetadata(
   ...(await Promise.all(metadata.map((layer) => layer({ params })))),
   extraMetadata,
 )
-const value = { locale, copy, pathname: Astro.url.pathname, servedAtAnyPath }
+const value = {
+  locale,
+  copy,
+  pathname: servedPathname(Astro.url.pathname),
+  servedAtAnyPath,
+}
 const pageContext = serializeJsonForScript({
   ...value,
   copy: clientCopy(copy),

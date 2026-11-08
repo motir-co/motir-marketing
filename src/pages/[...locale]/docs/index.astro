@@ -1,0 +1,24 @@
+---
+/*
+ * The docs index: every surface the area documents, and the setup prompt. Built once per locale
+ * (MOTIR-10645) in the docs shell, rendered through the shared layout.
+ */
+import DocsIndexRoute, {
+  generateMetadata,
+} from '@/app/[locale]/docs/(guides)/DocsIndexRoute'
+import DocsLayout, {
+  generateMetadata as docsMetadata,
+} from '@/app/[locale]/docs/DocsLayout'
+import DocsGuidesLayout from '@/app/[locale]/docs/(guides)/DocsGuidesLayout'
+import SitePage from '@/src/layouts/SitePage.astro'
+import { localeStaticPaths, pageLocale } from '@/lib/staticPaths'
+
+export const getStaticPaths = localeStaticPaths
+---
+
+<SitePage
+  locale={pageLocale(Astro.params)}
+  page={DocsIndexRoute}
+  layouts={[DocsLayout, DocsGuidesLayout]}
+  metadata={[docsMetadata, generateMetadata]}
+/>

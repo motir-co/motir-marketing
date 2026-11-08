@@ -1,6 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { LOCALES, type Locale } from '@/i18n/routing'
+import {
+  DocsArtifactUnavailableError,
+  forgetDocsArtifactReads,
+} from '@/lib/docs'
 import { DOCS_ROUTES } from '@/lib/docsSurfaces'
 import {
   docsPages,
@@ -20,7 +24,7 @@ import allowlist from './fixtures/terminologyAllowlist.json'
  * holding a coding agent, the Motir CLI and your checkouts". `tests/copy.test.ts`
  * carries a case named *"never says 'coding agent' — agents do all kinds of
  * work"*, and it passed, because it walks `lib/copy` — the catalogue — and this
- * sentence was typed into `app/[locale]/docs/(guides)/sandbox/page.tsx` as JSX prose.
+ * sentence was typed into `app/[locale]/docs/(guides)/sandbox/SandboxRoute.tsx` as JSX prose.
  *
  * The catalogue was once the only place a rendered string could enter. It is not
  * any more: `lib/docs.ts`'s own carve-out makes the guide pages AUTHORED
@@ -115,7 +119,7 @@ export { spacedText }
 
 describe('the terminology detector', () => {
   it('FIRES on the sentence that shipped, across the line break JSX wraps it at', () => {
-    // Verbatim from `app/[locale]/docs/(guides)/sandbox/page.tsx` at `3ca037b`,
+    // Verbatim from `app/[locale]/docs/(guides)/sandbox/SandboxRoute.tsx` at `3ca037b`,
     // including the source indentation that broke the phrase in two.
     const shipped =
       'A sandbox is a container you start on your own machine, holding a coding\n' +
@@ -282,6 +286,9 @@ export function proseOnly(container: HTMLElement): {
   const clone = container.cloneNode(true) as HTMLElement
   for (const element of clone.querySelectorAll('[lang="en"], code, pre'))
     element.replaceWith(' ')
+  // An island's props are JSON in an attribute (MOTIR-10645), never prose.
+  for (const island of clone.querySelectorAll('[data-props]'))
+    island.removeAttribute('data-props')
   return {
     text: clone.textContent ?? '',
     spaced: spacedText(clone.innerHTML),
@@ -410,13 +417,15 @@ describe('no /docs page RENDERS a banned term, in any language', () => {
               : proseOnly(page.container)
 
           // Prove the page got its data BEFORE reading its text — see the two
-          // ledgers above. A degraded render passes the banned-term check for free.
+          // ledgers above. Without it the page is not built at all (MOTIR-10645),
+          // so a page that read an artifact must refuse to render without one.
           expect(ledger.unserved).toEqual([])
           if (ledger.served.length > 0) {
+            forgetDocsArtifactReads()
             stubDocsUnreachable()
-            const degraded = await renderDocsRoute(file, locale)
-            expect(page.text).not.toBe(degraded.text)
-            degraded.unmount()
+            await expect(renderDocsRoute(file, locale)).rejects.toThrow(
+              DocsArtifactUnavailableError,
+            )
           }
           page.unmount()
 

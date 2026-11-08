@@ -47,3 +47,15 @@ export function pageLocale(params: { locale?: string | undefined }): Locale {
   }
   return locale
 }
+
+/**
+ * A built page's own address, as a visitor's location bar reads it. Astro
+ * names a page by the FILE it writes under `build.format: 'file'`
+ * (`/de/price.html`, `/index.html`), and every component that marks the
+ * current page or links the same page in another locale compares against the
+ * served address (`/de/price`, `/`), which is what the page context carries.
+ */
+export function servedPathname(builtPathname: string): string {
+  const path = builtPathname.replace(/\.html$/, '').replace(/\/index$/, '')
+  return path === '' ? '/' : path
+}

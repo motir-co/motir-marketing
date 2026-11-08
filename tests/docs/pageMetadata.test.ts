@@ -2,13 +2,20 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { englishCopy as copy } from '@/lib/copy'
+import { pathToFileURL } from 'node:url'
+import * as docsLayout from '@/app/[locale]/docs/DocsLayout'
+import { LOCALES } from '@/i18n/routing'
+import { englishCopy as copy, getCopy } from '@/lib/copy'
+import { DOCS_ROUTES } from '@/lib/docsSurfaces'
+import type { Metadata } from '@/lib/metadata'
+import { siteUrl } from '@/lib/siteOrigin'
+import { pageFileOf } from '@/tests/helpers/docsRoutes'
 
 /*
  * EVERY `/docs` PAGE PUBLISHES ITS OWN TITLE (MOTIR-4429).
  *
  * ── The defect this closes, which is a REGRESSION of a fixed one ────────────
- * `app/[locale]/docs/layout.tsx` exported the only metadata in the tree and every page
+ * `app/[locale]/docs/DocsLayout.tsx` exported the only metadata in the tree and every page
  * inherited it, so `/docs/mcp`, `/docs/cli`, `/docs/sandbox`, `/docs/api` and
  * the rest all published "Docs · Motir" — in the browser tab, in search
  * results, in a shared link's preview, and to a screen reader on arrival.
@@ -47,14 +54,14 @@ const DOCS_ROOT = join(process.cwd(), 'app', '[locale]', 'docs')
  * own, because the canonical and the `hreflang` set are each page's and a
  * layout's would be inherited by every page under it.
  */
-const INDEX = join(DOCS_ROOT, '(guides)', 'page.tsx')
+const INDEX = join(DOCS_ROOT, '(guides)', 'DocsIndexRoute.tsx')
 
-/** Every `page.tsx` under `app/[locale]/docs`, found rather than listed. */
+/** Every page module (`<Name>Route.tsx`) under `app/[locale]/docs`, found rather than listed. */
 function docsPages(dir: string = DOCS_ROOT): string[] {
   return readdirSync(dir).flatMap((entry) => {
     const full = join(dir, entry)
     if (statSync(full).isDirectory()) return docsPages(full)
-    return entry === 'page.tsx' ? [full] : []
+    return /^[A-Z]\w*Route\.tsx$/.test(entry) ? [full] : []
   })
 }
 
@@ -121,5 +128,44 @@ describe('the titles follow one pattern, so a reader can place a tab', () => {
         expect(String(value).length, key).toBeLessThan(200)
       }
     }
+  })
+})
+
+/*
+ * ── What each built page's head says (MOTIR-10645) ──────────────────────────
+ * The source checks above say each page CALLS the helper; this calls each
+ * page module's `generateMetadata` the way its `.astro` page does, after the
+ * docs layout's, and reads what the head gets: its own unprefixed canonical in
+ * that locale, all twelve locales plus `x-default`, and the area's words from
+ * the layout under the page's own.
+ */
+describe('every built /docs page heads itself, in its locale', () => {
+  const params = (locale: string) => Promise.resolve({ locale })
+
+  it('the docs layout gives the area’s title and description, in the page’s locale', async () => {
+    const de = await getCopy('de')
+    await expect(
+      docsLayout.generateMetadata({ params: params('de') }),
+    ).resolves.toEqual({
+      title: de.docs.metaTitle,
+      description: de.docs.metaDescription,
+    })
+  })
+
+  it.each(DOCS_ROUTES)('%s', async (route) => {
+    const page = (await import(
+      /* @vite-ignore */ pathToFileURL(pageFileOf(route)).href
+    )) as {
+      generateMetadata: (props: {
+        params: Promise<{ locale: string }>
+      }) => Promise<Metadata>
+    }
+    const meta = await page.generateMetadata({ params: params('de') })
+    expect(meta.alternates?.canonical).toBe(siteUrl(`/de${route}`))
+    const languages = Object.keys(meta.alternates?.languages ?? {})
+    expect(languages).toHaveLength(LOCALES.length + 1)
+    expect(languages).toContain('x-default')
+    expect(meta.title).toEqual(expect.any(String))
+    expect(meta.description).toEqual(expect.any(String))
   })
 })

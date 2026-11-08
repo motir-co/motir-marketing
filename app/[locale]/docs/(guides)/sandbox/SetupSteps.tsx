@@ -1,7 +1,8 @@
 'use client'
 
-import { createContext, useContext, useState, type ReactNode } from 'react'
-import { CodeBlock } from '../../_components/DocSchema'
+import { useState, type ReactNode } from 'react'
+import { CopyControls } from '../../_components/CopyControls'
+import { CodePane, type CodeBlockProps } from '../../_components/CodePane'
 import {
   SANDBOX_PICKER_OPTIONS,
   SANDBOX_PROFILES,
@@ -78,8 +79,11 @@ export interface SetupStepsText {
     or: ReactNode
     /** The agent-less image's chip. The agents' own names are vendor names and stay data. */
     base: ReactNode
-    /** The sentence under the chips; it places `<ProfileLabel />`. */
-    summary: ReactNode
+    /**
+     * The sentence under the chips, rendered once per picker option with that
+     * option's name in the document's `{{value:profileLabel}}`, by option id.
+     */
+    summary: Record<string, ReactNode>
   }
   /** The two kind chips. */
   chips: Record<StepKind, ReactNode>
@@ -111,16 +115,12 @@ export interface SetupStepsText {
   }
 }
 
-const ProfileContext = createContext('')
-
 /**
- * The selected agent's name, for a document's `{{value:profileLabel}}`. The
- * server cannot know it, so the page passes this component as the value and the
- * picker's provider below supplies the name; the sentence around it, and where
- * in the sentence it falls, stay the translation's.
+ * A code pane inside this island. Its copy controls are the component itself:
+ * the island is already hydrated, and an island cannot hold another one.
  */
-export function ProfileLabel() {
-  return <>{useContext(ProfileContext)}</>
+function CodeBlock(props: CodeBlockProps) {
+  return <CodePane {...props} controls={CopyControls} />
 }
 
 /** A short label from the document, set inline: the renderer wraps a part in a paragraph. */
@@ -200,7 +200,7 @@ export function SetupSteps({ text }: { text: SetupStepsText }) {
   const note = text.notes[profile.id]
 
   return (
-    <ProfileContext.Provider value={profile.label}>
+    <>
       {/* ── THE PROFILE PICKER — a control, not a step ────────────────── */}
       <div className="mt-6 max-w-[68ch] rounded-(--radius-card) border border-(--el-border) bg-(--el-surface-soft) px-4.5 py-4">
         <div className="mb-2.5 text-[14px] font-semibold text-(--el-text) [&_p]:mt-0 [&_p]:max-w-none [&_p]:text-[length:inherit] [&_p]:text-inherit">
@@ -231,7 +231,7 @@ export function SetupSteps({ text }: { text: SetupStepsText }) {
           ))}
         </div>
         <div className="mt-3 text-[13px] leading-snug text-(--el-text-secondary) [&_p]:mt-0 [&_p]:max-w-none [&_p]:text-[length:inherit] [&_p]:leading-[inherit] [&_p]:text-inherit">
-          {picker.summary}
+          {picker.summary[profile.id]}
         </div>
       </div>
 
@@ -366,7 +366,7 @@ export function SetupSteps({ text }: { text: SetupStepsText }) {
           code={sandboxDevcontainerJson(profile.id)}
         />
       </div>
-    </ProfileContext.Provider>
+    </>
   )
 }
 

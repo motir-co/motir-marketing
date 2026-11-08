@@ -2,7 +2,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { render } from '@/tests/helpers/withCopy'
 import { describe, expect, it } from 'vitest'
-import DocsIndexPage from '@/app/[locale]/docs/(guides)/page'
+import DocsIndexPage from '@/app/[locale]/docs/(guides)/DocsIndexRoute'
 import { englishCopy } from '@/lib/copy'
 import {
   DOCS_INDEX_HREF,
@@ -33,17 +33,17 @@ import { EN_PAGE } from '@/tests/helpers/locale'
 
 const DOCS_ROOT = join(process.cwd(), 'app', '[locale]', 'docs')
 
-/** Every `page.tsx` under `app/[locale]/docs`, found rather than listed. */
+/** Every page module (`<Name>Route.tsx`) under `app/[locale]/docs`, found rather than listed. */
 function docsPageFiles(dir: string = DOCS_ROOT): string[] {
   return readdirSync(dir).flatMap((entry) => {
     const full = join(dir, entry)
     if (statSync(full).isDirectory()) return docsPageFiles(full)
-    return entry === 'page.tsx' ? [full] : []
+    return /^[A-Z]\w*Route\.tsx$/.test(entry) ? [full] : []
   })
 }
 
 /**
- * The route a `page.tsx` serves. Route GROUPS — a segment in parentheses, like
+ * The route a page module serves. Route GROUPS — a segment in parentheses, like
  * `(guides)` — organise the tree without appearing in the URL, which is the one
  * rule this mapping has to know.
  */
@@ -51,7 +51,7 @@ function routeOf(file: string): string {
   const segments = file
     .slice(join(process.cwd(), 'app', '[locale]').length)
     .split(/[\\/]/)
-    .filter((segment) => segment && segment !== 'page.tsx')
+    .filter((segment) => segment && !segment.endsWith('Route.tsx'))
     .filter((segment) => !/^\(.*\)$/.test(segment))
   return `/${segments.join('/')}`
 }
@@ -112,7 +112,14 @@ describe('the surfaces `/docs` documents', () => {
      */
     const routes = new Set(DOCS_ROUTES)
     for (const file of [
-      join(process.cwd(), 'app', '[locale]', 'docs', '(guides)', 'page.tsx'),
+      join(
+        process.cwd(),
+        'app',
+        '[locale]',
+        'docs',
+        '(guides)',
+        'DocsIndexRoute.tsx',
+      ),
       join(
         process.cwd(),
         'app',

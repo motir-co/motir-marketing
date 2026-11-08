@@ -4,7 +4,7 @@ import { render } from '@/tests/helpers/withCopy'
 import { EN_PAGE } from '@/tests/helpers/locale'
 import { resolveAsync } from '@/tests/helpers/resolveAsync'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import ApiReferencePage from '@/app/[locale]/docs/api/page'
+import ApiReferencePage from '@/app/[locale]/docs/api/ApiReferenceRoute'
 import {
   describeSchema,
   exampleRequest,
@@ -239,16 +239,15 @@ describe('the API reference RENDERS the document it fetches', () => {
     expect(container.innerHTML).toContain(FIXTURE_ONLY.componentProperty)
   })
 
-  it('says so rather than falling back when the document is unreachable', async () => {
+  it('fails the build rather than falling back when the document is unreachable', async () => {
+    // MOTIR-10645: no built page carries an "unreachable" paragraph as a 200.
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => new Response('nope', { status: 503 })),
     )
-    const { container } = render(
-      (await resolveAsync(await ApiReferencePage(EN_PAGE))) as never,
+    await expect(ApiReferencePage(EN_PAGE)).rejects.toThrow(
+      /could not read the OpenAPI spec at .*\/api\/openapi\/v1\.json: HTTP 503/,
     )
-    expect(container.textContent).toContain('unreachable')
-    expect(container.innerHTML).not.toContain(FIXTURE_ONLY.bodyProperty)
   })
 })
 

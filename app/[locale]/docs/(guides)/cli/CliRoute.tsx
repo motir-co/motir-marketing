@@ -1,7 +1,6 @@
 import { localePageMetadata } from '@/lib/localeMetadata'
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 import {
-  failBuildIfPrerendering,
   fetchCliCommands,
   groupCliCommands,
   type CliCommandsDocument,
@@ -92,17 +91,11 @@ const CLI_REFERENCE_URL =
  * what a reader copies (the three code panes), what is generated (the command
  * groups) and the values the prose must not restate (everything the catalogue
  * carries). The document's parts: `body` is the introduction, `meta` the
- * package line, `reference` every section from Install to the end, and
- * `unreachable` the paragraph that renders only when the fetch fails.
+ * package line and `reference` every section from Install to the end. Its
+ * `unreachable` paragraph is never rendered: a built page has no request at
+ * which the catalogue could be unreachable, and a failed read fails the build
+ * (`lib/docs.ts`, MOTIR-10645).
  */
-const SLOT_NAMES = ['install', 'authenticate', 'link-and-check', 'commands']
-const VALUE_NAMES = [
-  'packageName',
-  'packageVersion',
-  'commandCount',
-  'nodeRequirement',
-  'defaultServer',
-]
 
 function Command({
   command,
@@ -161,32 +154,7 @@ export default async function CliPage({ params }: LocalePageProps) {
     </h1>
   )
 
-  let catalogue: CliCommandsDocument
-  try {
-    catalogue = await fetchCliCommands()
-  } catch (error) {
-    failBuildIfPrerendering(error)
-    // Nothing the catalogue carries exists here: the document still resolves
-    // whole (so a stale translation falls back as one), with those slots empty.
-    const { parts, note } = await renderDocsParts({
-      slug: 'cli',
-      locale,
-      slots: Object.fromEntries(SLOT_NAMES.map((name) => [name, null])),
-      values: {
-        ...Object.fromEntries(VALUE_NAMES.map((name) => [name, null])),
-        ...labels,
-      },
-    })
-    return (
-      <>
-        {heading}
-        {note}
-        {parts.body}
-        {parts.unreachable}
-      </>
-    )
-  }
-
+  const catalogue = await fetchCliCommands()
   const groups = groupCliCommands(catalogue)
   const ownDocument = resolveDocsDocument('cli', locale).fallback === null
   const { parts, note } = await renderDocsParts({

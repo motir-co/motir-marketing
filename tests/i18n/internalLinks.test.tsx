@@ -90,8 +90,14 @@ const PAGES: { label: string; module: string; params?: object }[] = [
     module: '@/app/[locale]/explore/topic/[slug]/page',
     params: { slug: 'developer-tools' },
   },
-  { label: 'the docs index', module: '@/app/[locale]/docs/(guides)/page' },
-  { label: 'a docs guide', module: '@/app/[locale]/docs/(guides)/mcp/page' },
+  {
+    label: 'the docs index',
+    module: '@/app/[locale]/docs/(guides)/DocsIndexRoute',
+  },
+  {
+    label: 'a docs guide',
+    module: '@/app/[locale]/docs/(guides)/mcp/McpRoute',
+  },
   { label: '/legal', module: '@/app/[locale]/legal/LegalIndexRoute' },
   {
     label: 'a legal document',

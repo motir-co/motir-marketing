@@ -3,9 +3,10 @@ import { render } from '@/tests/helpers/withCopy'
 import { EN_PAGE } from '@/tests/helpers/locale'
 import { resolveAsync } from '@/tests/helpers/resolveAsync'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import GettingStartedPage from '@/app/[locale]/docs/api/getting-started/page'
-import StabilityPage from '@/app/[locale]/docs/api/stability/page'
+import GettingStartedPage from '@/app/[locale]/docs/api/getting-started/GettingStartedRoute'
+import StabilityPage from '@/app/[locale]/docs/api/stability/StabilityRoute'
 import { APP_ORIGIN } from '@/lib/appOrigin'
+import { DocsArtifactUnavailableError } from '@/lib/docs'
 
 /*
  * THE TWO PROSE PAGES UNDER `/docs/api` (MOTIR-4429).
@@ -119,7 +120,7 @@ describe('/docs/api/getting-started is a walkthrough, not a summary', () => {
     }
 
     const source = readFileSync(
-      'app/[locale]/docs/api/getting-started/page.tsx',
+      'app/[locale]/docs/api/getting-started/GettingStartedRoute.tsx',
       'utf8',
     ).replace(/\/\*[\s\S]*?\*\//g, '')
     expect(source).not.toContain('https://app.motir.co')
@@ -135,20 +136,15 @@ describe('/docs/api/getting-started is a walkthrough, not a summary', () => {
     expect(all).toContain('X-Motir-Api-Version:   9.9.9')
   })
 
-  it('UNREACHABLE shows a placeholder, never an invented version', async () => {
+  it('UNREACHABLE fails the build, never an invented version or a placeholder', async () => {
+    // A built page has no request at which the document could be unreachable
+    // (MOTIR-10645): the read throws, naming the artifact, and the build stops.
     stubSpec({}, 503)
-    const { container } = render(
-      (await resolveAsync(await GettingStartedPage(EN_PAGE))) as never,
+    await expect(GettingStartedPage(EN_PAGE)).rejects.toThrow(
+      DocsArtifactUnavailableError,
     )
-    const all = [...container.querySelectorAll('pre')]
-      .map((pane) => pane.textContent ?? '')
-      .join('\n')
-    expect(all).toContain('X-Motir-Api-Version:   <the contract version>')
-    expect(all).not.toContain('9.9.9')
-    // The walkthrough itself does not depend on the fetch and still renders.
-    expect(all).toContain('/api/v1/me')
-    expect(container.textContent).toContain(
-      'the specification was unreachable when this page was rendered',
+    await expect(GettingStartedPage(EN_PAGE)).rejects.toThrow(
+      /the OpenAPI spec at .*\/api\/openapi\/v1\.json: HTTP 503/,
     )
   })
 

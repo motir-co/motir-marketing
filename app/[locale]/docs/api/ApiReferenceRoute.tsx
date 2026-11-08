@@ -1,7 +1,6 @@
 import { localePageMetadata } from '@/lib/localeMetadata'
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 import {
-  failBuildIfPrerendering,
   exampleRequest,
   fetchOpenApiSpec,
   listOperations,
@@ -64,11 +63,14 @@ import {
  * the rail links with — `operationAnchorId` in `lib/docs.ts`. A second copy of
  * that rule here is how a rail full of links that 404 into the page gets built,
  * which is worse than no rail at all. The layout and this page also read ONE
- * memoized spec fetch, so they cannot disagree about which operations exist.
+ * spec, read once per build, so they cannot disagree about which operations
+ * exist.
  *
  * ⚠️ NO FALLBACK, DELIBERATELY — the contract `lib/docs.ts`'s header states. A
  * committed default rendered when the fetch fails is stale exactly when it is
- * displayed and invisible exactly when it is wrong.
+ * displayed and invisible exactly when it is wrong, and an "unreachable"
+ * paragraph built into the page would ship as a 200: the read throws and the
+ * build fails instead (MOTIR-10645).
  */
 export function generateMetadata({
   params,
@@ -239,20 +241,8 @@ export default async function ApiReferencePage({ params }: LocalePageProps) {
       {copy.docs.api}
     </h1>
   )
-  let spec
-  try {
-    spec = await fetchOpenApiSpec()
-  } catch (error) {
-    failBuildIfPrerendering(error)
-    return (
-      <>
-        {heading}
-        <p className="mt-4 text-[14px] text-(--el-text-secondary)">
-          {copy.docs.apiUnreachable}
-        </p>
-      </>
-    )
-  }
+  // Read once per build, with the rail beside it; a failed read fails the build.
+  const spec = await fetchOpenApiSpec()
 
   const operations = listOperations(spec)
   // Panel E: a page whose own document is the English fallback is English top to

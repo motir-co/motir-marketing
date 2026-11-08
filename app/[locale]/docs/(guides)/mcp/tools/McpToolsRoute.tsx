@@ -1,14 +1,12 @@
 import { localePageMetadata } from '@/lib/localeMetadata'
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 import type { ReactNode } from 'react'
 import {
-  failBuildIfPrerendering,
   catalogueTextLocale,
   countCatalogueTools,
   describeSchema,
   fetchMcpToolCatalogue,
   toolHint,
-  type McpToolCatalogue,
   type McpToolEntry,
   type McpToolHint,
 } from '@/lib/docs'
@@ -182,27 +180,8 @@ export default async function McpToolsPage({ params }: LocalePageProps) {
       {copy.docs.mcpTools}
     </h1>
   )
-  let catalogue: McpToolCatalogue
-  try {
-    catalogue = await fetchMcpToolCatalogue(locale)
-  } catch (error) {
-    failBuildIfPrerendering(error)
-    return (
-      <>
-        {heading}
-        <p className="mt-4 text-[14px] text-(--el-text-secondary)">
-          {formatIcu(locale, copy.docs.mcpToolsUnreachable, {
-            code: (chunks) => (
-              <code className="rounded-(--radius-kbd) bg-(--el-muted) px-1.5 py-0.5 font-(family-name:--font-mono) text-[13px]">
-                {chunks}
-              </code>
-            ),
-          })}
-        </p>
-      </>
-    )
-  }
-
+  // Read once per build for this locale's URL; a failed read fails the build.
+  const catalogue = await fetchMcpToolCatalogue(locale)
   const total = countCatalogueTools(catalogue)
   /*
    * `lang` only where a region's language differs from the page's — a region in

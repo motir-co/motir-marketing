@@ -1,5 +1,5 @@
 import { localePageMetadata } from '@/lib/localeMetadata'
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 
 import { getCopy } from '@/lib/copy'
 import { enterLocale, type LocalePageProps } from '@/i18n/locale'

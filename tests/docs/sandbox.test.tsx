@@ -1,6 +1,6 @@
 import { render } from '@/tests/helpers/withCopy'
 import { describe, expect, it } from 'vitest'
-import SandboxPage from '@/app/[locale]/docs/(guides)/sandbox/page'
+import SandboxPage from '@/app/[locale]/docs/(guides)/sandbox/SandboxRoute'
 import { EN_PAGE } from '@/tests/helpers/locale'
 
 /*

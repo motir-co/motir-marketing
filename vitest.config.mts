@@ -182,6 +182,8 @@ export default defineConfig({
         'lib/docsDocuments.ts',
         'app/?locale?/docs/_components/DocsDocument.tsx',
         'app/?locale?/docs/_components/TranslationUpdatingNote.tsx',
+        // MOTIR-10645 — the code pane both copy-control routes share.
+        'app/?locale?/docs/_components/CodePane.tsx',
         // MOTIR-8089 — the files Story MOTIR-7740 (legal pages stay English)
         // changed, added WITH the gate that awaits them
         // (`tests/legal/bindingEnglishNoteGate.test.tsx`). The two pages ARE
@@ -376,6 +378,11 @@ export default defineConfig({
           'lib/scriptJson.ts': { lines: 90, functions: 90, branches: 90 },
           'lib/island.tsx': { lines: 90, functions: 90, branches: 90 },
           'lib/islands.ts': { lines: 90, functions: 90, branches: 90 },
+          'app/?locale?/docs/_components/CodePane.tsx': {
+            lines: 90,
+            functions: 90,
+            branches: 90,
+          },
           'lib/hydrateIslands.tsx': { lines: 90, functions: 90, branches: 90 },
           'lib/pageRoot.tsx': { lines: 90, functions: 90, branches: 90 },
           'lib/staticPaths.ts': { lines: 90, functions: 90, branches: 90 },

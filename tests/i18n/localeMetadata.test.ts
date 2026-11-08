@@ -133,7 +133,7 @@ const PAGES: { module: string; path: string; params?: object }[] = [
     module: '@/app/[locale]/motir-builds-itself/page',
     path: '/motir-builds-itself',
   },
-  { module: '@/app/[locale]/docs/(guides)/page', path: '/docs' },
+  { module: '@/app/[locale]/docs/(guides)/DocsIndexRoute', path: '/docs' },
   ...[
     'claude-code-connector',
     'claude-code-plugin',
@@ -149,13 +149,13 @@ const PAGES: { module: string; path: string; params?: object }[] = [
     module: `@/app/[locale]/docs/(guides)/${slug}/page`,
     path: `/docs/${slug}`,
   })),
-  { module: '@/app/[locale]/docs/api/page', path: '/docs/api' },
+  { module: '@/app/[locale]/docs/api/ApiReferenceRoute', path: '/docs/api' },
   {
-    module: '@/app/[locale]/docs/api/getting-started/page',
+    module: '@/app/[locale]/docs/api/getting-started/GettingStartedRoute',
     path: '/docs/api/getting-started',
   },
   {
-    module: '@/app/[locale]/docs/api/stability/page',
+    module: '@/app/[locale]/docs/api/stability/StabilityRoute',
     path: '/docs/api/stability',
   },
   ...[

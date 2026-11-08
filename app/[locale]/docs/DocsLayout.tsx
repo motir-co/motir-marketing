@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 import { getCopy } from '@/lib/copy'
 import { SiteShell } from '@/app/_components/SiteShell'
 import { SITE_HOST } from '@/lib/publicHost'
@@ -16,8 +16,8 @@ import { enterLocale, type LocaleParams } from '@/i18n/locale'
  * reading column, never out of it.
  *
  * The two sub-area layouts below it are what decide whether a page's rail
- * carries the operation tier — `(guides)/layout.tsx` passes none,
- * `api/layout.tsx` passes the operations. A server layout cannot read a
+ * carries the operation tier — `(guides)/DocsGuidesLayout.tsx` passes none,
+ * `api/DocsApiLayout.tsx` passes the operations. A server layout cannot read a
  * pathname, so that split IS the design's route-prefix rule.
  *
  * ⚠️ IT DOES SET ONE THING ON THE LANDMARK, AND ONLY AT `md` (MOTIR-4465):

@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { render } from '@/tests/helpers/withCopy'
 import { resolveAsync } from '@/tests/helpers/resolveAsync'
 import { EN_PAGE } from '@/tests/helpers/locale'
 import {
@@ -31,12 +30,16 @@ async function renderAt(tag: string | undefined) {
   vi.resetModules()
   if (tag === undefined) vi.stubEnv('SKILLS_RELEASE_TAG', '')
   else vi.stubEnv('SKILLS_RELEASE_TAG', tag)
-  const skills = (await import('@/app/[locale]/docs/(guides)/skills/page'))
-    .default as (props: unknown) => Promise<never>
+  const skills = (
+    await import('@/app/[locale]/docs/(guides)/skills/SkillsRoute')
+  ).default as (props: unknown) => Promise<never>
   const plugin = (
-    await import('@/app/[locale]/docs/(guides)/claude-code-plugin/page')
+    await import('@/app/[locale]/docs/(guides)/claude-code-plugin/ClaudeCodePluginRoute')
   ).default as (props: unknown) => Promise<never>
   const { setupPrompt } = await import('@/lib/setupPrompt')
+  // The pages were imported into a fresh module graph, so their page context is
+  // that graph's: the provider that renders them must come from it too.
+  const { render } = await import('@/tests/helpers/withCopy')
   const { SKILLS_RELEASE_TAG, SKILLS_RELEASE_URL } =
     await import('@/lib/skillsGuide')
   const text = async (Page: (props: unknown) => Promise<never>) =>

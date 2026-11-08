@@ -1,8 +1,8 @@
 import { screen, waitFor } from '@testing-library/react'
-import { render } from '@/tests/helpers/withCopy'
+import { renderHydrated } from '@/tests/helpers/withCopy'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import SandboxPage from '@/app/[locale]/docs/(guides)/sandbox/page'
+import SandboxPage from '@/app/[locale]/docs/(guides)/sandbox/SandboxRoute'
 import { readFileSync } from 'node:fs'
 import { splitParts } from '@/lib/docsDocuments'
 import {
@@ -57,7 +57,7 @@ beforeEach(() => {
 
 describe('the sandbox guide is a STEP SEQUENCE', () => {
   it('every step is ONE kind — none is both, none is neither', async () => {
-    const { container } = render(await SandboxPage(EN_PAGE))
+    const { container } = await renderHydrated(await SandboxPage(EN_PAGE))
     const steps = readSteps(container)
     expect(steps.length).toBeGreaterThan(0)
 
@@ -78,7 +78,7 @@ describe('the sandbox guide is a STEP SEQUENCE', () => {
   })
 
   it('the sequence is numbered, ordered and GAPLESS, with the VS Code route lettered', async () => {
-    const { container } = render(await SandboxPage(EN_PAGE))
+    const { container } = await renderHydrated(await SandboxPage(EN_PAGE))
     const numbers = readSteps(container).map((s) => s.number)
 
     // ⚠️ The LETTERS are the assertion, not decoration. 2a/2b/2c REPLACE step
@@ -88,7 +88,7 @@ describe('the sandbox guide is a STEP SEQUENCE', () => {
   })
 
   it('the VS Code route MIXES kinds — UI, COMMAND, UI', async () => {
-    const { container } = render(await SandboxPage(EN_PAGE))
+    const { container } = await renderHydrated(await SandboxPage(EN_PAGE))
     const route = readSteps(container).filter((s) => /^2[abc]$/.test(s.number))
 
     // 2b creates a DOTFILE folder, which no file picker will do — so it is a
@@ -102,14 +102,14 @@ describe('the sandbox guide is a STEP SEQUENCE', () => {
   })
 
   it('the step sequence is ONE list, so a screen reader announces its length first', async () => {
-    const { container } = render(await SandboxPage(EN_PAGE))
+    const { container } = await renderHydrated(await SandboxPage(EN_PAGE))
     const lists = [...container.querySelectorAll('ol')]
     expect(lists.length).toBe(1)
     expect(lists[0]!.querySelectorAll(':scope > li').length).toBe(8)
   })
 
   it('every copy button on the page announces DISTINCTLY', async () => {
-    const { container } = render(await SandboxPage(EN_PAGE))
+    const { container } = await renderHydrated(await SandboxPage(EN_PAGE))
     const names = [
       ...container.querySelectorAll('button[aria-label^="Copy the"]'),
     ].map((b) => b.getAttribute('aria-label'))
@@ -121,7 +121,7 @@ describe('the sandbox guide is a STEP SEQUENCE', () => {
   })
 
   it('a pane that is NOT a command has no copy button', async () => {
-    const { container } = render(await SandboxPage(EN_PAGE))
+    const { container } = await renderHydrated(await SandboxPage(EN_PAGE))
     const text = container.textContent ?? ''
     // The workspace tree and the grant table are illustrations. A button
     // promising to copy them is a promise the pane cannot keep.
@@ -136,7 +136,7 @@ describe('the sandbox guide is a STEP SEQUENCE', () => {
 
 describe('the profile selector drives EVERY profile to a complete command', () => {
   it('offers the eight profiles plus the agent-less image, one selected', async () => {
-    render(await SandboxPage(EN_PAGE))
+    await renderHydrated(await SandboxPage(EN_PAGE))
     const radios = screen.getAllByRole('radio')
     expect(radios).toHaveLength(SANDBOX_PICKER_OPTIONS.length)
     expect(SANDBOX_PROFILES).toHaveLength(8)
@@ -150,7 +150,7 @@ describe('the profile selector drives EVERY profile to a complete command', () =
   // passes for all of them and proves nothing about three.
   for (const profile of SANDBOX_PICKER_OPTIONS) {
     it(`renders a complete run command for ${profile.id} — ${profile.mounts.length} credential mount(s)`, async () => {
-      const { container } = render(await SandboxPage(EN_PAGE))
+      const { container } = await renderHydrated(await SandboxPage(EN_PAGE))
       await userEvent.click(screen.getByRole('radio', { name: profile.label }))
 
       const panes = () =>
@@ -180,7 +180,7 @@ describe('the profile selector drives EVERY profile to a complete command', () =
   }
 
   it('⚠️ the three EXCEPTIONAL shapes are what a one-mount template would break', async () => {
-    const { container } = render(await SandboxPage(EN_PAGE))
+    const { container } = await renderHydrated(await SandboxPage(EN_PAGE))
     const runFor = async (label: string) => {
       await userEvent.click(screen.getByRole('radio', { name: label }))
       return await waitFor(() => {
@@ -220,7 +220,7 @@ describe('the profile selector drives EVERY profile to a complete command', () =
           part.text.trim().slice(0, 40),
         ]),
     )
-    const { container } = render(await SandboxPage(EN_PAGE))
+    const { container } = await renderHydrated(await SandboxPage(EN_PAGE))
     for (const profile of SANDBOX_PICKER_OPTIONS) {
       await userEvent.click(screen.getByRole('radio', { name: profile.label }))
       const text = await waitFor(() => container.textContent ?? '')
@@ -244,7 +244,7 @@ describe('the profile selector drives EVERY profile to a complete command', () =
   })
 
   it('the devcontainer heredoc and its listing agree for EVERY profile', async () => {
-    const { container } = render(await SandboxPage(EN_PAGE))
+    const { container } = await renderHydrated(await SandboxPage(EN_PAGE))
     for (const profile of SANDBOX_PICKER_OPTIONS) {
       await userEvent.click(screen.getByRole('radio', { name: profile.label }))
       await waitFor(() => {
@@ -266,7 +266,7 @@ describe('the profile selector drives EVERY profile to a complete command', () =
   })
 
   it('the recipe MOTIR-4970 settled is carried through unchanged', async () => {
-    const { container } = render(await SandboxPage(EN_PAGE))
+    const { container } = await renderHydrated(await SandboxPage(EN_PAGE))
     const run = [...container.querySelectorAll('pre')]
       .map((p) => p.textContent ?? '')
       .find((p) => p.startsWith('docker run'))!
@@ -279,7 +279,7 @@ describe('the profile selector drives EVERY profile to a complete command', () =
   })
 
   it('the VS Code route says pull-then-Rebuild, and the page scopes "goes stale" to the run command', async () => {
-    const { container } = render(await SandboxPage(EN_PAGE))
+    const { container } = await renderHydrated(await SandboxPage(EN_PAGE))
     const text = container.textContent ?? ''
     // Step 2's own instruction, in the VS Code route rather than only prose elsewhere.
     expect(text).toMatch(/docker pull[\s\S]*Dev Containers: Rebuild Container/)
@@ -297,7 +297,7 @@ describe('the profile selector drives EVERY profile to a complete command', () =
   // because step 2c's own Open Folder in Container sits between the warning and
   // the page's closing note and would satisfy a whole-page regex vacuously.
   it('attaches with Open Folder in Container before every Rebuild Container', async () => {
-    const { container } = render(await SandboxPage(EN_PAGE))
+    const { container } = await renderHydrated(await SandboxPage(EN_PAGE))
     const paragraphs = [...container.querySelectorAll('p')]
       .map((p) => (p.textContent ?? '').replace(/\s+/g, ' '))
       .filter((t) => t.includes('Rebuild Container'))
@@ -320,7 +320,7 @@ describe('the profile selector drives EVERY profile to a complete command', () =
   })
 
   it('does not tell a Claude Code reader the container can never sign in', async () => {
-    const { container } = render(await SandboxPage(EN_PAGE))
+    const { container } = await renderHydrated(await SandboxPage(EN_PAGE))
     const text = container.textContent ?? ''
     expect(text).not.toMatch(/can never perform/i)
     expect(text).toMatch(/Claude Code on macOS/)

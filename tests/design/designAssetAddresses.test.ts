@@ -675,6 +675,46 @@ const KNOWN_PATHS: { file: string; path: string; why: string }[] = [
     path: 'app/page.tsx',
     why: 'The landing as a Next page module. MOTIR-10644 moved it to `app/[locale]/LandingRoute.tsx`, which `src/pages/[...locale]/index.astro` renders; the dated note is not rewritten.',
   },
+  {
+    file: 'design/docs/design-notes.md',
+    path: 'app/docs/layout.tsx',
+    why: 'The docs shell as a Next route layout. MOTIR-10645 moved it, unchanged, to `app/[locale]/docs/DocsLayout.tsx`, which every Astro docs page renders it through; the dated asset is a record and is not rewritten.',
+  },
+  {
+    file: 'design/docs/docs.mock.html',
+    path: 'app/docs/layout.tsx',
+    why: 'The docs shell as a Next route layout. MOTIR-10645 moved it, unchanged, to `app/[locale]/docs/DocsLayout.tsx`, which every Astro docs page renders it through; the dated asset is a record and is not rewritten.',
+  },
+  {
+    file: 'design/docs/docs--localized-notes.mock.html',
+    path: 'app/docs/layout.tsx',
+    why: 'The docs shell as a Next route layout. MOTIR-10645 moved it, unchanged, to `app/[locale]/docs/DocsLayout.tsx`, which every Astro docs page renders it through; the dated asset is a record and is not rewritten.',
+  },
+  {
+    file: 'design/docs/sandbox-steps.mock.html',
+    path: 'app/docs/layout.tsx',
+    why: 'The docs shell as a Next route layout. MOTIR-10645 moved it, unchanged, to `app/[locale]/docs/DocsLayout.tsx`, which every Astro docs page renders it through; the dated asset is a record and is not rewritten.',
+  },
+  {
+    file: 'design/docs/design-notes.md',
+    path: 'app/docs/(guides)/mcp/tools/page.tsx',
+    why: '`/docs/mcp/tools` as a Next page module. MOTIR-10645 moved it to `app/[locale]/docs/(guides)/mcp/tools/McpToolsRoute.tsx`, which `src/pages/[...locale]/docs/mcp/tools.astro` renders; the dated asset is not rewritten.',
+  },
+  {
+    file: 'design/docs/docs--mcp-tool-hints.mock.html',
+    path: 'app/docs/(guides)/mcp/tools/page.tsx',
+    why: '`/docs/mcp/tools` as a Next page module. MOTIR-10645 moved it to `app/[locale]/docs/(guides)/mcp/tools/McpToolsRoute.tsx`, which `src/pages/[...locale]/docs/mcp/tools.astro` renders; the dated asset is not rewritten.',
+  },
+  {
+    file: 'design/docs/design-notes.md',
+    path: 'app/docs/(guides)/sandbox/page.tsx',
+    why: '`/docs/sandbox` as a Next page module. MOTIR-10645 moved it to `app/[locale]/docs/(guides)/sandbox/SandboxRoute.tsx`, which `src/pages/[...locale]/docs/sandbox.astro` renders; the dated asset is not rewritten.',
+  },
+  {
+    file: 'design/docs/sandbox-steps.mock.html',
+    path: 'app/docs/(guides)/sandbox/page.tsx',
+    why: '`/docs/sandbox` as a Next page module. MOTIR-10645 moved it to `app/[locale]/docs/(guides)/sandbox/SandboxRoute.tsx`, which `src/pages/[...locale]/docs/sandbox.astro` renders; the dated asset is not rewritten.',
+  },
   // ── A path in ANOTHER repository that `src/` now also names ───────────────
   {
     file: 'design/price/design-notes.md',

@@ -1,11 +1,10 @@
-import Link from 'next/link'
 import { getCopy } from '@/lib/copy'
 import { setupPrompt } from '@/lib/setupPrompt'
-import { SetupPromptButton } from '@/app/_components/SetupPromptButton'
+import { SetupPromptButtonIsland } from '@/app/_islands'
 import { DOCS_INDEX_HREF, docsSurfacesFor } from '@/lib/docsSurfaces'
 import { enterLocale, type LocalePageProps } from '@/i18n/locale'
 import { localePageMetadata, localizedPath } from '@/lib/localeMetadata'
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 
 /*
  * The docs index (MOTIR-4046) — where the top bar's `Docs` item lands, and the
@@ -55,7 +54,7 @@ export default async function DocsIndexPage({ params }: LocalePageProps) {
           {copy.setupPrompt.body}
         </p>
         <div>
-          <SetupPromptButton />
+          <SetupPromptButtonIsland />
         </div>
         <details className="text-[13px] text-(--el-text-secondary)">
           <summary className="cursor-pointer">{copy.setupPrompt.show}</summary>
@@ -76,7 +75,7 @@ export default async function DocsIndexPage({ params }: LocalePageProps) {
                 one recognises the other. */}
             {[surface, ...surface.pages].map((item) => (
               <li key={item.href}>
-                <Link
+                <a
                   href={localizedPath(locale, item.href)}
                   className="flex flex-col gap-1 py-4 hover:bg-(--el-surface-soft)"
                 >
@@ -86,7 +85,7 @@ export default async function DocsIndexPage({ params }: LocalePageProps) {
                   <span className="text-[13px] text-(--el-text-secondary)">
                     {item.description}
                   </span>
-                </Link>
+                </a>
               </li>
             ))}
           </ul>

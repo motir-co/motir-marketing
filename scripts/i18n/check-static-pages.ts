@@ -34,6 +34,7 @@ import {
   LOCALES,
   type Locale,
 } from '../../i18n/routing.ts'
+import { DOCS_ROUTES } from '../../lib/docsSurfaces.ts'
 import { legalSlugsIn } from '../../lib/legal/slugs.ts'
 import {
   PLACEHOLDER_PRODUCTS,
@@ -65,6 +66,9 @@ export const STATIC_PAGES: readonly StaticPage[] = [
   { route: '/products/[slug]', slugs: PLACEHOLDER_PRODUCTS },
   { route: '/legal' },
   { route: '/legal/[slug]', slugs: legalSlugsIn() },
+  // The docs (MOTIR-10645): the index, the guides and the API reference, read
+  // off the one list the rail and the index draw.
+  ...DOCS_ROUTES.map((route) => ({ route })),
 ]
 
 /** The most files one Workers version may hold (Workers Paid). */
