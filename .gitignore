@@ -23,3 +23,4 @@ node_modules/
 # catalogue and its source record are committed.
 /.i18n-work/
 .vercel
+parity-report.md

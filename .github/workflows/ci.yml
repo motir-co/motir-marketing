@@ -140,6 +140,15 @@ jobs:
       # Fonts host anywhere, and the output's file count. It reads `dist/`,
       # so it runs here, after `astro build`.
       - run: pnpm i18n:check-static-pages
+      # MOTIR-10648 — the built output, served by `wrangler dev` with the static
+      # assets alone, against the Next build at b9ff37a
+      # (`scripts/parity/baseline-next-b9ff37a.json`): every sitemap URL's
+      # status, canonical, hreflang, og:locale and html lang, the sitemaps,
+      # robots.txt, the share cards and icons, the localized 404s and the file
+      # count. The report goes to the job summary.
+      - run: pnpm parity:check --report parity-report.md
+      - if: always()
+        run: test -f parity-report.md && cat parity-report.md >> "$GITHUB_STEP_SUMMARY" || true
 
   # ── The unit / component suite (MOTIR-1152) ───────────────────────────────
   #

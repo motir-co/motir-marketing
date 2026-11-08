@@ -168,6 +168,8 @@ export default defineConfig({
         'app/_components/products.ts',
         'app/?locale?/not-found.tsx',
         'scripts/i18n/*.ts',
+        // MOTIR-10648 — the parity check against the Next build.
+        'scripts/parity/*.ts',
         // MOTIR-10643 — the Astro foundation's modules: the head, the island
         // boundary and its hydration, the page root and the build paths,
         // added WITH their tests.
@@ -409,6 +411,12 @@ export default defineConfig({
             branches: 90,
           },
           'scripts/i18n/*.ts': { lines: 90, functions: 90, branches: 90 },
+          'scripts/parity/*.ts': {
+            lines: 90,
+            functions: 90,
+            branches: 90,
+            statements: 90,
+          },
           // MOTIR-8382 — measured first under `tests/priceCard.test.tsx` and
           // `tests/price/`, then pinned at the floor.
           'app/_components/price/*.ts': {
