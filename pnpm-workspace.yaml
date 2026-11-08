@@ -3,21 +3,16 @@
 # native dependency's build script undecided exits 1 with
 # ERR_PNPM_IGNORED_BUILDS. Both entries below are decisions, not noise.
 allowBuilds:
-  # Next's optional image-optimisation dependency. Its install script picks up
-  # the prebuilt @img/sharp-linux-* binary for the platform rather than
-  # compiling libvips, so allowing it costs nothing and skipping it would leave
-  # `next/image` unoptimised in production.
-  # Both arrive with next-intl (MOTIR-7948) and serve only its optional message
-  # EXTRACTOR and its dev-time catalogue watcher, neither of which this site
-  # turns on — the catalogues are hand-kept JSON. Their install scripts only
-  # fetch prebuilt binaries for features we do not run, so they stay off.
-  '@parcel/watcher': false
-  '@swc/core': false
+  # The bundler Astro's toolchain and wrangler drive. Its install script only
+  # selects the prebuilt binary for the platform.
+  esbuild: true
+  # The image library `scripts/brand/` renders the icons with (and Astro's
+  # image service would use). Its install script picks up the prebuilt
+  # @img/sharp-linux-* binary for the platform rather than compiling libvips.
   sharp: true
-  # The native resolver behind eslint-import-resolver-typescript, which
-  # eslint-config-next pulls in. Its postinstall only selects the prebuilt
-  # binding for the platform.
-  unrs-resolver: true
+  # The Workers runtime `wrangler dev` serves the built static assets in
+  # (MOTIR-10643). Its install script only fetches the prebuilt binary.
+  workerd: true
 # ⚠️ A NARROW, SELF-EXPIRING SUPPLY-CHAIN EXEMPTION — added by MOTIR-1152 and
 # RE-POINTED by MOTIR-3848; it is load-bearing TODAY rather than tidy-up. pnpm 11
 # rejects a lockfile entry published inside a rolling ~24h `minimumReleaseAge`

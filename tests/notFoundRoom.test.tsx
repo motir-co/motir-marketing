@@ -1,37 +1,12 @@
 import { screen, within } from '@testing-library/react'
-import { render } from '@/tests/helpers/withCopy'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import NotFound from '@/app/not-found'
+import { render as renderOnPage } from '@/tests/helpers/withCopy'
+import { describe, expect, it } from 'vitest'
 import LocaleNotFound from '@/app/[locale]/not-found'
-import HostUnavailablePage from '@/app/[locale]/host-unavailable/page'
 import { NotFoundRoom } from '@/app/_components/NotFoundRoom'
 import { englishCopy as copy, resolveCopy } from '@/lib/copy'
 import { EXPLORE, SITE_ROOT } from '@/lib/destinations'
-import { EN_PAGE } from '@/tests/helpers/locale'
-import {
-  PUBLIC_ADDRESS_KIND_HEADER,
-  PUBLIC_HOST_HEADER,
-  PUBLIC_ORIGIN_HEADER,
-  SITE_HOST,
-} from '@/lib/publicHost'
+import { SITE_HOST } from '@/lib/publicHost'
 import { siteUrl } from '@/lib/siteOrigin'
-
-// The global 404 renders its own `<html>` now (MOTIR-7948), through the shared
-// document shell — which loads `next/font` and the stylesheet this lane cannot
-// evaluate, and an `<html>` jsdom cannot mount inside a container. The ROOM is
-// what these tests read, so the shell passes its children straight through.
-// ⚠️ THE 404 ROOM'S SERVER HALF, UNDER jsdom (MOTIR-7950). `app/not-found.tsx`
-// hands its provider only the namespaces client modules read; on the server
-// the room and the footer read the full catalogue from next-intl's request
-// config instead. jsdom has no server half — every component reads the
-// provider — so here the provider gets the whole English catalogue.
-vi.mock('@/lib/copy', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/copy')>()
-  return { ...actual, clientCopy: (copy: Record<string, unknown>) => copy }
-})
-vi.mock('@/app/_components/SiteDocument', () => ({
-  SiteDocument: ({ children }: { children: React.ReactNode }) => children,
-}))
 
 /*
  * THE 404 ROOM (MOTIR-4193) — the jsdom half.
@@ -48,41 +23,23 @@ vi.mock('@/app/_components/SiteDocument', () => ({
  * asset states and a later edit could quietly break with every browser
  * assertion still green.
  *
- * ── ⚠️ THE DOORS ARE ABSOLUTE NOW, ON EVERY HOST (MOTIR-4430) ─────────────
+ * ── ⚠️ THE DOORS ARE ABSOLUTE, ON EVERY HOST (MOTIR-4430) ─────────────────
  *
- * That is a deliberate change to what `motir.co` itself emits, and it is here
- * rather than buried: the room is worn by every host `proxy.ts` serves, and
- * `app/not-found.tsx` is the one document that may not ask which one it is on —
- * a `headers()` read in the global not-found boundary makes the WHOLE SITE
- * dynamic. So the room links absolutely, which is the only spelling that works
- * off the site and the same destination on it. What it costs on `motir.co` is
- * the client transition off a 404 page. The file's own header carries the route
- * tables and the two alternatives that were built and measured out.
+ * The room was worn by every host the Next proxy served and could not ask which
+ * one it was on, so it links absolutely — the only spelling that works off the
+ * site and the same destination on it. The built site keeps that spelling
+ * (MOTIR-10643): one `404.html` per locale is the room for every unknown
+ * address, and the parity check holds its links to the Next build's.
  */
 
-const requestHeaders = vi.hoisted(() => ({ value: new Headers() }))
-vi.mock('next/headers', () => ({ headers: async () => requestHeaders.value }))
-
-// The bar reads the pathname; a 404 URL matches no nav item, which is the
-// point of the last assertion in the first block.
-vi.mock('next/navigation', () => ({ usePathname: () => '/no-such-page' }))
-
-/** Arrive as the router would have forwarded it — or as `motir.co`, with none. */
-function arriveOn(kind?: string, host = 'acme.motir.site') {
-  requestHeaders.value = kind
-    ? new Headers({
-        [PUBLIC_ADDRESS_KIND_HEADER]: kind,
-        [PUBLIC_HOST_HEADER]: host,
-        [PUBLIC_ORIGIN_HEADER]: `https://${host}`,
-      })
-    : new Headers()
-}
-
-beforeEach(() => arriveOn())
+// A 404 address matches no nav item, which is the point of the last
+// assertion in the first block. The room is served at any unknown path.
+const render: typeof renderOnPage = (ui, options = {}) =>
+  renderOnPage(ui, { pathname: '/no-such-page', ...options })
 
 describe('the 404 room', () => {
   it('says what the design decided, from the copy catalogue', () => {
-    render(<NotFound />)
+    render(<LocaleNotFound />)
 
     expect(screen.getByText(copy.notFound.eyebrow)).toBeInTheDocument()
     expect(
@@ -98,7 +55,7 @@ describe('the 404 room', () => {
      * names the likeliest intent and lets the chrome carry the rest. A third
      * door added here is re-listing the nav one inch below the nav.
      */
-    render(<NotFound />)
+    render(<LocaleNotFound />)
 
     const doors = within(screen.getByRole('main')).getAllByRole('link')
     expect(doors).toHaveLength(2)
@@ -116,7 +73,7 @@ describe('the 404 room', () => {
      * the override is honoured, and it is the same reasoning
      * `tests/host/chromeLinks.test.tsx` records for the chrome.
      */
-    render(<NotFound />)
+    render(<LocaleNotFound />)
 
     const doors = within(screen.getByRole('main')).getAllByRole('link')
     expect(doors[0]).toHaveAttribute('href', siteUrl(EXPLORE))
@@ -135,7 +92,7 @@ describe('the 404 room', () => {
      * spells, including a seventh site link added next year. `#main` is the skip
      * link and is a fragment, not a path.
      */
-    const { container } = render(<NotFound />)
+    const { container } = render(<LocaleNotFound />)
 
     const hrefs = [...container.querySelectorAll('a[href]')].map((a) =>
       a.getAttribute('href')!,
@@ -147,7 +104,7 @@ describe('the 404 room', () => {
   })
 
   it('renders no `main` of its own — the chrome owns the landmark', () => {
-    const { container } = render(<NotFound />)
+    const { container } = render(<LocaleNotFound />)
 
     // One, and it is `SiteShell`'s: MOTIR-4169 moved the landmark up so no
     // page has to remember, and a second one is the defect that card removed.
@@ -156,7 +113,7 @@ describe('the 404 room', () => {
   })
 
   it('wears the chrome the stock screen has none of', () => {
-    render(<NotFound />)
+    render(<LocaleNotFound />)
 
     expect(screen.getByRole('banner')).toBeInTheDocument()
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()
@@ -166,7 +123,7 @@ describe('the 404 room', () => {
   })
 
   it('marks no nav item current — a 404 URL is neither /explore nor /docs', () => {
-    const { container } = render(<NotFound />)
+    const { container } = render(<LocaleNotFound />)
 
     // A derivation from `isCurrent()`, not an omission. Asserted so a later
     // edit does not "fix" the missing accent by marking one.
@@ -178,12 +135,11 @@ describe('the 404 room', () => {
  * ⚠️ THE ROOM IS HOST-AGNOSTIC BY CONSTRUCTION, AND THAT IS WHAT MAKES THE
  * ROUTE'S CHOICE REVERSIBLE (MOTIR-4430).
  *
- * `app/not-found.tsx` passes `UNKNOWN_HOST` because it may not read the
- * request. The component itself has no opinion about that: hand it a real
- * `PublicHost` — the day a nested `not-found.tsx` may be async, or partial
- * prerendering lands — and it answers correctly with nothing else moved. This
- * block is what says so, and it is also the only place the SITE spelling is
- * still asserted.
+ * `app/[locale]/not-found.tsx` passes `UNKNOWN_HOST` because a built 404 does
+ * not know which address it answers. The component itself has no opinion about
+ * that: hand it a real `PublicHost` and it answers correctly with nothing else
+ * moved. This block is what says so, and it is also the only place the SITE
+ * spelling is still asserted.
  */
 describe('the room, given a host', () => {
   it('keeps the relative hrefs on `motir.co` itself', () => {
@@ -218,50 +174,8 @@ describe('the room, given a host', () => {
 })
 
 /*
- * `/host-unavailable` — the router's OTHER landing pad, and the branch that
- * decided the fourth kind (MOTIR-4430). Unlike the room it is an ordinary
- * route, so it READS the request; the `headers()` read is charged to that one
- * route rather than to the whole site.
- */
-describe('the host-unavailable page', () => {
-  it('renders the error state in the chrome, with no link of its own', async () => {
-    render(await HostUnavailablePage(EN_PAGE))
-
-    // `ErrorState` with no `identifier` draws no link, so every href on this
-    // page is the chrome's — which is what makes the counts below exact.
-    const room = within(screen.getByRole('main'))
-    expect(room.getByRole('alert')).toBeInTheDocument()
-    expect(room.queryAllByRole('link')).toHaveLength(0)
-  })
-
-  it('keeps motir.co’s own chrome relative when no router header arrived', async () => {
-    // A request the router did not handle carries neither header and reads as
-    // `SITE_HOST` — the correct answer for somebody who typed the URL.
-    const { container } = render(await HostUnavailablePage(EN_PAGE))
-
-    const hrefs = [...container.querySelectorAll('a[href]')].map((a) =>
-      a.getAttribute('href')!,
-    )
-    expect(hrefs).toContain(EXPLORE)
-    expect(hrefs).toContain(SITE_ROOT)
-  })
-
-  it('spells every site path absolutely on an UNRESOLVED host', async () => {
-    arriveOn('unresolved', 'roadmap.acme.com')
-    const { container } = render(await HostUnavailablePage(EN_PAGE))
-
-    const hrefs = [...container.querySelectorAll('a[href]')].map((a) =>
-      a.getAttribute('href')!,
-    )
-    expect(hrefs.length).toBeGreaterThan(8)
-    expect(hrefs.filter((h) => h.startsWith('/'))).toEqual([])
-    expect(hrefs).toContain(siteUrl(EXPLORE))
-  })
-})
-
-/*
- * THE ROOM UNDER A LOCALE (MOTIR-7955) — `app/[locale]/not-found.tsx`, the
- * boundary every `notFound()` inside a locale's tree reaches. The catalogue is
+ * THE ROOM UNDER A LOCALE (MOTIR-7955) — `app/[locale]/not-found.tsx`, built
+ * as each locale's `404.html` (`src/pages/[...locale]/404.astro`). The catalogue is
  * a TEST catalogue (no `messages/fr.json` exists yet): it translates the title
  * and leaves the lede out, which is the case the English fallback is for.
  */
@@ -295,7 +209,7 @@ describe('the room in French', () => {
     expect(doors[1]).toHaveAttribute('href', siteUrl('/fr'))
   })
 
-  it('and in English the locale boundary is the global room, door for door', () => {
+  it('and in English the room is the root 404, door for door', () => {
     render(<LocaleNotFound />)
 
     const doors = within(screen.getByRole('main')).getAllByRole('link')

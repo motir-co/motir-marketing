@@ -1,7 +1,7 @@
 import { fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { render } from '@/tests/helpers/withCopy'
+import { render as renderOnPage } from '@/tests/helpers/withCopy'
 import { LanguageSwitcher } from '@/app/_components/LanguageSwitcher'
 import { SiteHeader } from '@/app/_components/SiteHeader'
 import { SiteShell } from '@/app/_components/SiteShell'
@@ -15,8 +15,11 @@ import { SITE_HOST, type PublicHost } from '@/lib/publicHost'
  * as links, each the page being read in that language.
  */
 
-const pathname = vi.hoisted(() => ({ value: '/' }))
-vi.mock('next/navigation', () => ({ usePathname: () => pathname.value }))
+const pathname = { value: '/' }
+
+/** Render on the page at `pathname.value` (the built path the header reads). */
+const render: typeof renderOnPage = (ui, options = {}) =>
+  renderOnPage(ui, { pathname: pathname.value, ...options })
 
 const assign = vi.fn()
 

@@ -1,7 +1,6 @@
 'use client'
 
 import { type MouseEvent, useCallback, useRef, useState } from 'react'
-import { usePathname } from 'next/navigation'
 import { Check, Globe } from 'lucide-react'
 import { buttonVariants, cn } from '@motir/design-system'
 import { stripLocale } from '@/i18n/sitePathname'
@@ -11,7 +10,7 @@ import {
   LOCALES,
   type Locale,
 } from '@/i18n/routing'
-import { format, useCopy, usePageLocale } from '@/lib/copy'
+import { format, useCopy, usePageLocale, usePagePathname } from '@/lib/copy'
 import { rememberLocale, switchHref } from '@/lib/languageSwitch'
 import type { PublicHost } from '@/lib/publicHost'
 import { useDismiss } from './useDismiss'
@@ -24,15 +23,13 @@ import { useDismiss } from './useDismiss'
  * ⚠️ THE ENTRIES ARE LINKS, AND CHOOSING ONE IS A FULL NAVIGATION. motir.co
  * gives every language its own address, so an entry is the page being read
  * under another locale, and it works without JavaScript. With JavaScript the
- * click first writes the remembered-choice cookie, then `location.assign`s —
- * never `next/link` or `router.push`: `<html lang>`, the font set and the root
- * `[locale]` layout must all re-render, and a `next/link` would RSC-prefetch
- * eleven other languages' pages on every render. On a tenant host the entry is
- * the same address, and the cookie is the whole signal (`proxy.ts` reads it).
+ * click first writes the remembered-choice cookie, then `location.assign`s the
+ * page built for that locale. On a tenant host the entry is the same address,
+ * and the cookie is the whole signal.
  *
- * ⚠️ NO `useSearchParams()`: it would bail every statically rendered page out
- * to client rendering. The query and fragment are read from `location` at
- * click time instead.
+ * It hydrates as part of the header island (MOTIR-10643). The query and
+ * fragment are read from `location` at click time, so the built markup does
+ * not depend on them.
  *
  * The group renders only while open, so a closed bar carries no endonym — and
  * no CJK glyph a Latin page's font set would have to fall back for.
@@ -40,7 +37,7 @@ import { useDismiss } from './useDismiss'
 export function LanguageSwitcher({ host }: { host: PublicHost }) {
   const copy = useCopy()
   const current = usePageLocale()
-  const browserPath = usePathname() ?? '/'
+  const browserPath = usePagePathname()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)

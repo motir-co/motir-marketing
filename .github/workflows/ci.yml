@@ -135,10 +135,11 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      # MOTIR-7967 — every page prerendered in every one of the twelve
-      # languages, and no route static before the story turned dynamic. Only
-      # the build's own manifests know, so it runs here, after `next build`.
-      - run: pnpm i18n:check-prerender
+      # MOTIR-7967 · MOTIR-10643 — every registered page built in every one of
+      # the twelve languages, each with its locale's `<html lang>`, no Google
+      # Fonts host anywhere, and the output's file count. It reads `dist/`,
+      # so it runs here, after `astro build`.
+      - run: pnpm i18n:check-static-pages
 
   # ── The unit / component suite (MOTIR-1152) ───────────────────────────────
   #
@@ -291,7 +292,14 @@ jobs:
     name: Deploy to Vercel
     runs-on: ${{ vars.MOTIR_RUNNER || 'ubuntu-latest' }}
     needs: [lint, typecheck, build, test, design-guards, e2e, subprocessor-seam]
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    # ⚠️ HELD (MOTIR-10643). `main` is an Astro site from this merge on, and the
+    # steps below release a Next build to Vercel: an Astro tree deployed there
+    # would take `/p/**`, `/explore` and `/ideas` off motir.co before the
+    # Workers cut. So the job never runs — not on a push to `main`, the
+    # schedule or `repository_dispatch` — and Vercel keeps serving its last
+    # Next release. The CI story, MOTIR-10637, replaces this job with the
+    # `wrangler` deploy and restores its condition.
+    if: false
     # A release must NOT be cancelled mid-flight by a newer push — the
     # workflow-level `cancel-in-progress` above is right for a test run and
     # wrong for a deploy, so this group overrides it.

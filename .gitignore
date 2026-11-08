@@ -1,12 +1,13 @@
 node_modules/
-.next/
-out/
-build/
+# `astro build`'s output, Astro's generated types and wrangler's local state
+# (MOTIR-10643).
+/dist/
+/.astro/
+/.wrangler/
 .DS_Store
 *.pem
 .env*
 !.env.example
-next-env.d.ts
 *.tsbuildinfo
 
 # The browser lane's outputs (MOTIR-4112). The report and the recordings are CI

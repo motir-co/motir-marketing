@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 import { getCopy, type Copy } from '@/lib/copy'
 import { enterLocale, type LocaleParams } from '@/i18n/locale'
 import { SITE_ORIGIN, siteUrl } from '@/lib/siteOrigin'

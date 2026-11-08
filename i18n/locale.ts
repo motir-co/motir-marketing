@@ -1,65 +1,40 @@
-import { hasLocale } from 'next-intl'
-import { setRequestLocale } from 'next-intl/server'
-import { claimedLocale, setClaimedLocale } from './claim'
-import { routing, type Locale } from './routing'
+import { DEFAULT_LOCALE, isLocale, type Locale } from './routing'
 
 /*
- * ⚠️ ONE REQUEST, TWO LANGUAGES (MOTIR-7955).
+ * A PAGE'S LOCALE, FROM ITS PARAMS (MOTIR-7948 · MOTIR-10643).
  *
- * Two trees render in every page's request and want different locales: the
- * page's own (`fr` under `/fr`) and the GLOBAL `app/not-found.tsx`, which Next
- * renders into EVERY page's payload and which must say `en` — with no locale
- * set, next-intl reads the request, and a request read turns a static page
- * dynamic. When that boundary wrote `en` unconditionally, it overwrote `/fr`'s
- * locale for whatever read after it: measured on `next dev`, `/fr/design`'s
- * provider said `en` and the French 404 room's doors led to `/explore`.
- *
- * So the locale tree CLAIMS the request ({@link claimLocale}, into
- * `i18n/claim.ts`, which the catalogue readers read) and the global boundary
- * only writes English when nothing has claimed ({@link defaultLocaleUnlessClaimed}).
+ * Every page module under `app/[locale]` is rendered by its Astro page once
+ * per locale at build (`lib/staticPaths.ts`), and receives the locale the way
+ * it did under Next: as `params`, a promise of `{ locale }`. There is no
+ * request at render time and no request slot to claim — the build renders one
+ * page in one locale per React root, and the root's `PageProvider`
+ * (`lib/copy.ts`) is what every component below reads the locale from.
  */
 
-/** The locale tree's write: this request renders in `locale`. */
-export function claimLocale(locale: Locale): void {
-  setClaimedLocale(locale)
-  setRequestLocale(locale)
-}
-
-/** The global 404's write: English, unless a locale tree already claimed. */
-export function defaultLocaleUnlessClaimed(): void {
-  if (claimedLocale() === undefined) setRequestLocale(routing.defaultLocale)
-}
-
-/** The `params` every route under `app/[locale]` receives. */
+/** The `params` every page module under `app/[locale]` receives. */
 export type LocaleParams = Promise<{ locale: string }>
 
-/** The props of a page or layout whose only dynamic segment is the locale. */
+/** The props of a page whose only dynamic segment is the locale. */
 export interface LocalePageProps {
   params: LocaleParams
 }
 
 /**
- * Read the page's locale from its `params` and hand it to next-intl
- * (MOTIR-7948) — the one line every statically rendered page and layout under
- * `app/[locale]` starts with.
- *
- * ⚠️ IT IS WHAT KEEPS THE PAGE STATIC. next-intl's server reads otherwise ask
- * the REQUEST which locale is in use, and a request read moves a prerendered
- * route to `ƒ`. Layouts and pages render in parallel, so the locale layout
- * calling it does not cover the page: each one calls it for itself, as
- * next-intl's static-rendering guide prescribes.
- *
- * An unknown value cannot reach here — the locale layout's
- * `dynamicParams = false` answers 404 first — so the fallback is a type
- * narrowing, not a behaviour.
+ * Read the page's locale from its `params` — the one line every page module
+ * starts with. An unknown value cannot reach here (the build only renders the
+ * twelve), so the fallback is a type narrowing, not a behaviour.
  */
 export async function enterLocale(
   params: Promise<{ locale?: string }>,
 ): Promise<Locale> {
   const { locale } = await params
-  const known = hasLocale(routing.locales, locale)
-    ? locale
-    : routing.defaultLocale
-  claimLocale(known)
-  return known
+  return isLocale(locale) ? locale : DEFAULT_LOCALE
+}
+
+/** The `params` an Astro page hands a page module for `locale`. */
+export function localeParams<Extra extends Record<string, string>>(
+  locale: Locale,
+  extra?: Extra,
+): Promise<{ locale: string } & Extra> {
+  return Promise.resolve({ locale, ...(extra as Extra) })
 }

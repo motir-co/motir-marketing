@@ -1,6 +1,27 @@
 import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
+import heldOut from './held-out.json' with { type: 'json' }
+
+/*
+ * ⚠️ THE NEXT SOURCE A LATER CARD PORTS IS HELD OUT (MOTIR-10643). The site
+ * builds with Astro now, and `next` is gone, so a Next page module — and every
+ * test whose subject it is — cannot run until its card ports it.
+ * `held-out.json` names each one with the card that re-includes it, and this
+ * config reads it: those tests leave the suite, and those sources leave the
+ * coverage list and its floors, so no floor measures a file nothing can load.
+ * `tests/heldOut.test.ts` holds `tsconfig.json` to the same list.
+ */
+const HELD_TESTS = heldOut.groups.flatMap((group) => group.tests)
+/** A held source as a coverage glob: `[locale]` → `?locale?` (see below). */
+const HELD_SOURCES = heldOut.groups
+  .flatMap((group) => group.sources)
+  .map((source) => source.replace(/\[([a-z.]+)\]/g, '?$1?'))
+const isHeld = (pattern: string) =>
+  HELD_SOURCES.some(
+    (source) => pattern === source || pattern.startsWith(`${source}/`),
+  )
+const notHeld = (pattern: string) => !isHeld(pattern)
 
 /*
  * The repository's FIRST test lane (MOTIR-1152). `ci.yml`'s own header says to
@@ -27,13 +48,6 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx'],
     /*
-     * next-intl is INLINED (MOTIR-7948). Its ESM build imports `next/server`
-     * with no extension, which Node's own resolver refuses for a package with
-     * no `exports` map — so loaded as an external, `proxy.ts` failed to import
-     * at all. Inlined, Vite resolves the specifier the way Next's bundler does.
-     */
-    server: { deps: { inline: ['next-intl'] } },
-    /*
      * ⚠️ `tests/design/**` BELONGS TO THE OTHER LANE (MOTIR-4001), and the
      * exclusion is load-bearing rather than tidy. Those specs drive a real
      * headless chromium — jsdom cannot measure a `.mock.html`, which is the
@@ -52,7 +66,12 @@ export default defineConfig({
      * AMENDMENT 3 §B fixes where it may be triggered from: the deploy and a
      * schedule, never `pull_request`. Do not fold it back in.
      */
-    exclude: ['node_modules/**', 'tests/design/**', 'tests/seam/**'],
+    exclude: [
+      'node_modules/**',
+      'tests/design/**',
+      'tests/seam/**',
+      ...HELD_TESTS,
+    ],
     env: {
       NEXT_PUBLIC_MOTIR_APP_ORIGIN: 'https://app.test.motir.co',
     },
@@ -114,7 +133,6 @@ export default defineConfig({
         'lib/sitemapEntries.ts',
         'lib/sitemapXml.ts',
         'app/robots.ts',
-        'app/robots-tenant.txt/route.ts',
         'app/sitemap.xml/route.ts',
         'app/sitemap-site.xml/route.ts',
         'app/sitemap-projects.xml/route.ts',
@@ -141,9 +159,20 @@ export default defineConfig({
         'app/_components/LanguageSwitcher.tsx',
         'app/_components/NotFoundRoom.tsx',
         'app/_components/products.ts',
-        'app/fonts.ts',
         'app/?locale?/not-found.tsx',
         'scripts/i18n/*.ts',
+        // MOTIR-10643 — the Astro foundation's modules: the head, the island
+        // boundary and its hydration, the page root and the build paths,
+        // added WITH their tests.
+        'lib/metadata.ts',
+        'lib/scriptJson.ts',
+        'lib/island.tsx',
+        'lib/islands.ts',
+        'lib/hydrateIslands.tsx',
+        'lib/pageRoot.tsx',
+        'lib/staticPaths.ts',
+        'app/_islands/index.ts',
+        'app/_components/SiteDocument.tsx',
         // MOTIR-8032 — the per-language /docs document form, added WITH its tests.
         'lib/docsDocuments.ts',
         'app/?locale?/docs/_components/DocsDocument.tsx',
@@ -172,7 +201,7 @@ export default defineConfig({
         'lib/explainer/*.ts',
         'app/?locale?/how-the-calculation-works/**/*.ts',
         'app/?locale?/how-the-calculation-works/**/*.tsx',
-      ],
+      ].filter(notHeld),
       /*
        * ⚠️ EVERY EXCLUSION HAS A REASON, and the reasons are different — a list
        * of paths with one blanket justification is how a gate stops measuring
@@ -199,175 +228,189 @@ export default defineConfig({
         'app/?locale?/p/**/page.tsx',
         'app/?locale?/p/**/layout.tsx',
         'app/?locale?/p/**/_components/tabPage.tsx',
+        ...HELD_SOURCES.flatMap((source) => [source, `${source}/**`]),
       ],
       /*
        * MEASURED FIRST, then pinned at the floor — motir-core's rule for its own
        * list, followed here. On this branch: `lib/publicProject.ts` 100 across;
        * `ActRail` / `ProjectHeader` / `Rows` / `States` / `JsonLd` 100 lines.
        */
-      thresholds: {
-        'lib/publicProject.ts': { lines: 90, functions: 90, branches: 90 },
-        // MOTIR-8032 — measured first under `tests/docs/docsDocuments.test.ts`,
-        // then pinned at the floor.
-        'lib/docsDocuments.ts': { lines: 90, functions: 90, branches: 85 },
-        'app/?locale?/docs/_components/DocsDocument.tsx': {
-          lines: 90,
-          functions: 90,
-          branches: 80,
-        },
-        'app/?locale?/docs/_components/TranslationUpdatingNote.tsx': {
-          lines: 90,
-          functions: 90,
-          branches: 85,
-        },
-        // MOTIR-8089 — MEASURED FIRST under `tests/legal/` on this branch: the
-        // note and the English-address helper 100 across, `MarkdownBody` 96
-        // lines / 95.7 functions / 100 branches, both pages 100 lines and
-        // functions. The pages' BRANCHES are 75 (index) and 83.3 (document),
-        // and the gap is one dead arm each: the version line's
-        // `doc.effectiveDate ? versionAndEffective : versionNotYetEffective`,
-        // whose first arm cannot run while every `content/legal/*.md` says
-        // `effectiveDate: TBD` (`lib/legal/documents.ts` maps that to null).
-        // Pinned at the measured floor rather than reached with a fixture
-        // document; raise it when the first document takes effect.
-        'app/?locale?/legal/_components/BindingEnglishNote.tsx': {
-          lines: 90,
-          functions: 90,
-          branches: 90,
-        },
-        'app/?locale?/legal/_components/MarkdownBody.tsx': {
-          lines: 90,
-          functions: 90,
-          branches: 90,
-        },
-        'app/?locale?/legal/page.tsx': {
-          lines: 90,
-          functions: 90,
-          branches: 75,
-        },
-        'app/?locale?/legal/?slug?/page.tsx': {
-          lines: 90,
-          functions: 90,
-          branches: 80,
-        },
-        'lib/legal/englishAddress.ts': {
-          lines: 90,
-          functions: 90,
-          branches: 90,
-        },
-        // MEASURED FIRST, then pinned at the floor — the same rule the entries
-        // beside it follow. On this branch: `publicHost` and `tenantDomain` 100
-        // lines, `hostResolution` and `proxy` 100 lines.
-        'lib/publicHost.ts': { lines: 90, functions: 90, branches: 90 },
-        'lib/hostResolution.ts': { lines: 90, functions: 90, branches: 85 },
-        'lib/tenantDomain.ts': { lines: 90, functions: 90, branches: 85 },
-        'proxy.ts': { lines: 90, functions: 90, branches: 85 },
-        'lib/sitemapEntries.ts': { lines: 90, functions: 90, branches: 85 },
-        'lib/sitemapXml.ts': { lines: 90, functions: 90, branches: 85 },
-        'app/robots.ts': { lines: 90, functions: 90, branches: 85 },
-        'app/robots-tenant.txt/route.ts': {
-          lines: 90,
-          functions: 90,
-          branches: 85,
-        },
-        'app/sitemap.xml/route.ts': { lines: 90, functions: 90, branches: 85 },
-        'app/sitemap-site.xml/route.ts': {
-          lines: 90,
-          functions: 90,
-          branches: 85,
-        },
-        'app/sitemap-projects.xml/route.ts': {
-          lines: 90,
-          functions: 90,
-          branches: 85,
-        },
-        // MOTIR-6743 — measured first: the five redirect handlers are 100
-        // across under `tests/publicProject/readPageRedirects.test.ts`.
-        'app/?locale?/p/**/route.ts': {
-          lines: 90,
-          functions: 90,
-          branches: 90,
-        },
-        'app/?locale?/p/**/_components/*.tsx': {
-          lines: 90,
-          functions: 90,
-          branches: 75,
-        },
-        // MOTIR-7083 — MEASURED FIRST under the docs tests on this branch:
-        // `docs.ts` 100 lines / 98.6 branches / 100 functions (after
-        // `tests/docs/docsLib.test.ts` topped up the helpers no page reached),
-        // `skillsGuide.ts` and `mcpWiring.ts` 100 across. Pinned at the floor.
-        'lib/docs.ts': { lines: 90, functions: 90, branches: 90 },
-        'lib/skillsGuide.ts': { lines: 90, functions: 90, branches: 90 },
-        'lib/mcpWiring.ts': { lines: 90, functions: 90, branches: 90 },
-        // MOTIR-7685 — measured first under `tests/ideas.test.ts`.
-        'lib/ideas.ts': { lines: 90, functions: 90, branches: 90 },
-        // MOTIR-7689 — MEASURED FIRST under `tests/ideas/`: the page 95.7
-        // lines / 96.7 branches / 91.7 functions, every component 100 lines
-        // and ≥ 90.9 branches. Pinned at the story's floor.
-        'app/?locale?/ideas/**/*.tsx': {
-          lines: 90,
-          functions: 90,
-          branches: 90,
-        },
-        // MOTIR-7967 — the eleven-languages story's modules, MEASURED FIRST
-        // (the summary is on its pull request) and pinned at the story's
-        // floor. A glob key aggregates the files it matches.
-        'i18n/*.ts': { lines: 90, functions: 90, branches: 90 },
-        'lib/copy.ts': { lines: 90, functions: 90, branches: 90 },
-        'lib/localeDetection.ts': { lines: 90, functions: 90, branches: 90 },
-        'lib/languageSwitch.ts': { lines: 90, functions: 90, branches: 90 },
-        'lib/localeMetadata.ts': { lines: 90, functions: 90, branches: 90 },
-        'app/_components/LanguageSwitcher.tsx': {
-          lines: 90,
-          functions: 90,
-          branches: 90,
-        },
-        'app/_components/NotFoundRoom.tsx': {
-          lines: 90,
-          functions: 90,
-          branches: 90,
-        },
-        'app/_components/products.ts': {
-          lines: 90,
-          functions: 90,
-          branches: 90,
-        },
-        'app/fonts.ts': { lines: 90, functions: 90, branches: 90 },
-        'app/?locale?/not-found.tsx': {
-          lines: 90,
-          functions: 90,
-          branches: 90,
-        },
-        'scripts/i18n/*.ts': { lines: 90, functions: 90, branches: 90 },
-        // MOTIR-8382 — measured first under `tests/priceCard.test.tsx` and
-        // `tests/price/`, then pinned at the floor.
-        'app/_components/price/*.ts': {
-          lines: 90,
-          functions: 90,
-          branches: 80,
-        },
-        'app/_components/price/*.tsx': {
-          lines: 90,
-          functions: 90,
-          branches: 80,
-        },
-        'lib/priceLadder.ts': { lines: 90, functions: 90, branches: 85 },
-        'lib/aiOrigin.ts': { lines: 90, functions: 90, branches: 85 },
-        // MOTIR-8383 — measured first under `tests/explainer/` (100 across,
-        // the route's two render states included), then pinned at the floor.
-        'lib/explainer/*.ts': { lines: 90, functions: 90, branches: 90 },
-        'app/?locale?/how-the-calculation-works/**/*.ts': {
-          lines: 90,
-          functions: 90,
-          branches: 90,
-        },
-        'app/?locale?/how-the-calculation-works/**/*.tsx': {
-          lines: 90,
-          functions: 90,
-          branches: 90,
-        },
-      },
+      thresholds: Object.fromEntries(
+        Object.entries({
+          'lib/publicProject.ts': { lines: 90, functions: 90, branches: 90 },
+          // MOTIR-8032 — measured first under `tests/docs/docsDocuments.test.ts`,
+          // then pinned at the floor.
+          'lib/docsDocuments.ts': { lines: 90, functions: 90, branches: 85 },
+          'app/?locale?/docs/_components/DocsDocument.tsx': {
+            lines: 90,
+            functions: 90,
+            branches: 80,
+          },
+          'app/?locale?/docs/_components/TranslationUpdatingNote.tsx': {
+            lines: 90,
+            functions: 90,
+            branches: 85,
+          },
+          // MOTIR-8089 — MEASURED FIRST under `tests/legal/` on this branch: the
+          // note and the English-address helper 100 across, `MarkdownBody` 96
+          // lines / 95.7 functions / 100 branches, both pages 100 lines and
+          // functions. The pages' BRANCHES are 75 (index) and 83.3 (document),
+          // and the gap is one dead arm each: the version line's
+          // `doc.effectiveDate ? versionAndEffective : versionNotYetEffective`,
+          // whose first arm cannot run while every `content/legal/*.md` says
+          // `effectiveDate: TBD` (`lib/legal/documents.ts` maps that to null).
+          // Pinned at the measured floor rather than reached with a fixture
+          // document; raise it when the first document takes effect.
+          'app/?locale?/legal/_components/BindingEnglishNote.tsx': {
+            lines: 90,
+            functions: 90,
+            branches: 90,
+          },
+          'app/?locale?/legal/_components/MarkdownBody.tsx': {
+            lines: 90,
+            functions: 90,
+            branches: 90,
+          },
+          'app/?locale?/legal/page.tsx': {
+            lines: 90,
+            functions: 90,
+            branches: 75,
+          },
+          'app/?locale?/legal/?slug?/page.tsx': {
+            lines: 90,
+            functions: 90,
+            branches: 80,
+          },
+          'lib/legal/englishAddress.ts': {
+            lines: 90,
+            functions: 90,
+            branches: 90,
+          },
+          // MEASURED FIRST, then pinned at the floor — the same rule the entries
+          // beside it follow. On this branch: `publicHost` and `tenantDomain` 100
+          // lines, `hostResolution` and `proxy` 100 lines.
+          'lib/publicHost.ts': { lines: 90, functions: 90, branches: 90 },
+          'lib/hostResolution.ts': { lines: 90, functions: 90, branches: 85 },
+          'lib/tenantDomain.ts': { lines: 90, functions: 90, branches: 85 },
+          'proxy.ts': { lines: 90, functions: 90, branches: 85 },
+          'lib/sitemapEntries.ts': { lines: 90, functions: 90, branches: 85 },
+          'lib/sitemapXml.ts': { lines: 90, functions: 90, branches: 85 },
+          'app/robots.ts': { lines: 90, functions: 90, branches: 85 },
+          'app/sitemap.xml/route.ts': {
+            lines: 90,
+            functions: 90,
+            branches: 85,
+          },
+          'app/sitemap-site.xml/route.ts': {
+            lines: 90,
+            functions: 90,
+            branches: 85,
+          },
+          'app/sitemap-projects.xml/route.ts': {
+            lines: 90,
+            functions: 90,
+            branches: 85,
+          },
+          // MOTIR-6743 — measured first: the five redirect handlers are 100
+          // across under `tests/publicProject/readPageRedirects.test.ts`.
+          'app/?locale?/p/**/route.ts': {
+            lines: 90,
+            functions: 90,
+            branches: 90,
+          },
+          'app/?locale?/p/**/_components/*.tsx': {
+            lines: 90,
+            functions: 90,
+            branches: 75,
+          },
+          // MOTIR-7083 — MEASURED FIRST under the docs tests on this branch:
+          // `docs.ts` 100 lines / 98.6 branches / 100 functions (after
+          // `tests/docs/docsLib.test.ts` topped up the helpers no page reached),
+          // `skillsGuide.ts` and `mcpWiring.ts` 100 across. Pinned at the floor.
+          'lib/docs.ts': { lines: 90, functions: 90, branches: 90 },
+          'lib/skillsGuide.ts': { lines: 90, functions: 90, branches: 90 },
+          'lib/mcpWiring.ts': { lines: 90, functions: 90, branches: 90 },
+          // MOTIR-7685 — measured first under `tests/ideas.test.ts`.
+          'lib/ideas.ts': { lines: 90, functions: 90, branches: 90 },
+          // MOTIR-7689 — MEASURED FIRST under `tests/ideas/`: the page 95.7
+          // lines / 96.7 branches / 91.7 functions, every component 100 lines
+          // and ≥ 90.9 branches. Pinned at the story's floor.
+          'app/?locale?/ideas/**/*.tsx': {
+            lines: 90,
+            functions: 90,
+            branches: 90,
+          },
+          // MOTIR-7967 — the eleven-languages story's modules, MEASURED FIRST
+          // (the summary is on its pull request) and pinned at the story's
+          // floor. A glob key aggregates the files it matches.
+          'i18n/*.ts': { lines: 90, functions: 90, branches: 90 },
+          'lib/copy.ts': { lines: 90, functions: 90, branches: 90 },
+          'lib/localeDetection.ts': { lines: 90, functions: 90, branches: 90 },
+          'lib/languageSwitch.ts': { lines: 90, functions: 90, branches: 90 },
+          'lib/localeMetadata.ts': { lines: 90, functions: 90, branches: 90 },
+          'app/_components/LanguageSwitcher.tsx': {
+            lines: 90,
+            functions: 90,
+            branches: 90,
+          },
+          'app/_components/NotFoundRoom.tsx': {
+            lines: 90,
+            functions: 90,
+            branches: 90,
+          },
+          'app/_components/products.ts': {
+            lines: 90,
+            functions: 90,
+            branches: 90,
+          },
+          'lib/metadata.ts': { lines: 90, functions: 90, branches: 90 },
+          'lib/scriptJson.ts': { lines: 90, functions: 90, branches: 90 },
+          'lib/island.tsx': { lines: 90, functions: 90, branches: 90 },
+          'lib/islands.ts': { lines: 90, functions: 90, branches: 90 },
+          'lib/hydrateIslands.tsx': { lines: 90, functions: 90, branches: 90 },
+          'lib/pageRoot.tsx': { lines: 90, functions: 90, branches: 90 },
+          'lib/staticPaths.ts': { lines: 90, functions: 90, branches: 90 },
+          'app/_islands/index.ts': { lines: 90, functions: 90, branches: 90 },
+          'app/_components/SiteDocument.tsx': {
+            lines: 90,
+            functions: 90,
+            branches: 90,
+          },
+          'app/?locale?/not-found.tsx': {
+            lines: 90,
+            functions: 90,
+            branches: 90,
+          },
+          'scripts/i18n/*.ts': { lines: 90, functions: 90, branches: 90 },
+          // MOTIR-8382 — measured first under `tests/priceCard.test.tsx` and
+          // `tests/price/`, then pinned at the floor.
+          'app/_components/price/*.ts': {
+            lines: 90,
+            functions: 90,
+            branches: 80,
+          },
+          'app/_components/price/*.tsx': {
+            lines: 90,
+            functions: 90,
+            branches: 80,
+          },
+          'lib/priceLadder.ts': { lines: 90, functions: 90, branches: 85 },
+          'lib/aiOrigin.ts': { lines: 90, functions: 90, branches: 85 },
+          // MOTIR-8383 — measured first under `tests/explainer/` (100 across,
+          // the route's two render states included), then pinned at the floor.
+          'lib/explainer/*.ts': { lines: 90, functions: 90, branches: 90 },
+          'app/?locale?/how-the-calculation-works/**/*.ts': {
+            lines: 90,
+            functions: 90,
+            branches: 90,
+          },
+          'app/?locale?/how-the-calculation-works/**/*.tsx': {
+            lines: 90,
+            functions: 90,
+            branches: 90,
+          },
+        }).filter(([pattern]) => notHeld(pattern)),
+      ),
     },
   },
   resolve: {

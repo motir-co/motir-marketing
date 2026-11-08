@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { ChromeLink } from './ChromeLink'
 import { type Copy, format, useCopy, usePageLocale } from '@/lib/copy'
 import {
@@ -97,27 +96,15 @@ export function SiteFooter({ host }: { host: PublicHost }) {
       <div>
         {/* motir.co's own root — internal ON THE SITE, and an absolute link
             home from a tenant host, where `/` is that workspace's or that
-            project's root rather than ours (MOTIR-4372). The old comment called
-            it "the ONE internal link in the footer", which was a statement about
-            the host it was written on. Every destination that is a different
-            ORIGIN is a plain `<a>`. */}
-        {host.kind === 'site' ? (
-          <Link
-            href={siteLinkFor(host, SITE_ROOT, locale)}
-            aria-label={copy.nav.brandAriaLabel}
-            className="inline-flex"
-          >
-            <BrandTile size={22} />
-          </Link>
-        ) : (
-          <a
-            href={siteLinkFor(host, SITE_ROOT, locale)}
-            aria-label={copy.nav.brandAriaLabel}
-            className="inline-flex"
-          >
-            <BrandTile size={22} />
-          </a>
-        )}
+            project's root rather than ours (MOTIR-4372). On the built site
+            every link is a plain `<a>` (MOTIR-10643). */}
+        <a
+          href={siteLinkFor(host, SITE_ROOT, locale)}
+          aria-label={copy.nav.brandAriaLabel}
+          className="inline-flex"
+        >
+          <BrandTile size={22} />
+        </a>
         <p className="mt-2.5 max-w-[30rem] text-[13px] leading-relaxed text-(--el-text-secondary)">
           {copy.footer.tagline}
         </p>
@@ -134,17 +121,14 @@ export function SiteFooter({ host }: { host: PublicHost }) {
           <ul className="flex list-none flex-col gap-1.5 p-0">
             {column.items.map((item) => (
               <li key={item.href}>
-                {/* A page of this site is a client navigation, so the look a
-                    visitor picked on /design stays on for the visit; a
-                    full-page load would start it over (Yue, 2026-10-09). */}
+                {/* The look a visitor picked on /design stays on for the
+                    visit across these document loads (Yue, 2026-10-09):
+                    `lib/useVisitAppearance.ts` keeps it for the session. */}
                 <ChromeLink
                   href={
                     'site' in item && item.site
                       ? siteLinkFor(host, item.href, locale)
                       : item.href
-                  }
-                  internal={
-                    'site' in item && !!item.site && host.kind === 'site'
                   }
                   className="text-[13px] text-(--el-text-secondary) hover:text-(--el-link) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--el-accent-on-surface)"
                 >

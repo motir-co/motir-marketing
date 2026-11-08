@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { requestPublicHost } from '@/lib/publicHost'
+import { requestPublicHost } from '@/lib/requestPublicHost'
 import { projectSitemapEntries, siteSitemapEntries } from '@/lib/sitemapEntries'
 
 /**

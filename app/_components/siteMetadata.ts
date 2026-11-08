@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 import type { Copy } from '@/lib/copy'
 import { openGraphLocales, siteCard } from '@/lib/localeMetadata'
 import { SITE_ORIGIN, siteUrl } from '@/lib/siteOrigin'

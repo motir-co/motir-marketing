@@ -128,7 +128,6 @@ function ProductsMenu({ host }: { host: PublicHost }) {
   const locale = usePageLocale()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
-  const onSite = host.kind === 'site'
 
   const close = useCallback(() => setOpen(false), [])
   useDismiss(rootRef, open, close)
@@ -169,7 +168,6 @@ function ProductsMenu({ host }: { host: PublicHost }) {
                 <ChromeLink
                   key={product.slug}
                   href={productHref(host, product.slug, locale)}
-                  internal={onSite && !PRODUCT_DOCS[product.slug]}
                   {...(PRODUCT_DOCS[product.slug] ? NEW_TAB : {})}
                   onClick={() => setOpen(false)}
                   className="grid grid-cols-[10px_minmax(0,1fr)] gap-x-3 gap-y-0.5 rounded-(--radius-control) px-(--spacing-control-x) py-(--spacing-control-y) no-underline hover:bg-(--el-surface-soft) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--el-accent-on-surface)"
@@ -237,7 +235,6 @@ export function SiteHeader({
   const locale = usePageLocale()
   const [menuOpen, setMenuOpen] = useState(false)
   const pathname = useSitePathname()
-  const onSite = host.kind === 'site'
   // The give-way ladder (MOTIR-7947 revision 2): the widths each rung needs
   // are this locale's, measured, not shared breakpoints.
   const ladder = LADDER_CLASSES[locale]
@@ -251,11 +248,10 @@ export function SiteHeader({
             project's root rather than ours (MOTIR-4372). This comment used to
             call it "the ONE internal link on the page", which was true of the
             host it was written on and of no other. Every destination that is a
-            different ORIGIN stays a plain `<a>`: `next/link` prefetches and
-            client-routes, neither of which means anything across origins. */}
+            different ORIGIN stays a plain `<a>` — and on the built site every
+            link is one (`ChromeLink`, MOTIR-10643). */}
           <ChromeLink
             href={siteLinkFor(host, SITE_ROOT, locale)}
-            internal={onSite}
             aria-label={copy.nav.brandAriaLabel}
             className="flex flex-none items-center"
           >
@@ -277,7 +273,6 @@ export function SiteHeader({
                 <ChromeLink
                   key={item.path}
                   href={siteLinkFor(host, item.path, locale)}
-                  internal={onSite}
                   aria-current={current ? 'page' : undefined}
                   className={cn(
                     NAV_ITEM,
@@ -378,28 +373,24 @@ export function SiteHeader({
             ...productItemsFor(copy).map((product) => ({
               href: productHref(host, product.slug, locale),
               label: product.name,
-              internal: onSite && !PRODUCT_DOCS[product.slug],
               current: false,
               newTab: Boolean(PRODUCT_DOCS[product.slug]),
             })),
             ...navItemsFor(copy).map((item) => ({
               href: siteLinkFor(host, item.path, locale),
               label: item.label,
-              internal: onSite,
               current: isCurrent(host, item.path, pathname),
               feature: 'feature' in item,
             })),
             {
               href: SIGN_IN,
               label: copy.nav.signIn,
-              internal: false,
               current: false,
             },
           ].map((item) => (
             <ChromeLink
               key={item.href}
               href={item.href}
-              internal={item.internal}
               aria-current={item.current ? 'page' : undefined}
               {...('newTab' in item && item.newTab ? NEW_TAB : {})}
               className={cn(

@@ -1,5 +1,5 @@
 import { SiteShell } from '@/app/_components/SiteShell'
-import { requestPublicHost } from '@/lib/publicHost'
+import { requestPublicHost } from '@/lib/requestPublicHost'
 
 /**
  * The `/p/*` shell (MOTIR-4115), built to `design/public-projects/`.

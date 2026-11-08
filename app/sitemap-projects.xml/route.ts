@@ -1,4 +1,4 @@
-import { requestPublicHost } from '@/lib/publicHost'
+import { requestPublicHost } from '@/lib/requestPublicHost'
 import { projectSitemapEntries } from '@/lib/sitemapEntries'
 import { SITEMAP_HEADERS, urlsetXml } from '@/lib/sitemapXml'
 

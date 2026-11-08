@@ -1,11 +1,8 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { loadProject, type PublicProjectOverviewDto } from '@/lib/publicProject'
-import {
-  publicUrlFor,
-  requestPublicHost,
-  type PublicHost,
-} from '@/lib/publicHost'
+import { publicUrlFor, type PublicHost } from '@/lib/publicHost'
+import { requestPublicHost } from '@/lib/requestPublicHost'
 import { format, getCopy, type Copy } from '@/lib/copy'
 import { projectAlternates } from '@/lib/localeMetadata'
 import type { Locale } from '@/i18n/routing'

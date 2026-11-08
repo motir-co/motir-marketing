@@ -20,10 +20,9 @@ import { CLIENT_COPY_NAMESPACES } from '@/lib/copy'
  */
 const ENGLISH_ON_PURPOSE: Record<string, string> = {
   // MOTIR-7956 localised every page's metadata, the JSON-LD and the sitemap,
-  // and MOTIR-7972 the share image; this is what remains, for a reason that is
-  // not "not yet".
-  'app/not-found.tsx':
-    'the global 404 reads no request, so it cannot know the locale; each locale’s room is `app/[locale]/not-found.tsx` (MOTIR-7955)',
+  // and MOTIR-7972 the share image. The last module on the list, the global
+  // `app/not-found.tsx`, left with Next (MOTIR-10643): every locale's 404 is
+  // now built from `app/[locale]/not-found.tsx`, English's included.
 }
 
 const ROOT = process.cwd()

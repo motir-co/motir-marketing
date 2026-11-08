@@ -77,14 +77,12 @@ export function NotFoundRoom({ host }: { host: PublicHost }) {
             `EXPLORE` and one to the site root. */}
         <ChromeLink
           href={siteLinkFor(host, EXPLORE, locale)}
-          internal={host.kind === 'site'}
           className={buttonVariants({ size: 'md' })}
         >
           {copy.notFound.exploreDoor}
         </ChromeLink>
         <ChromeLink
           href={siteLinkFor(host, SITE_ROOT, locale)}
-          internal={host.kind === 'site'}
           className={buttonVariants({ variant: 'ghost', size: 'md' })}
         >
           {copy.notFound.homeDoor}

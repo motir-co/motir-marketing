@@ -11,12 +11,8 @@ import {
 import { formatRich, getCopy } from '@/lib/copy'
 import { projectAlternates } from '@/lib/localeMetadata'
 import { enterLocale } from '@/i18n/locale'
-import {
-  publicPathFor,
-  publicUrlFor,
-  requestPublicHost,
-  SITE_HOST,
-} from '@/lib/publicHost'
+import { publicPathFor, publicUrlFor, SITE_HOST } from '@/lib/publicHost'
+import { requestPublicHost } from '@/lib/requestPublicHost'
 import { MarkdownBody } from '@/app/[locale]/legal/_components/MarkdownBody'
 import { ProjectHeader } from '../../_components/ProjectHeader'
 import { ErrorState } from '../../_components/States'

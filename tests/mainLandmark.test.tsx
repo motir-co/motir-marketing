@@ -1,9 +1,9 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 import { screen } from '@testing-library/react'
-import { render } from '@/tests/helpers/withCopy'
+import { render as renderOnPage } from '@/tests/helpers/withCopy'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { MAIN_LANDMARK_ID, SiteShell } from '@/app/_components/SiteShell'
 import { SITE_HOST } from '@/lib/publicHost'
 import { englishCopy as copy } from '@/lib/copy'
@@ -41,7 +41,11 @@ import { SITE_ROUTES } from '@/e2e/routes'
  */
 
 // The bar reads the pathname; nothing in this file depends on which one.
-vi.mock('next/navigation', () => ({ usePathname: () => '/' }))
+const pathname = { value: '/' }
+
+/** Render on the page at `pathname.value` (the built path the header reads). */
+const render: typeof renderOnPage = (ui, options = {}) =>
+  renderOnPage(ui, { pathname: pathname.value, ...options })
 
 // `process.cwd()` rather than `import.meta.url`: this lane runs on jsdom,
 // where `import.meta.url` is not a `file:` URL and `fileURLToPath` throws.

@@ -1,0 +1,5 @@
+# The English pages are unprefixed (`i18n/routing.ts`, `as-needed`), so the
+# prefixed spelling is a permanent redirect to them — the 308 next-intl's
+# middleware answered under Next (MOTIR-10643).
+/en / 308
+/en/* /:splat 308
