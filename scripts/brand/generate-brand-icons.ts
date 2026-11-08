@@ -23,14 +23,11 @@
  *     consumer is absent is how a number drifts unnoticed.
  *   - **No email mark.** This repository sends no email.
  *
- * ⚠️ A MANIFEST-REFERENCED ICON WOULD HAVE TO GO IN `public/`, NEVER
- * `app/icon-<size>.png`. Next's static-metadata matcher takes ONE optional
- * DIGIT after `icon`, so `app/icon-192.png` matches nothing and is served at no
- * URL at all — silently, under a green build. It cost motir-core a 404ing
- * manifest entry (design-notes.md §5). Nothing here trips it, because the two
- * `app/` names below (`icon.svg`, `apple-icon.png`) DO match the convention;
- * the warning is recorded so the next person to add a sized icon reads it
- * before choosing a directory.
+ * ⚠️ THE ICONS ARE IN `public/` SINCE MOTIR-10647. Next linked `app/icon.svg`,
+ * `app/apple-icon.png` and `app/favicon.ico` by file convention; Astro copies
+ * `public/` into the output as it is, and `src/layouts/SitePage.astro` writes
+ * the three `<link>` tags the Next head carried, at the same paths. A sized
+ * icon added later goes here too, linked from the layout.
  *
  * ── THE RASTERISER: sharp, not Playwright (the decision MOTIR-3847 carried) ──
  *
@@ -81,13 +78,13 @@ export const NON_MASKABLE_SCALE = 0.605
 /** 0.22 is `--radius-lg` (12) over a 56px tile — the app's own container ratio. */
 export const TILE_RADIUS_RATIO = 0.22
 
-/** `app/icon.svg` — resolution-free, so it ships as source rather than a raster. */
+/** `public/icon.svg` — resolution-free, so it ships as source rather than a raster. */
 export const ICON_SVG_CANVAS = 32
 
-/** `app/apple-icon.png` — iOS masks the corners but supplies NO background. */
+/** `public/apple-icon.png` — iOS masks the corners but supplies NO background. */
 export const APPLE_ICON_CANVAS = 180
 
-/** The two sizes packed into the legacy `app/favicon.ico`. */
+/** The two sizes packed into the legacy `public/favicon.ico`. */
 export const ICO_SIZES = [16, 32]
 
 /** Trims binary-float noise so the committed files read as the numbers they are. */
@@ -128,7 +125,7 @@ export function tiledIconSvg({
 }
 
 /**
- * `app/icon.svg` — the modern browsers' favicon, shipped as source.
+ * `public/icon.svg` — the modern browsers' favicon, shipped as source.
  *
  * It emits NO SVG comment: XML forbids a double hyphen inside one, so a token
  * name written as `var(--el-accent)` in a file header makes the whole document
@@ -200,15 +197,15 @@ async function main() {
       .png({ compressionLevel: 9 })
       .toBuffer()
 
-  await writeFile(path.join(root, 'app/icon.svg'), iconSvgFile(), 'utf8')
-  console.warn('wrote app/icon.svg')
+  await writeFile(path.join(root, 'public/icon.svg'), iconSvgFile(), 'utf8')
+  console.warn('wrote public/icon.svg')
 
   const appleIcon = await rasterise(APPLE_ICON_CANVAS)
-  const appleDest = path.join(root, 'app/apple-icon.png')
+  const appleDest = path.join(root, 'public/apple-icon.png')
   await mkdir(path.dirname(appleDest), { recursive: true })
   await writeFile(appleDest, appleIcon)
   console.warn(
-    `wrote app/apple-icon.png (${APPLE_ICON_CANVAS}px, glyph ${NON_MASKABLE_SCALE} x canvas)`,
+    `wrote public/apple-icon.png (${APPLE_ICON_CANVAS}px, glyph ${NON_MASKABLE_SCALE} x canvas)`,
   )
 
   // The legacy fallback, re-cut from the same glyph so the two can never
@@ -219,8 +216,8 @@ async function main() {
   for (const size of ICO_SIZES) {
     icoImages.push({ size, png: await rasterise(size) })
   }
-  await writeFile(path.join(root, 'app/favicon.ico'), packIco(icoImages))
-  console.warn(`wrote app/favicon.ico (${ICO_SIZES.join(' + ')})`)
+  await writeFile(path.join(root, 'public/favicon.ico'), packIco(icoImages))
+  console.warn(`wrote public/favicon.ico (${ICO_SIZES.join(' + ')})`)
 }
 
 // Guarded so the test can import the pure helpers without rasterising anything

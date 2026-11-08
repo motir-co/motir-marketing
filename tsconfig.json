@@ -44,6 +44,7 @@
     "lib/publicProject.ts",
     "lib/sitemapEntries.ts",
     "tests/helpers/sitemap.ts",
+    "app/_brand/ogRenderGate.ts",
     "tests/brand/ogColours.test.ts",
     "tests/explore/exploreParams.test.ts",
     "tests/explore/gallery.test.tsx",
@@ -71,10 +72,6 @@
     "tests/publicProject/subscribeForm.test.tsx",
     "tests/publicProject/tabReads.test.ts",
     "tests/publicProject/watchLive.test.tsx",
-    "tests/sitemapProjectsRoute.test.ts",
-    "app/[locale]/opengraph-image.tsx",
-    "app/_brand/ogRenderGate.ts",
-    "tests/og/localeShareImage.test.ts",
-    "tests/ogFonts.test.ts"
+    "tests/sitemapProjectsRoute.test.ts"
   ]
 }

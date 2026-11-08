@@ -25,8 +25,8 @@ import {
  * `design/brand/design-notes.md` §5).
  *
  * ⚠️ WHAT THIS FILE IS FOR. The three icons are BUILD OUTPUTS of
- * `scripts/brand/generate-brand-icons.ts`, but they are COMMITTED, because Next
- * serves them as static files from the `app/` convention. That gap is what this
+ * `scripts/brand/generate-brand-icons.ts`, but they are COMMITTED, because the
+ * build copies them from `public/` as they are (MOTIR-10647). That gap is what this
  * closes: it asserts the committed bytes are still what the generator produces,
  * so a hand-edited raster or a stale re-run is a red suite rather than a
  * motir.co that quietly wears a different mark from `app.motir.co`. It is the
@@ -36,7 +36,7 @@ import {
  *
  * ⚠️ WHAT IT CANNOT SAY, stated because the acceptance criteria ask for both
  * halves and only one of them lives here: nothing in this file proves
- * `https://motir.co/favicon.ico` returns 200. Those bytes are served by the Fly
+ * `https://motir.co/favicon.ico` returns 200. Those bytes are served by the
  * deployment and only change when `main` merges and releases. That criterion is
  * read LIVE, against the deployed host, and no test in this repository can
  * stand in for it — the same boundary `entitySignal.test.ts` draws for
@@ -137,20 +137,20 @@ describe('icon.svg switches tiles on a dark tab strip (design-notes.md §10)', (
     expect(BRAND_ACCENT_HEX).toBe('#1a1d21')
     expect(BRAND_ACCENT_DARK_HEX).toBe('#edeef0')
     expect(BRAND_ACCENT_INK_DARK_HEX).toBe('#0c0d0f')
-    expect(readFileSync(path.join(REPO, 'app/icon.svg'), 'utf8')).not.toContain(
-      '#5645d4',
-    )
+    expect(
+      readFileSync(path.join(REPO, 'public/icon.svg'), 'utf8'),
+    ).not.toContain('#5645d4')
   })
 })
 
 describe('the committed files still match the generator', () => {
-  it('app/icon.svg is byte-identical to what the script emits', () => {
-    expect(readFileSync(path.join(REPO, 'app/icon.svg'), 'utf8')).toBe(
+  it('public/icon.svg is byte-identical to what the script emits', () => {
+    expect(readFileSync(path.join(REPO, 'public/icon.svg'), 'utf8')).toBe(
       iconSvgFile(),
     )
   })
 
-  it('app/apple-icon.png is byte-identical to what the script rasterises', async () => {
+  it('public/apple-icon.png is byte-identical to what the script rasterises', async () => {
     // The raster pin the SVG comparison above cannot give. sharp is the
     // generator's own rasteriser and the same pinned version, so a re-run over
     // an unchanged mark and palette is byte-stable; a stale raster, left behind
@@ -162,12 +162,12 @@ describe('the committed files still match the generator', () => {
       .png({ compressionLevel: 9 })
       .toBuffer()
     expect(
-      readFileSync(path.join(REPO, 'app/apple-icon.png')).equals(fresh),
+      readFileSync(path.join(REPO, 'public/apple-icon.png')).equals(fresh),
     ).toBe(true)
   })
 
-  it('app/apple-icon.png is a PNG at its declared canvas', () => {
-    const buf = readFileSync(path.join(REPO, 'app/apple-icon.png'))
+  it('public/apple-icon.png is a PNG at its declared canvas', () => {
+    const buf = readFileSync(path.join(REPO, 'public/apple-icon.png'))
     expect(pngSize(buf)).toEqual({
       width: APPLE_ICON_CANVAS,
       height: APPLE_ICON_CANVAS,
@@ -177,7 +177,7 @@ describe('the committed files still match the generator', () => {
   it('keeps favicon.ico as the legacy fallback, re-cut at 16 + 32', () => {
     // §5: kept for old clients and anything requesting /favicon.ico by path —
     // re-cut from the same glyph so the two can never disagree.
-    const ico = readFileSync(path.join(REPO, 'app/favicon.ico'))
+    const ico = readFileSync(path.join(REPO, 'public/favicon.ico'))
     expect(ico.readUInt16LE(0)).toBe(0) // reserved
     expect(ico.readUInt16LE(2)).toBe(1) // type: icon
     expect(ico.readUInt16LE(4)).toBe(ICO_SIZES.length)
@@ -196,7 +196,7 @@ describe('the committed files still match the generator', () => {
   })
 
   it('packs the directory so every payload offset lands inside the file', () => {
-    const png = readFileSync(path.join(REPO, 'app/apple-icon.png'))
+    const png = readFileSync(path.join(REPO, 'public/apple-icon.png'))
     const ico = packIco([
       { size: 16, png },
       { size: 32, png },
@@ -207,23 +207,34 @@ describe('the committed files still match the generator', () => {
   })
 })
 
-describe('every icon sits at a path Next actually serves', () => {
-  it('names only files the static-metadata matcher accepts', () => {
-    // ⚠️ Next's matcher takes ONE optional DIGIT after `icon`
-    // (`[\\/]icon\d?(-\w{6})?\.(ico|jpg|jpeg|png|svg)$`), so `app/icon-192.png`
-    // matches nothing and is served at no URL at all — silently, under a green
-    // build. It cost motir-core a 404ing manifest entry (§5). This site ships
-    // no manifest and no sized icon, so nothing here trips it; the assertion
-    // exists so that adding one DOES.
-    const matcher = /[\\/]icon\d?(-\w{6})?\.(ico|jpg|jpeg|png|svg)$/
-    expect(matcher.test('app/icon.svg')).toBe(true)
-    expect(matcher.test('app/icon-192.png')).toBe(false)
+describe('every icon is served where the layout links it (MOTIR-10647)', () => {
+  // Next linked `app/icon.svg`, `app/apple-icon.png` and `app/favicon.ico` by
+  // file convention. Astro has none: the files are in `public/`, which the
+  // build copies to the output root as they are, and the shared layout writes
+  // the tags the Next head carried at b9ff37a — same rel, type, sizes, path.
+  const layout = readFileSync(
+    path.join(REPO, 'src/layouts/SitePage.astro'),
+    'utf8',
+  )
+  const links = [...layout.matchAll(/<link\s+([^>]*?)\/>/g)]
+    .map((match) => match[1]!.replace(/\s+/g, ' ').trim())
+    .filter((attrs) => /rel="(icon|apple-touch-icon)"/.test(attrs))
 
-    for (const file of [
-      'app/icon.svg',
-      'app/apple-icon.png',
-      'app/favicon.ico',
-    ])
-      expect(() => readFileSync(path.join(REPO, file))).not.toThrow()
+  it.each([
+    ['icon', '/favicon.ico', 'image/x-icon', '16x16'],
+    ['icon', '/icon.svg', 'image/svg+xml', 'any'],
+    ['apple-touch-icon', '/apple-icon.png', 'image/png', '180x180'],
+  ])(
+    'links rel=%s %s (%s, %s), and the file is in public/',
+    (rel, href, type, sizes) => {
+      expect(links).toContain(
+        `rel="${rel}" href="${href}" type="${type}" sizes="${sizes}"`,
+      )
+      expect(() => readFileSync(path.join(REPO, 'public', href))).not.toThrow()
+    },
+  )
+
+  it('links no icon besides those three', () => {
+    expect(links).toHaveLength(3)
   })
 })

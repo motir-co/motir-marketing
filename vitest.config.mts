@@ -140,6 +140,9 @@ export default defineConfig({
         'src/pages/robots.txt.ts',
         'src/pages/sitemap.xml.ts',
         'src/pages/sitemap-site.xml.ts',
+        // MOTIR-10647 — the share card, drawn at build. Added WITH its tests.
+        'app/_brand/localeShareCard.tsx',
+        'src/pages/?...locale?/opengraph-image.ts',
         // MOTIR-7083 — the docs data modules Story MOTIR-6976 changed, added
         // WITH their top-up tests rather than after them. Before this story no
         // docs file was measured at all.
@@ -383,6 +386,17 @@ export default defineConfig({
           'lib/robots.ts': { lines: 90, functions: 90, branches: 90 },
           'lib/siteSitemap.ts': { lines: 90, functions: 90, branches: 90 },
           'src/pages/*.ts': { lines: 90, functions: 90, branches: 90 },
+          // MOTIR-10647 — measured first under their tests, pinned at the floor.
+          'app/_brand/localeShareCard.tsx': {
+            lines: 90,
+            functions: 90,
+            branches: 90,
+          },
+          'src/pages/?...locale?/opengraph-image.ts': {
+            lines: 90,
+            functions: 90,
+            branches: 90,
+          },
           'app/_islands/index.ts': { lines: 90, functions: 90, branches: 90 },
           'app/_components/SiteDocument.tsx': {
             lines: 90,

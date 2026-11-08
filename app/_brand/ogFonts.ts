@@ -3,14 +3,20 @@ import path from 'node:path'
 import { OG_FONT_FAMILY } from '@motir/brand'
 import manifest from './og-fonts/manifest.json'
 
-// Inter, for the root `next/og` card (MOTIR-1154 · motir-core
+// Inter, for the share cards (MOTIR-1154 · motir-core
 // `design/brand/design-notes.md` §6 "OG template").
 //
-// `next/og` renders through satori, OUTSIDE the CSS tree: it cannot read
-// `--font-sans-source`, cannot see the `next/font` faces `app/layout.tsx`
-// loads, and has no system font stack to fall back to. The only way it gets a
-// typeface is `ImageResponse`'s `fonts` option, and the only thing that option
-// accepts is font BYTES — so the faces are read off disk at request time. A
+// ⚠️ TWO READERS (MOTIR-10647). The landing's per-locale card is drawn ONCE, at
+// `astro build`, by `app/_brand/localeShareCard.tsx`, which hands these bytes
+// to satori directly. The per-project card under
+// `app/[locale]/p/[identifier]/opengraph-image.tsx` still draws per request
+// through Next's image route until the Worker-routes story ports it, and the tracer
+// notes below are about that reader alone.
+//
+// satori renders OUTSIDE the CSS tree: it cannot read `--font-sans-source`,
+// cannot see the faces the page loads, and has no system font stack to fall
+// back to. The only way it gets a typeface is its `fonts` option, and the only
+// thing that option accepts is font BYTES — so the faces are read off disk. A
 // template that sets `fontFamily: 'sans-serif'` does not error; it silently
 // ships whatever face the build container happens to have, which is exactly the
 // defect §6 records against motir-core's own two cards.
@@ -40,13 +46,13 @@ import manifest from './og-fonts/manifest.json'
 // repeats the face list rather than mapping over the imported one.
 // `tests/ogFonts.test.ts` pins these literals against the package's.
 //
-// Verify by grepping the built
-// `.next/server/app/[locale]/opengraph-image*/route.js.nft.json` for the file
-// names, never by reading the config.
+// For the per-project card, verify by grepping its built `route.js.nft.json`
+// for the file names, never by reading the config. The build-time card reads
+// from the checkout, where every path exists.
 //
 // ── THE CJK FACES (MOTIR-7972) ─────────────────────────────────────────────
 // Inter has no Han, kana or Hangul, so a `zh` / `ja` / `ko` card would draw
-// tofu — or `next/og` would fetch a fallback face this site never chose. Each
+// tofu — or satori would be handed a fallback face this site never chose. Each
 // of those locales gets the DEFAULT sans member of its font set
 // (`@motir/design-system`'s `FONT_SET_REGISTRY`: Noto Sans SC / JP / KR) at the
 // three weights, as SUBSETS committed in `og-fonts/`: a full Noto Sans JP is
@@ -140,7 +146,8 @@ export function ogFontFamily(locale = 'en'): string {
 }
 
 /**
- * The `fonts` array for `new ImageResponse(..., { fonts })`.
+ * The `fonts` array for satori (`localeShareCard.tsx`) or
+ * `new ImageResponse(..., { fonts })` (the per-project card).
  *
  * ⚠️ ONE ARRAY PER LOCALE FOR THE LIFE OF THE PROCESS, AND THE IDENTITY IS THE
  * POINT. satori keeps the fonts it has parsed in a `WeakMap` keyed by the

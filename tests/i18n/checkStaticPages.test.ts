@@ -17,6 +17,8 @@ import {
   checkStaticPages,
   htmlFileFor,
   listFiles,
+  LOCALE_IMAGES,
+  localeImageFileFor,
   main,
   ROOT_FILES,
   sitemapLocations,
@@ -39,13 +41,16 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-function write(dir: string, file: string, text: string) {
+function write(dir: string, file: string, text: string | Uint8Array) {
   mkdirSync(path.dirname(path.join(dir, file)), { recursive: true })
   writeFileSync(path.join(dir, file), text)
 }
 
 const page = (locale: Locale) =>
   `<!doctype html><html lang="${LOCALE_BCP47[locale]}" class="antialiased"><head></head><body></body></html>`
+
+/** The first bytes of a PNG — all a share card needs to pass the check. */
+const PNG = Buffer.from('89504e470d0a1a0a0000', 'hex')
 
 /** The site URL of one address in one locale, as the sitemap spells it. */
 const urlOf = (locale: Locale, address: string) =>
@@ -72,6 +77,8 @@ function output(
         write(dir, htmlFileFor(locale, address), page(locale))
       }
   write(dir, '_astro/site.css', 'body{}')
+  for (const locale of LOCALES)
+    write(dir, localeImageFileFor(locale, 'opengraph-image'), PNG)
   write(dir, 'robots.txt', 'User-Agent: *\nAllow: /\n')
   write(dir, 'sitemap.xml', '<sitemapindex></sitemapindex>\n')
   write(
@@ -86,8 +93,8 @@ function output(
   return dir
 }
 
-/** Files every `output` holds besides its pages: the stylesheet and the root files. */
-const EXTRA_FILES = 1 + ROOT_FILES.length
+/** Files every `output` holds besides its pages: the stylesheet, the share cards and the root files. */
+const EXTRA_FILES = 1 + LOCALES.length + ROOT_FILES.length
 
 const PAGES: StaticPage[] = [
   { route: '/' },
@@ -184,6 +191,32 @@ describe('the root files (MOTIR-10646)', () => {
       ])
     },
   )
+})
+
+describe('the share cards (MOTIR-10647)', () => {
+  it('registers the opengraph-image, in every locale', () => {
+    expect(LOCALE_IMAGES).toEqual(['opengraph-image'])
+    expect(localeImageFileFor('en', 'opengraph-image')).toBe('opengraph-image')
+    expect(localeImageFileFor('zh-tw', 'opengraph-image')).toBe(
+      'zh-tw/opengraph-image',
+    )
+  })
+
+  it('fails a build missing one locale’s card, naming the locale', () => {
+    const dir = output(PAGES)
+    rmSync(path.join(dir, 'ja/opengraph-image'))
+    expect(checkStaticPages({ dir, pages: PAGES }).problems).toEqual([
+      'opengraph-image [ja]: no ja/opengraph-image in the build',
+    ])
+  })
+
+  it('fails a card that is not a PNG', () => {
+    const dir = output(PAGES)
+    write(dir, 'opengraph-image', '<!doctype html>')
+    expect(checkStaticPages({ dir, pages: PAGES }).problems).toEqual([
+      'opengraph-image [en]: opengraph-image is not a PNG',
+    ])
+  })
 })
 
 describe('the sitemap cross-check (MOTIR-10646)', () => {
@@ -347,11 +380,7 @@ describe('the command', () => {
     // `path.resolve` reads `process.cwd()`; the build is moved under it.
     mkdirSync(path.join(root, 'dist'))
     for (const file of listFiles(built))
-      write(
-        path.join(root, 'dist'),
-        file,
-        readFileSync(path.join(built, file), 'utf8'),
-      )
+      write(path.join(root, 'dist'), file, readFileSync(path.join(built, file)))
     expect(main([])).toBe(0)
     expect(main(['--dir'])).toBe(0)
     cwd.mockRestore()

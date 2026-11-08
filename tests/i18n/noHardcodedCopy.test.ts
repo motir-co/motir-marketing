@@ -41,9 +41,9 @@ const EXCLUDED: readonly { path: string; owner: string }[] = [
       'authored API reference prose — motir.co /docs in eleven languages (MOTIR-7739)',
   },
   {
-    path: 'app/[locale]/opengraph-image.tsx',
+    path: 'app/_brand/localeShareCard.tsx',
     owner:
-      'the share image’s wordmark, drawn with satori — every word of it is read through getCopy (MOTIR-7972)',
+      'the share image’s wordmark, drawn with satori at build — every word of it is read through getCopy (MOTIR-7972 · MOTIR-10647)',
   },
   {
     path: 'app/[locale]/p/[identifier]/opengraph-image.tsx',

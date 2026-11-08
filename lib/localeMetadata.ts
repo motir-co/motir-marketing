@@ -76,10 +76,10 @@ export function englishOnlyAlternates(
  * `openGraph` REPLACES its parent's whole, and the file-based image goes with
  * it (measured in MOTIR-7948; `siteMetadata.ts` has the note).
  *
- * ⚠️ THE CARD IS THE PAGE'S OWN LOCALE'S (MOTIR-7972): `app/[locale]/opengraph-image.tsx`
- * answers `/<locale>/opengraph-image`, English unprefixed — the proxy
- * rewrites that one onto `/en/…` without detection, so the URL advertised here
- * answers 200 as written.
+ * ⚠️ THE CARD IS THE PAGE'S OWN LOCALE'S (MOTIR-7972): the build writes it at
+ * `/<locale>/opengraph-image`, English unprefixed
+ * (`src/pages/[...locale]/opengraph-image.ts`, MOTIR-10647), so the URL
+ * advertised here answers 200 as written.
  */
 export function siteCard(locale: Locale, alt: string) {
   return {

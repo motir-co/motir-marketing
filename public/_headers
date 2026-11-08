@@ -1,0 +1,7 @@
+# Workers static assets: headers by path (MOTIR-10647).
+# The share cards have no extension, so no type is inferred from one; they are
+# PNGs, and a link unfurler reads the declared type.
+/opengraph-image
+  Content-Type: image/png
+/*/opengraph-image
+  Content-Type: image/png

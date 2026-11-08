@@ -1,30 +1,29 @@
-import { ImageResponse } from 'next/og'
+import { Resvg } from '@resvg/resvg-js'
+import type { ReactElement } from 'react'
+import satori from 'satori'
 import {
   BRAND_GLYPH_HEX,
   WAVE_BAND_PATH,
   WAVE_BAND_VIEW_BOX,
 } from '@motir/brand'
-import { getCopy } from '@/lib/copy'
-import { hasLocale } from 'next-intl'
-import { routing, type Locale } from '@/i18n/routing'
-import { loadOgFonts, ogFontFamily } from '../_brand/ogFonts'
-import {
-  OG_TEXT_HEX,
-  OG_TEXT_SECONDARY_HEX,
-  OG_WASH,
-} from '../_brand/ogColours'
+import { getCopy, type Copy } from '@/lib/copy'
+import type { Locale } from '@/i18n/routing'
+import { loadOgFonts, ogFontFamily } from './ogFonts'
+import { OG_TEXT_HEX, OG_TEXT_SECONDARY_HEX, OG_WASH } from './ogColours'
 
 /*
  * motir.co's landing social card (MOTIR-1154 · 8.3.7), one per locale
- * (MOTIR-7972).
+ * (MOTIR-7972), drawn at BUILD (MOTIR-10647).
  *
- * ⚠️ IT LIVES BESIDE THE PAGE IT DECORATES, `app/[locale]/LandingRoute.tsx`, AND MUST
- * STAY THERE. A
- * metadata image file is resolved for the page in its OWN segment and is NOT
- * inherited — motir-core lost every `og:image` tag from `/explore` by leaving
- * one behind when its `page.tsx` moved into a route group (MOTIR-3491), while
- * the image ROUTE went on serving a 200 and the build stayed green. If this
- * site ever grows a second page, that page gets its own card or none.
+ * ⚠️ IT WAS A NEXT IMAGE ROUTE, AND IS NOW A FILE. `app/[locale]/opengraph-image.tsx`
+ * drew it with `ImageResponse`; the Astro endpoint
+ * `src/pages/[...locale]/opengraph-image.ts` calls {@link renderLocaleShareCard}
+ * once per locale at build and writes the PNG at the address every page's
+ * `og:image` names (`siteCard` in `lib/localeMetadata.ts`): `/opengraph-image`
+ * for English, `/<locale>/opengraph-image` for the rest. The tree below is the
+ * route's, unchanged; satori lays it out and resvg rasterises it, which is what
+ * `ImageResponse` did inside Next. The file has no extension, so the
+ * build's `_headers` (`public/_headers`) serves it as `image/png`.
  *
  * ── THE TEMPLATE IS 8.3.1's, NOT A NEW ONE ─────────────────────────────────
  * `motir-core/design/brand/design-notes.md` §6 ("OG template · 1200 × 630") is
@@ -40,7 +39,7 @@ import {
  * design.
  *
  * INLINE HEXES ARE THE DOCUMENTED EXCEPTION, not a lapse from the `--el-*`
- * rule. `ImageResponse` renders outside the React/CSS tree and cannot read a
+ * rule. satori renders outside the React/CSS tree and cannot read a
  * custom property, so a raster surface is the one place a literal is correct —
  * and each literal names the token it came from, which is the provenance to
  * keep in sync. They live in `app/_brand/ogColours.ts`, shared with the project
@@ -53,8 +52,6 @@ import {
  * artifact; this card invents no copy and re-keys nothing).
  */
 
-export const runtime = 'nodejs'
-
 /*
  * ⚠️ ONE CARD PER LOCALE, IN THAT LOCALE'S WORDS (MOTIR-7972). The words are
  * the catalogue's, through `getCopy`, so a key a catalogue lacks renders in
@@ -63,49 +60,25 @@ export const runtime = 'nodejs'
  * cut from exactly these three strings (`pnpm brand:og-fonts`;
  * `tests/ogFonts.test.ts` fails when a catalogue edit leaves a glyph out).
  *
- * The card is generated at BUILD time for each of the twelve locales the
- * layout's `generateStaticParams` names: nothing below reads the request, and
- * nothing fetches. A fallback font fetched at render would be a face this site
- * did not choose, so `tests/og/localeShareImage.test.ts` spies on `fetch`.
+ * Nothing below reads a request, and nothing fetches. A fallback font fetched
+ * at render would be a face this site did not choose, so
+ * `tests/og/localeShareImage.test.ts` spies on `fetch`.
  */
-export const size = { width: 1200, height: 630 }
-export const contentType = 'image/png'
+export const SHARE_CARD_SIZE = { width: 1200, height: 630 } as const
 
-function ogLocale(locale: string | undefined): Locale {
-  return hasLocale(routing.locales, locale) ? locale : routing.defaultLocale
-}
-
-/*
- * ⚠️ THE ROUTE NAMES THE TWELVE ITSELF. An image file is a ROUTE HANDLER, and
- * a route handler does not inherit the layout's `generateStaticParams` — so
- * without this the route is `●` in the table and prerenders nothing, rendering
- * each card on its first request instead. Measured on `next build`: the
- * prerender manifest listed no path for it until this was added.
- *
- * ⚠️ AND SO NO `generateImageMetadata`, which is how a per-locale `alt` would
- * otherwise be declared. Next's loader answers that export with a
- * `generateStaticParams` of its own (one per image id) and drops this one, and
- * the two cannot both be exported. The per-locale `alt` is set where the card
- * is ADVERTISED instead — `siteCard(locale, copy.meta.title)` in
- * `lib/localeMetadata.ts`, which every page's `openGraph.images` carries.
- */
-export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }))
-}
-
-export default async function LocaleOpengraphImage({
-  params,
-}: {
-  params: Promise<{ locale: string }>
-}) {
-  const locale = ogLocale((await params).locale)
-  const copy = await getCopy(locale)
-  const fonts = await loadOgFonts(locale)
-  return new ImageResponse(
+/** The card's element tree for one locale's words — what satori lays out. */
+export function localeShareCardElement(
+  copy: Pick<Copy, 'landing' | 'footer'>,
+  locale: Locale,
+): ReactElement {
+  return (
     <div
       style={{
         width: '100%',
         height: '100%',
+        // Next's bundled satori sized this box border-box; the current
+        // satori defaults to content-box, which pushed the lede off the canvas.
+        boxSizing: 'border-box',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
@@ -154,7 +127,25 @@ export default async function LocaleOpengraphImage({
           {copy.footer.tagline}
         </div>
       </div>
-    </div>,
-    { ...size, fonts },
+    </div>
   )
+}
+
+/** One locale's card, drawn and rasterised: a 1200 × 630 PNG. */
+export async function renderLocaleShareCard(
+  locale: Locale,
+): Promise<Uint8Array<ArrayBuffer>> {
+  const copy = await getCopy(locale)
+  const fonts = await loadOgFonts(locale)
+  const svg = await satori(localeShareCardElement(copy, locale), {
+    ...SHARE_CARD_SIZE,
+    fonts,
+  })
+  const png = new Resvg(svg, {
+    fitTo: { mode: 'width', value: SHARE_CARD_SIZE.width },
+  })
+    .render()
+    .asPng()
+  // A copy over its own ArrayBuffer, which a `Response` body takes.
+  return new Uint8Array(png)
 }

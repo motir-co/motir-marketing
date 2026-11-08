@@ -18,6 +18,8 @@
  *      Workers Paid);
  *   5. a root file in {@link ROOT_FILES} — `robots.txt` and the two sitemaps —
  *      is missing (MOTIR-10646);
+ *   7. a locale's share card (`opengraph-image`, {@link LOCALE_IMAGES}) is
+ *      missing or is not a PNG (MOTIR-10647);
  *   6. `sitemap-site.xml` lists a URL that is not a registered page present in
  *      the output for the locale the URL is in. The one exception is
  *      {@link WORKER_ROUTES}: `/explore`, which the sitemap lists and a Worker
@@ -87,6 +89,20 @@ export const ROOT_FILES: readonly string[] = [
   'sitemap.xml',
   'sitemap-site.xml',
 ]
+
+/**
+ * The files the build writes once per locale that are not pages: the share
+ * card each page's `og:image` names, `/opengraph-image` for English and
+ * `/<locale>/opengraph-image` for the rest (MOTIR-10647). Each is a PNG.
+ */
+export const LOCALE_IMAGES: readonly string[] = ['opengraph-image']
+
+/** The output file of a locale's per-locale image: `ja/opengraph-image`. */
+export function localeImageFileFor(locale: Locale, name: string): string {
+  return locale === DEFAULT_LOCALE ? name : `${locale}/${name}`
+}
+
+const PNG_MAGIC = '89504e470d0a1a0a'
 
 /** The sitemap whose every URL must be a built page. */
 export const SITE_SITEMAP = 'sitemap-site.xml'
@@ -180,6 +196,7 @@ export function checkStaticPages(input: {
   locales?: readonly Locale[]
   limit?: number
   rootFiles?: readonly string[]
+  localeImages?: readonly string[]
 }): CheckResult {
   const {
     dir,
@@ -187,6 +204,7 @@ export function checkStaticPages(input: {
     locales = LOCALES,
     limit = WORKERS_FILE_LIMIT,
     rootFiles = ROOT_FILES,
+    localeImages = LOCALE_IMAGES,
   } = input
   const files = listFiles(dir)
   const present = new Set(files)
@@ -209,6 +227,20 @@ export function checkStaticPages(input: {
             `${address} [${locale}]: <html lang="${lang ?? ''}">, not "${LOCALE_BCP47[locale]}"`,
           )
         }
+      }
+    }
+  }
+
+  for (const name of localeImages) {
+    for (const locale of locales) {
+      const file = localeImageFileFor(locale, name)
+      if (!present.has(file)) {
+        problems.push(`${name} [${locale}]: no ${file} in the build`)
+        continue
+      }
+      const head = readFileSync(path.join(dir, file)).subarray(0, 8)
+      if (head.toString('hex') !== PNG_MAGIC) {
+        problems.push(`${name} [${locale}]: ${file} is not a PNG`)
       }
     }
   }
@@ -267,7 +299,7 @@ export function main(argv: readonly string[]): number {
   const { problems, pagesChecked, fileCount } = checkStaticPages({ dir })
   for (const line of problems) console.error(`FAIL ${line}`)
   console.log(
-    `${STATIC_PAGES.length} registered page(s), ${pagesChecked} HTML file(s) checked across ${LOCALES.length} locales, ${ROOT_FILES.length} root file(s); ${fileCount} file(s) in the output: ${problems.length ? `${problems.length} problem(s)` : 'whole'}`,
+    `${STATIC_PAGES.length} registered page(s), ${pagesChecked} HTML file(s) checked across ${LOCALES.length} locales, ${LOCALE_IMAGES.length * LOCALES.length} share image(s), ${ROOT_FILES.length} root file(s); ${fileCount} file(s) in the output: ${problems.length ? `${problems.length} problem(s)` : 'whole'}`,
   )
   return problems.length ? 1 : 0
 }

@@ -3,7 +3,7 @@
  *
  *     pnpm brand:og-fonts
  *
- * `next/og` draws the landing's card through satori, which sees no web font and
+ * The build draws the landing's card through satori, which sees no web font and
  * has no CJK glyph of its own, so a `zh` / `ja` / `ko` card needs its script's
  * face as BYTES (`app/_brand/ogFonts.ts`). A whole Noto Sans JP is several MB
  * per weight; the card draws three sentences. So this cuts, per CJK locale and
@@ -39,7 +39,7 @@ export type OgCjkLocale = (typeof OG_CJK_LOCALES)[number]
 
 export const OG_WEIGHTS = [400, 700, 800] as const
 
-/** The catalogue keys the card draws — keep in step with `app/[locale]/opengraph-image.tsx`. */
+/** The catalogue keys the card draws — keep in step with `app/_brand/localeShareCard.tsx`. */
 export const OG_DRAWN_KEYS = [
   'meta.title',
   'landing.hero.headline',

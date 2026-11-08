@@ -18,8 +18,8 @@ import { drawnStrings } from '@/scripts/brand/subset-og-fonts'
  * `@motir/brand`.
  *
  * ⚠️ WHY THIS FILE RUNS IN THE `node` ENVIRONMENT. The rest of the suite is
- * jsdom (`vitest.config.mts`), and `next/og` renders through satori in a Node
- * runtime — the route even declares `export const runtime = 'nodejs'`. The
+ * jsdom (`vitest.config.mts`), and the card is drawn by satori and resvg in
+ * the Node build (`app/_brand/localeShareCard.tsx`, MOTIR-10647). The
  * docblock above overrides the environment for this file only.
  *
  * ⚠️ WHY IT RENDERS THE REAL IMAGE. The font wiring is the part of this change
@@ -82,14 +82,10 @@ describe('the root card is set in @motir/brand’s Inter, not a copy of its own'
   })
 
   it('still renders a real PNG at 1200 x 630', async () => {
-    const { default: route, size } =
-      await import('@/app/[locale]/opengraph-image')
-    expect(size).toEqual({ width: 1200, height: 630 })
-    const png = Buffer.from(
-      await (
-        await route({ params: Promise.resolve({ locale: 'en' }) })
-      ).arrayBuffer(),
-    )
+    const { renderLocaleShareCard, SHARE_CARD_SIZE } =
+      await import('@/app/_brand/localeShareCard')
+    expect(SHARE_CARD_SIZE).toEqual({ width: 1200, height: 630 })
+    const png = Buffer.from(await renderLocaleShareCard('en'))
     expect(png.subarray(0, 8).toString('hex')).toBe(PNG_MAGIC)
     expect(png.readUInt32BE(16)).toBe(1200)
     expect(png.readUInt32BE(20)).toBe(630)
