@@ -1,5 +1,5 @@
 // @vitest-environment node
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   languageAlternates,
@@ -129,24 +129,22 @@ const PAGES: { module: string; path: string; params?: object }[] = [
     module: '@/app/[locale]/how-it-works/HowItWorksRoute',
     path: '/how-it-works',
   },
-  {
-    module: '@/app/[locale]/motir-builds-itself/page',
-    path: '/motir-builds-itself',
-  },
   { module: '@/app/[locale]/docs/(guides)/DocsIndexRoute', path: '/docs' },
-  ...[
-    'claude-code-connector',
-    'claude-code-plugin',
-    'cli',
-    'difficulty',
-    'mcp',
-    'mcp/tools',
-    'public-address',
-    'sandbox',
-    'sentry',
-    'skills',
-  ].map((slug) => ({
-    module: `@/app/[locale]/docs/(guides)/${slug}/page`,
+  ...(
+    [
+      ['claude-code-connector', 'ClaudeCodeConnectorRoute'],
+      ['claude-code-plugin', 'ClaudeCodePluginRoute'],
+      ['cli', 'CliRoute'],
+      ['difficulty', 'DifficultyRoute'],
+      ['mcp', 'McpRoute'],
+      ['mcp/tools', 'McpToolsRoute'],
+      ['public-address', 'PublicAddressRoute'],
+      ['sandbox', 'SandboxRoute'],
+      ['sentry', 'SentryRoute'],
+      ['skills', 'SkillsRoute'],
+    ] as const
+  ).map(([slug, route]) => ({
+    module: `@/app/[locale]/docs/(guides)/${slug}/${route}`,
     path: `/docs/${slug}`,
   })),
   { module: '@/app/[locale]/docs/api/ApiReferenceRoute', path: '/docs/api' },
@@ -158,14 +156,16 @@ const PAGES: { module: string; path: string; params?: object }[] = [
     module: '@/app/[locale]/docs/api/stability/StabilityRoute',
     path: '/docs/api/stability',
   },
-  ...[
-    'agent-fleet',
-    'agent-hosting',
-    'ai-debugging',
-    'ai-planner',
-    'project-management',
-  ].map((slug) => ({
-    module: `@/app/[locale]/products/${slug}/page`,
+  ...(
+    [
+      ['agent-fleet', 'AgentFleetRoute'],
+      ['agent-hosting', 'AgentHostingRoute'],
+      ['ai-debugging', 'AiDebuggingRoute'],
+      ['ai-planner', 'AiPlannerRoute'],
+      ['project-management', 'ProjectManagementRoute'],
+    ] as const
+  ).map(([slug, route]) => ({
+    module: `@/app/[locale]/products/${slug}/${route}`,
     path: `/products/${slug}`,
   })),
   {
@@ -176,8 +176,8 @@ const PAGES: { module: string; path: string; params?: object }[] = [
   { module: '@/app/[locale]/legal/LegalIndexRoute', path: '/legal' },
   // A legal DOCUMENT is not here: every language version of it is canonical to
   // the English document (MOTIR-8086), the English-only arm below.
-  { module: '@/app/[locale]/explore/page', path: '/explore' },
-  { module: '@/app/[locale]/ideas/page', path: '/ideas' },
+  // `/explore`, `/ideas` and `/motir-builds-itself` render per request: their
+  // arm is `localeMetadataLive.test.ts`, held for MOTIR-10635.
 ]
 
 describe('every converted page canonicalises to its own language address', () => {
@@ -186,8 +186,7 @@ describe('every converted page canonicalises to its own language address', () =>
   for (const { module, path, params } of PAGES) {
     for (const locale of ['en', 'fr'] as const) {
       it(`${module} under ${locale}`, async () => {
-        // No page's metadata may depend on a network read succeeding; the
-        // ones that read (a topic's label, an idea) fall back without one.
+        // No page's metadata may depend on a network read succeeding.
         vi.stubGlobal('fetch', async () => {
           throw new Error('ECONNREFUSED')
         })
@@ -223,39 +222,6 @@ describe('every converted page canonicalises to its own language address', () =>
     const roots = PAGES.filter(({ path }) => path === '/')
     expect(roots).toHaveLength(1)
     expect(roots[0]!.module).toBe('@/app/[locale]/LandingRoute')
-  })
-
-  it('the explore canonical is the bare square, localised, whatever the filters', async () => {
-    // `lib/crawlPolicy.ts`: a filter state is the same square re-sorted, and a
-    // canonical per combination told crawlers to index every one of them.
-    const { generateMetadata } = await import('@/app/[locale]/explore/page')
-    const meta = await generateMetadata({
-      params: Promise.resolve({ locale: 'fr' }),
-      searchParams: Promise.resolve({
-        rank: 'recent',
-        category: 'design',
-        q: 'roadmap',
-        cursor: 'abc',
-      }),
-    })
-    expect(canonicalOf(meta)).toBe(siteUrl('/fr/explore'))
-    expect((meta.alternates?.languages as Record<string, string>).ja).toBe(
-      siteUrl('/ja/explore'),
-    )
-  })
-
-  it('the topic canonical carries the slug', async () => {
-    vi.stubGlobal('fetch', async () => {
-      throw new Error('ECONNREFUSED')
-    })
-    const { generateMetadata } =
-      await import('@/app/[locale]/explore/topic/[slug]/page')
-    const meta = await generateMetadata({
-      params: Promise.resolve({ locale: 'fr', slug: 'devtools' }),
-      searchParams: Promise.resolve({ rank: 'popular', q: 'cli' }),
-    })
-    // The slug, and none of the filters — the same rule as the square's.
-    expect(canonicalOf(meta)).toBe(siteUrl('/fr/explore/topic/devtools'))
   })
 })
 

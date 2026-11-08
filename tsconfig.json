@@ -52,7 +52,7 @@
     "tests/host/tenantLinks.test.tsx",
     "tests/i18n/fallbackIntegration.test.tsx",
     "tests/i18n/internalLinks.test.tsx",
-    "tests/i18n/localeMetadata.test.ts",
+    "tests/i18n/localeMetadataLive.test.ts",
     "tests/ideas/ideaDetail.test.tsx",
     "tests/ideas/ideaList.test.tsx",
     "tests/ideas/ideaLocaleMarks.test.tsx",
