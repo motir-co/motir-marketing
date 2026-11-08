@@ -59,7 +59,12 @@ async function measure(page: import('@playwright/test').Page) {
     )
     if (!rail) throw new Error('no rail: nav[aria-label="Documentation"]')
 
-    const shell = rail.parentElement
+    // The rail is an island, and its `<motir-island>` wrapper is
+    // `display: contents` (MOTIR-10649): it draws no box, so the grid item
+    // is the rail itself and the grid is the first ancestor that draws one.
+    let shell = rail.parentElement
+    while (shell && getComputedStyle(shell).display === 'contents')
+      shell = shell.parentElement
     if (!shell || !getComputedStyle(shell).display.includes('grid')) {
       throw new Error("the rail's parent is not the docs grid")
     }

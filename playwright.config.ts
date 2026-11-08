@@ -91,6 +91,7 @@ export default defineConfig({
     'not-found-live.spec.ts',
     'landmark-live.spec.ts',
     'languageSwitcher-live.spec.ts',
+    'acceptance-legal-binding-english-live.spec.ts',
   ].map((file) => `**/${file}`),
   // ⚠️ A LANE THAT PASSES WITH NO TESTS IS NOT A LANE. The card asks for this in
   // terms — "the job fails if the spec is removed (no empty-suite pass)" — and
