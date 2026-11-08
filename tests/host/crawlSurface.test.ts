@@ -69,7 +69,7 @@ describe('the sitemap on motir.co', () => {
 
   it('OMITS a project whose primary is elsewhere — the card’s first criterion', async () => {
     const { entries } = await sitemapOnMotirCo()
-    const urls = entries.join(' ')
+    const urls = entries.map((e) => e.url).join(' ')
 
     expect(urls).not.toContain('PROD')
     expect(urls).not.toContain('ROAD')
