@@ -1,0 +1,19 @@
+---
+/*
+ * Motir project management. Built once per locale (MOTIR-10644); the page module is the
+ * Next route's, rendered through the shared layout.
+ */
+import ProjectManagementRoute, {
+  generateMetadata,
+} from '@/app/[locale]/products/project-management/ProjectManagementRoute'
+import SitePage from '@/src/layouts/SitePage.astro'
+import { localeStaticPaths, pageLocale } from '@/lib/staticPaths'
+
+export const getStaticPaths = localeStaticPaths
+---
+
+<SitePage
+  locale={pageLocale(Astro.params)}
+  page={ProjectManagementRoute}
+  metadata={[generateMetadata]}
+/>

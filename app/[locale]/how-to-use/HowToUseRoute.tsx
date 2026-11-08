@@ -1,6 +1,6 @@
 import { localizedPath } from '@/i18n/localizedPath'
 import { localePageMetadata } from '@/lib/localeMetadata'
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 import { ArrowRight } from 'lucide-react'
 import { cn } from '@motir/design-system'
 import { getCopy } from '@/lib/copy'
@@ -8,7 +8,8 @@ import { DOCS, HOW_IT_WORKS, SIGN_UP } from '@/lib/destinations'
 import { SITE_HOST } from '@/lib/publicHost'
 import { SiteShell } from '../../_components/SiteShell'
 import { PART_TINT } from './_components/parts'
-import { StackArt, type Way } from './_components/StackArt'
+import { StackArtIsland } from '../../_islands'
+import type { Way } from './_components/StackArt'
 import { enterLocale, type LocalePageProps } from '@/i18n/locale'
 
 /*
@@ -179,7 +180,7 @@ export default async function HowToUsePage({ params }: LocalePageProps) {
                 >
                   <div className="overflow-x-auto">
                     <div className="min-w-[880px]">
-                      <StackArt way={id} t={u.art} />
+                      <StackArtIsland way={id} t={u.art} />
                     </div>
                   </div>
                 </div>

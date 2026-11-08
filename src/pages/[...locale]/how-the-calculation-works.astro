@@ -1,0 +1,19 @@
+---
+/*
+ * Where the credit estimate comes from. Its figures are read once per build; a failed read fails the build. Built once per locale (MOTIR-10644); the page module is the
+ * Next route's, rendered through the shared layout.
+ */
+import HowTheCalculationWorksRoute, {
+  generateMetadata,
+} from '@/app/[locale]/how-the-calculation-works/HowTheCalculationWorksRoute'
+import SitePage from '@/src/layouts/SitePage.astro'
+import { localeStaticPaths, pageLocale } from '@/lib/staticPaths'
+
+export const getStaticPaths = localeStaticPaths
+---
+
+<SitePage
+  locale={pageLocale(Astro.params)}
+  page={HowTheCalculationWorksRoute}
+  metadata={[generateMetadata]}
+/>

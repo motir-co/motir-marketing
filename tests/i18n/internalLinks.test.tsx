@@ -62,23 +62,27 @@ type Page = (props: {
 }) => Promise<ReactNode> | ReactNode
 
 const PAGES: { label: string; module: string; params?: object }[] = [
-  { label: 'the landing', module: '@/app/[locale]/page' },
+  { label: 'the landing', module: '@/app/[locale]/LandingRoute' },
   {
     label: 'a product page',
-    module: '@/app/[locale]/products/project-management/page',
+    module: '@/app/[locale]/products/project-management/ProjectManagementRoute',
   },
-  { label: 'how it works', module: '@/app/[locale]/how-it-works/page' },
+  {
+    label: 'how it works',
+    module: '@/app/[locale]/how-it-works/HowItWorksRoute',
+  },
   // MOTIR-8383 — rendered with the contract stub below, which answers the
   // plan catalog with a 404, so this is the figure-free page.
   {
     label: 'how the calculation works',
-    module: '@/app/[locale]/how-the-calculation-works/page',
+    module:
+      '@/app/[locale]/how-the-calculation-works/HowTheCalculationWorksRoute',
   },
   {
     label: 'Motir builds itself',
     module: '@/app/[locale]/motir-builds-itself/page',
   },
-  { label: '/design', module: '@/app/[locale]/design/page' },
+  { label: '/design', module: '@/app/[locale]/design/DesignRoute' },
   { label: '/ideas', module: '@/app/[locale]/ideas/page' },
   { label: '/explore', module: '@/app/[locale]/explore/page' },
   {
@@ -88,10 +92,10 @@ const PAGES: { label: string; module: string; params?: object }[] = [
   },
   { label: 'the docs index', module: '@/app/[locale]/docs/(guides)/page' },
   { label: 'a docs guide', module: '@/app/[locale]/docs/(guides)/mcp/page' },
-  { label: '/legal', module: '@/app/[locale]/legal/page' },
+  { label: '/legal', module: '@/app/[locale]/legal/LegalIndexRoute' },
   {
     label: 'a legal document',
-    module: '@/app/[locale]/legal/[slug]/page',
+    module: '@/app/[locale]/legal/[slug]/LegalDocumentRoute',
     params: { slug: legalDocumentSlugs()[0] },
   },
   {

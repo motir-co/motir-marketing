@@ -34,6 +34,11 @@ import {
   LOCALES,
   type Locale,
 } from '../../i18n/routing.ts'
+import { legalSlugsIn } from '../../lib/legal/slugs.ts'
+import {
+  PLACEHOLDER_PRODUCTS,
+  WRITTEN_PRODUCTS,
+} from '../../lib/productAddresses.ts'
 
 /** One page the build must write in every locale. */
 export interface StaticPage {
@@ -47,6 +52,19 @@ export interface StaticPage {
 export const STATIC_PAGES: readonly StaticPage[] = [
   // The not-found room, one per locale (`src/pages/[...locale]/404.astro`).
   { route: '/404' },
+  // The content pages (MOTIR-10644). The slug lists are the ones the pages
+  // are built from — `lib/productAddresses.ts` and the `content/legal/` glob —
+  // never typed out here.
+  { route: '/' },
+  { route: '/price' },
+  { route: '/how-it-works' },
+  { route: '/how-to-use' },
+  { route: '/how-the-calculation-works' },
+  { route: '/design' },
+  ...WRITTEN_PRODUCTS.map((slug) => ({ route: `/products/${slug}` })),
+  { route: '/products/[slug]', slugs: PLACEHOLDER_PRODUCTS },
+  { route: '/legal' },
+  { route: '/legal/[slug]', slugs: legalSlugsIn() },
 ]
 
 /** The most files one Workers version may hold (Workers Paid). */

@@ -1,5 +1,15 @@
 import { ImmersiveTilt } from '@motir/design-system'
 import { island } from '@/lib/island'
+import { RackStage } from '../[locale]/how-it-works/_components/RackStage'
+import { StackArt } from '../[locale]/how-to-use/_components/StackArt'
+import { DesignShowcase } from '../_components/DesignShowcase'
+import { HeroBrief } from '../_components/landing/HeroBrief'
+import { HeroWaves } from '../_components/landing/HeroWaves'
+import { Calculator } from '../_components/price/Calculator'
+import {
+  PlansUnavailable,
+  PriceCadence,
+} from '../_components/price/PriceCadence'
 import { SiteHeader } from '../_components/SiteHeader'
 
 /*
@@ -20,3 +30,35 @@ export const SiteHeaderIsland = island('SiteHeader', SiteHeader)
  * once per page as `SiteDocument` did. Inert under every other style.
  */
 export const ImmersiveTiltIsland = island('ImmersiveTilt', ImmersiveTilt)
+
+/** The landing's and the product pages' brief box (MOTIR-10644). */
+export const HeroBriefIsland = island<
+  NonNullable<Parameters<typeof HeroBrief>[0]>
+>('HeroBrief', HeroBrief)
+
+/** The wave lines behind a hero, drawn from the Motir mark. */
+export const HeroWavesIsland = island('HeroWaves', HeroWaves)
+
+/** The price page's credit calculator, which reads motir-ai in the browser. */
+export const CalculatorIsland = island('Calculator', Calculator)
+
+/**
+ * The price card's Monthly / Annual toggle. The plan cards it wraps are its
+ * children, so they stay server-rendered markup in its slot.
+ */
+export const PriceCadenceIsland = island('PriceCadence', PriceCadence)
+
+/** The price card's unavailable state and its retry. */
+export const PlansUnavailableIsland = island(
+  'PlansUnavailable',
+  PlansUnavailable,
+)
+
+/** `/how-it-works`'s rack, with the workflow rack inside it. */
+export const RackStageIsland = island('RackStage', RackStage)
+
+/** One `/how-to-use` way's stack drawing, which fits its labels in place. */
+export const StackArtIsland = island('StackArt', StackArt)
+
+/** `/design`'s showcase and its appearance pickers. */
+export const DesignShowcaseIsland = island('DesignShowcase', DesignShowcase)

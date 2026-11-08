@@ -173,6 +173,11 @@ export default defineConfig({
         'lib/staticPaths.ts',
         'app/_islands/index.ts',
         'app/_components/SiteDocument.tsx',
+        // MOTIR-10644 — the redirect rules the build writes, and the product
+        // and legal lists the pages and the static-pages check share.
+        'lib/redirects.ts',
+        'lib/productAddresses.ts',
+        'lib/legal/slugs.ts',
         // MOTIR-8032 — the per-language /docs document form, added WITH its tests.
         'lib/docsDocuments.ts',
         'app/?locale?/docs/_components/DocsDocument.tsx',
@@ -183,8 +188,8 @@ export default defineConfig({
         // measured, as `ideas`'s are: the gate awaits them per locale.
         'app/?locale?/legal/_components/BindingEnglishNote.tsx',
         'app/?locale?/legal/_components/MarkdownBody.tsx',
-        'app/?locale?/legal/page.tsx',
-        'app/?locale?/legal/?slug?/page.tsx',
+        'app/?locale?/legal/LegalIndexRoute.tsx',
+        'app/?locale?/legal/?slug?/LegalDocumentRoute.tsx',
         'lib/legal/englishAddress.ts',
         // MOTIR-8382 — the /price page's modules, added WITH their tests
         // (`tests/priceCard.test.tsx`, `tests/price/`).
@@ -271,12 +276,12 @@ export default defineConfig({
             functions: 90,
             branches: 90,
           },
-          'app/?locale?/legal/page.tsx': {
+          'app/?locale?/legal/LegalIndexRoute.tsx': {
             lines: 90,
             functions: 90,
             branches: 75,
           },
-          'app/?locale?/legal/?slug?/page.tsx': {
+          'app/?locale?/legal/?slug?/LegalDocumentRoute.tsx': {
             lines: 90,
             functions: 90,
             branches: 80,
@@ -331,6 +336,10 @@ export default defineConfig({
           'lib/skillsGuide.ts': { lines: 90, functions: 90, branches: 90 },
           'lib/mcpWiring.ts': { lines: 90, functions: 90, branches: 90 },
           // MOTIR-7685 — measured first under `tests/ideas.test.ts`.
+          // MOTIR-10644 — measured first under their tests (100 across).
+          'lib/redirects.ts': { lines: 90, functions: 90, branches: 90 },
+          'lib/productAddresses.ts': { lines: 90, functions: 90, branches: 90 },
+          'lib/legal/slugs.ts': { lines: 90, functions: 90, branches: 90 },
           'lib/ideas.ts': { lines: 90, functions: 90, branches: 90 },
           // MOTIR-7689 — MEASURED FIRST under `tests/ideas/`: the page 95.7
           // lines / 96.7 branches / 91.7 functions, every component 100 lines

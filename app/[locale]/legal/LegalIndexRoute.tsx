@@ -1,12 +1,11 @@
 import { localizedPath } from '@/i18n/localizedPath'
-import Link from 'next/link'
 import { getCopy, format } from '@/lib/copy'
 import { listLegalDocuments } from '@/lib/legal/documents'
 import { DEFAULT_LOCALE } from '@/i18n/routing'
 import { BindingEnglishNote } from './_components/BindingEnglishNote'
 import { enterLocale, type LocalePageProps } from '@/i18n/locale'
 import { localePageMetadata } from '@/lib/localeMetadata'
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 
 /**
  * `/legal` — the index of the published legal set (MOTIR-4009), built to
@@ -35,7 +34,7 @@ export default async function LegalIndexPage({ params }: LocalePageProps) {
 
   return (
     /* The width box and the `main` landmark this page used to open with both
-       live in `app/[locale]/legal/layout.tsx`'s `SiteShell` now (MOTIR-4169). */
+       live in `app/[locale]/legal/LegalLayout.tsx`'s `SiteShell` now (MOTIR-4169). */
     <>
       <h1 className="font-(family-name:--font-serif) text-[30px] leading-[1.2] font-bold tracking-[-0.01em] text-(--el-text)">
         {copy.legal.indexTitle}
@@ -62,7 +61,7 @@ export default async function LegalIndexPage({ params }: LocalePageProps) {
             key={doc.slug}
             className="border-b border-(--el-border) last:border-b-0"
           >
-            <Link
+            <a
               href={localizedPath(locale, `/legal/${doc.slug}`)}
               className="flex flex-col gap-1 py-4 hover:bg-(--el-surface-soft)"
             >
@@ -84,7 +83,7 @@ export default async function LegalIndexPage({ params }: LocalePageProps) {
                       version: doc.version,
                     })}
               </span>
-            </Link>
+            </a>
           </li>
         ))}
       </ul>

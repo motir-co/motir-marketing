@@ -1,6 +1,6 @@
 import { act, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useId, useState } from 'react'
+import { useId, useState, type ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import * as islandsModule from '@/app/_islands'
@@ -14,6 +14,7 @@ import {
 } from '@/lib/copy'
 import { island } from '@/lib/island'
 import {
+  ISLAND_SLOT_TAG,
   ISLAND_TAG,
   ISLANDS,
   PAGE_CONTEXT_ID,
@@ -161,6 +162,65 @@ describe('an island in the browser', () => {
     })
     expect(roots).toHaveLength(1)
     expect(errors).not.toHaveBeenCalled()
+    act(() => roots[0]!.unmount())
+  })
+
+  it('hands back its server-rendered children as a slot, untouched, and stays interactive', async () => {
+    const Toggle = ({
+      label,
+      children,
+    }: {
+      label: string
+      children?: ReactNode
+    }) => {
+      const [on, setOn] = useState(false)
+      return (
+        <div data-on={String(on)}>
+          <button onClick={() => setOn(!on)}>{label}</button>
+          {children}
+        </div>
+      )
+    }
+    vi.spyOn(ISLANDS, 'PriceCadence').mockResolvedValue(
+      Toggle as unknown as Awaited<
+        ReturnType<(typeof ISLANDS)['PriceCadence']>
+      >,
+    )
+    // The slot reads a namespace the browser never receives: it is page
+    // markup, rendered at build with the whole catalogue.
+    const Legal = () => <p id="slotted">{useCopy().legal.allDocuments}</p>
+    const ToggleIsland = island('PriceCadence', Toggle)
+    document.body.innerHTML = renderToStaticMarkup(
+      <PageProvider value={PAGE}>
+        <ToggleIsland label="flip">
+          <Legal />
+        </ToggleIsland>
+      </PageProvider>,
+    )
+    const built = document.querySelector(ISLAND_TAG) as HTMLElement
+    expect(JSON.parse(built.dataset.props!)).toEqual({ label: 'flip' })
+    expect(
+      built.querySelector(`${ISLAND_SLOT_TAG} #slotted`),
+    ).toHaveTextContent(englishCopy.legal.allDocuments)
+    const slotted = document.getElementById('slotted')
+
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    let roots: Awaited<ReturnType<typeof hydrateIslands>> = []
+    await act(async () => {
+      roots = await hydrateIslands(document, {
+        ...PAGE,
+        copy: clientCopy(englishCopy) as unknown as Copy,
+      })
+    })
+    expect(errors).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('button', { name: 'flip' }))
+    expect(document.querySelector('[data-on]')).toHaveAttribute(
+      'data-on',
+      'true',
+    )
+    // The very node the build wrote, still there and still worded.
+    expect(document.getElementById('slotted')).toBe(slotted)
+    expect(slotted).toHaveTextContent(englishCopy.legal.allDocuments)
     act(() => roots[0]!.unmount())
   })
 

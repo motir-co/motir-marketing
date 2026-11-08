@@ -1,5 +1,4 @@
 import { AI_ORIGIN } from '@/lib/aiOrigin'
-import { planLadderRevalidate } from '@/lib/priceLadder'
 import {
   CATEGORIES_PATH,
   parseCategories,
@@ -15,8 +14,8 @@ import { EXPLAINER_READ_TIMEOUT_MS } from './figures'
  *
  * It never throws. `null` — no origin, a network error, a timeout, a non-OK
  * answer, a version the calculator does not know, or no category at all — makes
- * section 2 say in words where the names come from. Cached like the plan
- * catalog read, so the page stays a static page that refreshes on its own.
+ * section 2 say in words where the names come from. Read once per build, like
+ * the plan catalog (MOTIR-10644).
  */
 export async function readExplainerCategories(
   fetchImpl: typeof fetch = fetch,
@@ -34,8 +33,7 @@ export async function readExplainerCategories(
     const res = await fetchImpl(`${origin}${CATEGORIES_PATH}`, {
       headers: { accept: 'application/json' },
       signal: AbortSignal.timeout(timeoutMs),
-      next: { revalidate: planLadderRevalidate() },
-    } as RequestInit)
+    })
     if (!res.ok) return null
     const parsed = parseCategories(await res.json())
     if (parsed.kind !== 'ok' || parsed.value.categories.length === 0) {

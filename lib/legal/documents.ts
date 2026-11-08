@@ -1,6 +1,7 @@
-import { readdirSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { DATA_PRIVACY_PANE } from '../destinations'
+import { LEGAL_DIR, legalSlugsIn } from './slugs'
 
 /**
  * The legal-document loader — a PORT of motir-core's `lib/legal/documents.ts`
@@ -26,9 +27,6 @@ import { DATA_PRIVACY_PANE } from '../destinations'
  * a new thing to keep current, for a grammar this file handles in fifteen
  * lines. (This is the same reason the source repo wrote it by hand.)
  */
-
-/** Where the published legal copy lives, relative to the app root. */
-const LEGAL_DIR = join(process.cwd(), 'content', 'legal')
 
 /**
  * The front-matter value that means "no date is set yet".
@@ -196,11 +194,7 @@ export function expandDestinations(
 
 /** Every published legal document, in `PREFERRED_ORDER` then by slug. */
 export function listLegalDocuments(): LegalDocument[] {
-  const slugs = readdirSync(LEGAL_DIR)
-    .filter((name) => name.endsWith('.md'))
-    .map((name) => name.slice(0, -3))
-
-  return slugs
+  return legalSlugsIn()
     .map((slug) => {
       const doc = parseLegalDocument(
         slug,

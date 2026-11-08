@@ -1,3 +1,4 @@
+import { redirectRules } from '@/lib/redirects'
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -19,7 +20,7 @@ import { ROOT, designTree, filesUnder } from './designTree'
  *  1. ADDRESSES — every `/…` an asset names must still be a page this app
  *     serves: the Astro pages under `src/pages/**` and the Next route tree
  *     under `app/**` that the story's later cards are still porting
- *     (MOTIR-10643), plus every redirect `public/_redirects` declares
+ *     (MOTIR-10643), plus every redirect the built `_redirects` declares
  *     (checked FIRST — a redirect source resolves, but only by sending the
  *     reader somewhere else).
  *  2. SOURCE PATHS — every path anchored on one of this repository's own
@@ -101,8 +102,9 @@ function astroRoutes(): string[] {
 const APP_ROUTES = appRoutePatterns()
 
 /*
- * EVERY redirect `public/_redirects` declares, read off the file the static
- * assets serve (MOTIR-10643) rather than off a list of its own: a rule this
+ * EVERY redirect the built `_redirects` declares, read off `lib/redirects.ts`,
+ * which writes the file the static assets serve (MOTIR-10643), rather than off
+ * a list of its own: a rule this
  * guard forgot would make it call a live address dead. A `*` segment is a
  * catch-all (`/en/*` → every address under `/en`).
  *
@@ -110,20 +112,12 @@ const APP_ROUTES = appRoutePatterns()
  * story ports it, and on motir.co itself it served no address `app/**` did not
  * already list — every rewrite it made was keyed on a tenant host.
  */
-const REDIRECT_SOURCES: string[][] = readFileSync(
-  join(ROOT, 'public', '_redirects'),
-  'utf8',
+const REDIRECT_SOURCES: string[][] = redirectRules().map(({ from }) =>
+  from
+    .replace(/^\//, '')
+    .split('/')
+    .map((segment) => (segment === '*' ? ':splat*' : segment)),
 )
-  .split('\n')
-  .map((line) => line.trim())
-  .filter((line) => line !== '' && !line.startsWith('#'))
-  .map((line) =>
-    line
-      .split(/\s+/)[0]!
-      .replace(/^\//, '')
-      .split('/')
-      .map((segment) => (segment === '*' ? ':splat*' : segment)),
-  )
 
 const isDynamic = (segment: string) =>
   /^\[.+\]$/.test(segment) || /^:.+/.test(segment)
@@ -671,6 +665,16 @@ const KNOWN_PATHS: { file: string; path: string; why: string }[] = [
     path: 'app/layout.tsx',
     why: 'The same retired Next root layout, named by the price notes as where the site document was rendered; MOTIR-10643 replaced it with `src/layouts/SitePage.astro`, and the dated note is not rewritten.',
   },
+  {
+    file: 'design/legal/design-notes.md',
+    path: 'app/legal/layout.tsx',
+    why: 'The legal shell as a Next route layout. MOTIR-10644 moved it, unchanged, to `app/[locale]/legal/LegalLayout.tsx`, which the Astro legal pages render it through; the dated note is not rewritten.',
+  },
+  {
+    file: 'design/marketing/design-notes.md',
+    path: 'app/page.tsx',
+    why: 'The landing as a Next page module. MOTIR-10644 moved it to `app/[locale]/LandingRoute.tsx`, which `src/pages/[...locale]/index.astro` renders; the dated note is not rewritten.',
+  },
   // ── A path in ANOTHER repository that `src/` now also names ───────────────
   {
     file: 'design/price/design-notes.md',
@@ -758,7 +762,7 @@ describe('the source-path sweep catches the drift it was written for', () => {
   it('passes the citations that exist, including an extension-less one', () => {
     expect(
       missing(
-        'see `tests/design/inkContrast.test.ts` and `tests/design/inkContrastScan`, and app/legal/[slug]/page.tsx.',
+        'see `tests/design/inkContrast.test.ts` and `tests/design/inkContrastScan`, and app/legal/[slug]/LegalDocumentRoute.tsx.',
       ),
     ).toEqual([])
   })

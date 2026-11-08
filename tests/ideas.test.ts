@@ -12,6 +12,9 @@ import {
   fetchIdeaTags,
   fetchIdeas,
   hasIdeaFilters,
+  hasText,
+  ideaCategoryMark,
+  sourceMonth,
   ideaFieldLang,
   ideasHref,
   ideaTextLang,
@@ -297,7 +300,7 @@ describe('the reads', () => {
       headers: { 'content-type': 'application/json' },
     })
 
-  it('fetchIdeas asks the API with the filters, never the open idea, hourly', async () => {
+  it('fetchIdeas asks the API with the filters, never the open idea', async () => {
     const fetchMock = stubFetch(ok(ideasFixture))
     const list = await fetchIdeas(
       {
@@ -312,7 +315,6 @@ describe('the reads', () => {
     expect(list.total).toBe(ideasFixture.total)
     expect(fetchMock).toHaveBeenCalledWith(
       `${ORIGIN}/api/public/ideas?category=ecommerce&tag=smb&tag=retail&q=returns&kind=direction&locale=en`,
-      { next: { revalidate: IDEAS_REVALIDATE_SECONDS } },
     )
     expect(IDEAS_REVALIDATE_SECONDS).toBe(3600)
   })
@@ -322,7 +324,6 @@ describe('the reads', () => {
     await fetchIdeas(EMPTY, 'en')
     expect(fetchMock).toHaveBeenCalledWith(
       `${ORIGIN}/api/public/ideas?locale=en`,
-      { next: { revalidate: 3600 } },
     )
   })
 
@@ -332,7 +333,6 @@ describe('the reads', () => {
     expect(tags).toEqual(tagsFixture)
     expect(fetchMock).toHaveBeenCalledWith(
       `${ORIGIN}/api/public/ideas/tags?locale=en`,
-      { next: { revalidate: 3600 } },
     )
   })
 
@@ -343,12 +343,10 @@ describe('the reads', () => {
     expect(idea?.slug).toBe('stop-returns-before-they-happen')
     expect(fetchMock).toHaveBeenCalledWith(
       `${ORIGIN}/api/public/ideas/stop-returns-before-they-happen?locale=en`,
-      { next: { revalidate: 3600 } },
     )
     await fetchIdea('a/b?c', 'en')
     expect(fetchMock).toHaveBeenLastCalledWith(
       `${ORIGIN}/api/public/ideas/a%2Fb%3Fc?locale=en`,
-      { next: { revalidate: 3600 } },
     )
   })
 
@@ -495,28 +493,23 @@ describe('the locale on every read', () => {
     return fn
   }
 
-  it('the list, a search, the tags and one idea ask for locale=ja, hourly', async () => {
+  it('the list, a search, the tags and one idea ask for locale=ja', async () => {
     const fn = stub(ideasFixture)
     await fetchIdeas(EMPTY, 'ja')
     await fetchIdeas({ tags: [], q: '再生' }, 'ja')
     expect(fn.mock.calls.map((c) => c as unknown[])).toEqual([
-      [`${ORIGIN}/api/public/ideas?locale=ja`, { next: { revalidate: 3600 } }],
-      [
-        `${ORIGIN}/api/public/ideas?q=%E5%86%8D%E7%94%9F&locale=ja`,
-        { next: { revalidate: 3600 } },
-      ],
+      [`${ORIGIN}/api/public/ideas?locale=ja`],
+      [`${ORIGIN}/api/public/ideas?q=%E5%86%8D%E7%94%9F&locale=ja`],
     ])
     const tagsFn = stub(tagsFixture)
     await fetchIdeaTags('ja')
     expect(tagsFn).toHaveBeenCalledWith(
       `${ORIGIN}/api/public/ideas/tags?locale=ja`,
-      { next: { revalidate: 3600 } },
     )
     const oneFn = stub(ideaFixture)
     await fetchIdea('stop-returns-before-they-happen', 'ja')
     expect(oneFn).toHaveBeenCalledWith(
       `${ORIGIN}/api/public/ideas/stop-returns-before-they-happen?locale=ja`,
-      { next: { revalidate: 3600 } },
     )
   })
 
@@ -689,5 +682,34 @@ describe('no database client', () => {
       expect(src).not.toMatch(pattern)
     }
     expect(src).toMatch(/\$\{APP_ORIGIN\}\/api\/public\/ideas/)
+  })
+})
+
+/*
+ * The drawing helpers the idea cards read (MOTIR-7689). Their page tests live
+ * with the live `/ideas` surface, which the Worker-routes story ports; these
+ * hold the helpers on their own while those wait (MOTIR-10644).
+ */
+describe('the idea drawing helpers', () => {
+  it('marks a known category, and an unknown one with the platform mark', () => {
+    expect(ideaCategoryMark('personal_finance')).toBe('record')
+    expect(ideaCategoryMark('ai_infrastructure')).toBe('ground')
+    expect(ideaCategoryMark('a_category_added_later')).toBe('ground')
+  })
+
+  it('reads a source date as its month, and nothing else as a date', () => {
+    expect(sourceMonth('2025-10-01')).toBe('October 2025')
+    expect(sourceMonth('2024-01-31')).toBe('January 2024')
+    expect(sourceMonth('2025-13-01')).toBeNull()
+    expect(sourceMonth('October 2025')).toBeNull()
+    expect(sourceMonth(null)).toBeNull()
+  })
+
+  it('treats only a non-blank string as text to draw', () => {
+    expect(hasText('a line')).toBe(true)
+    expect(hasText('   ')).toBe(false)
+    expect(hasText('')).toBe(false)
+    expect(hasText(null)).toBe(false)
+    expect(hasText(undefined)).toBe(false)
   })
 })

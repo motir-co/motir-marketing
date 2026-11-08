@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 import { getCopy } from '@/lib/copy'
 import { SiteShell } from '@/app/_components/SiteShell'
 import { SITE_HOST } from '@/lib/publicHost'
@@ -12,12 +12,6 @@ import { enterLocale, type LocaleParams } from '@/i18n/locale'
  * the site. `/legal` marks NEITHER nav item current: the shipped header only
  * marks its one internal route (`/design`), and Explore / Docs stay cross-origin
  * until their own cards land.
- *
- * ── NO `loading.tsx` ANYWHERE IN THIS TREE, deliberately ────────────────────
- * `[slug]/page.tsx` calls `notFound()` for an unknown slug. A `loading.tsx`
- * above a route that decides existence flushes the response head and fixes the
- * status at 200, turning a 404 into a page that renders like one. The copy is
- * read from disk at build time, so there is nothing to suspend on anyway.
  *
  * ── NO database read, NO API call ───────────────────────────────────────────
  * These pages are files on disk. The reason the app host's shipped layout gives

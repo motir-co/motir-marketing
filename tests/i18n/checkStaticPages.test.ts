@@ -2,6 +2,7 @@
 import {
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -14,10 +15,13 @@ import {
   addressesOf,
   checkStaticPages,
   htmlFileFor,
+  listFiles,
   main,
   STATIC_PAGES,
   type StaticPage,
 } from '@/scripts/i18n/check-static-pages'
+import { legalSlugsIn } from '@/lib/legal/slugs'
+import { PLACEHOLDER_PRODUCTS, WRITTEN_PRODUCTS } from '@/lib/productAddresses'
 
 /*
  * THE EVERY-LOCALE CHECK OVER THE BUILT OUTPUT (MOTIR-10643), against output
@@ -135,6 +139,57 @@ describe('the registry', () => {
   it('starts with the not-found room', () => {
     expect(STATIC_PAGES).toContainEqual({ route: '/404' })
   })
+
+  it('holds the content pages (MOTIR-10644)', () => {
+    const routes = STATIC_PAGES.map((page) => page.route)
+    for (const route of [
+      '/',
+      '/price',
+      '/how-it-works',
+      '/how-to-use',
+      '/how-the-calculation-works',
+      '/design',
+      '/legal',
+      ...WRITTEN_PRODUCTS.map((slug) => `/products/${slug}`),
+    ])
+      expect(routes).toContain(route)
+  })
+
+  it('reads the legal slugs off content/legal/, and the product slugs off their list', () => {
+    expect(STATIC_PAGES).toContainEqual({
+      route: '/legal/[slug]',
+      slugs: legalSlugsIn(),
+    })
+    expect([...legalSlugsIn()].sort()).toEqual(
+      readdirSync(path.join(process.cwd(), 'content', 'legal'))
+        .filter((name) => name.endsWith('.md'))
+        .map((name) => name.replace(/\.md$/, ''))
+        .sort(),
+    )
+    expect(legalSlugsIn()).toContain('subprocessors')
+    expect(STATIC_PAGES).toContainEqual({
+      route: '/products/[slug]',
+      slugs: PLACEHOLDER_PRODUCTS,
+    })
+  })
+
+  it('fails a build missing one legal document in one locale, naming both', () => {
+    const broken = output(STATIC_PAGES, {
+      address: '/legal/subprocessors',
+      locale: 'ja',
+    })
+    expect(
+      checkStaticPages({ dir: broken, pages: STATIC_PAGES }).problems,
+    ).toEqual([
+      '/legal/subprocessors [ja]: no ja/legal/subprocessors.html in the build',
+    ])
+  })
+
+  it('never registers a product that forwards to its docs', () => {
+    const addresses = STATIC_PAGES.flatMap(addressesOf)
+    expect(addresses).not.toContain('/products/mcp')
+    expect(addresses).toContain('/products/project-manager')
+  })
 })
 
 describe('the command', () => {
@@ -159,10 +214,7 @@ describe('the command', () => {
     const cwd = vi.spyOn(process, 'cwd').mockReturnValue(root)
     // `path.resolve` reads `process.cwd()`; the build is moved under it.
     mkdirSync(path.join(root, 'dist'))
-    for (const file of [
-      '404.html',
-      ...LOCALES.slice(1).map((l) => `${l}/404.html`),
-    ])
+    for (const file of listFiles(built))
       write(
         path.join(root, 'dist'),
         file,

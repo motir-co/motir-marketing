@@ -18,7 +18,8 @@ import {
  * never resolved from the OS and never replayed from storage.
  */
 
-const LAYOUT = readFileSync('app/_components/SiteDocument.tsx', 'utf8')
+// The one place a built page's `<html>` is written (MOTIR-10643).
+const LAYOUT = readFileSync('src/layouts/SitePage.astro', 'utf8')
 
 afterEach(() => {
   window.localStorage.clear()

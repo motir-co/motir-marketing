@@ -1,18 +1,16 @@
 import { localizedPath } from '@/i18n/localizedPath'
-import type { Metadata } from 'next'
-import Link from 'next/link'
-import { notFound, permanentRedirect } from 'next/navigation'
+import type { Metadata } from '@/lib/metadata'
 import { ArrowRight } from 'lucide-react'
 import { buttonVariants } from '@motir/design-system'
 import { format, getCopy, type Copy } from '@/lib/copy'
 import { localePageMetadata } from '@/lib/localeMetadata'
 import {
-  PRODUCT_DOCS,
   PRODUCT_SLUGS,
   SITE_ROOT,
   SIGN_UP,
   type ProductSlug,
 } from '@/lib/destinations'
+import { PLACEHOLDER_PRODUCTS } from '@/lib/productAddresses'
 import { SITE_HOST } from '@/lib/publicHost'
 import { SiteShell } from '../../../_components/SiteShell'
 import { enterLocale } from '@/i18n/locale'
@@ -46,29 +44,13 @@ function productFor(slug: string, copy: Copy) {
     : null
 }
 
-/** Products whose page is written in full, at its own route. */
-const WRITTEN: ReadonlySet<ProductSlug> = new Set([
-  'ai-planner',
-  'project-management',
-  'ai-debugging',
-  'agent-fleet',
-  'agent-hosting',
-])
-
 /**
- * The placeholders, AND the tooling slugs that forward to their docs.
- *
- * ⚠️ THE FORWARDING SLUGS MUST BE LISTED. The locale layout sets
- * `dynamicParams = false`, which every segment below inherits, so a slug this
- * function does not name is a 404 without a render — `/products/mcp` stopped
- * reaching its redirect when the pages moved under `[locale]` (MOTIR-7948).
- * Named here, each is prerendered as its 308 to the docs (MOTIR-7971).
+ * The slugs this route is built for: the placeholders (MOTIR-10644). A written
+ * product has its own route, and a product whose page is its documentation is
+ * a 308 to it in the built site's `_redirects` (`lib/redirects.ts`) — a static
+ * page cannot answer one — so neither is built here.
  */
-export function generateStaticParams() {
-  return PRODUCT_SLUGS.filter((slug) => !WRITTEN.has(slug)).map((slug) => ({
-    slug,
-  }))
-}
+export const PLACEHOLDER_SLUGS = PLACEHOLDER_PRODUCTS
 
 export async function generateMetadata({
   params,
@@ -94,12 +76,10 @@ export default async function ProductPage({
   const locale = await enterLocale(params)
   const copy = await getCopy(locale)
   const { slug } = await params
-  // The tooling's page is its documentation: its address forwards there.
-  const docs = PRODUCT_DOCS[slug as ProductSlug]
-  // To the docs in the SAME language: `/fr/products/mcp` → `/fr/docs/mcp` (MOTIR-7971).
-  if (docs) permanentRedirect(localizedPath(locale, docs))
   const product = productFor(slug, copy)
-  if (!product) notFound()
+  // Only `PLACEHOLDER_SLUGS` is built, so this is a slug list that names a
+  // product the menu does not have — a build error, never a page.
+  if (!product) throw new Error(`No product is named "${slug}"`)
 
   return (
     <>
@@ -122,12 +102,12 @@ export default async function ProductPage({
               {copy.products.start}
               <ArrowRight aria-hidden="true" className="size-4" />
             </a>
-            <Link
+            <a
               href={localizedPath(locale, SITE_ROOT)}
               className={buttonVariants({ variant: 'ghost' })}
             >
               {copy.products.back}
-            </Link>
+            </a>
           </div>
         </section>
       </SiteShell>

@@ -1,5 +1,5 @@
 import { localePageMetadata } from '@/lib/localeMetadata'
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 import { ArrowRight } from 'lucide-react'
 import { format, getCopy } from '@/lib/copy'
 import {

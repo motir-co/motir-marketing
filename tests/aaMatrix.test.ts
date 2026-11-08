@@ -7,8 +7,8 @@ import {
   type PaletteId,
 } from '@motir/design-system'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import Page from '@/app/[locale]/page'
-import DesignPage from '@/app/[locale]/design/page'
+import Page from '@/app/[locale]/LandingRoute'
+import DesignPage from '@/app/[locale]/design/DesignRoute'
 import { distinctPairs, paintedPairs } from './support/paintedInks'
 import {
   contrastRatio,
@@ -20,13 +20,10 @@ import {
 import { EN_PAGE } from '@/tests/helpers/locale'
 
 /*
- * ⚠️ TWO STUBS THE PAGES NEED, both for the same reason `tests/siteHeader.tsx`
- * and `tests/designShowcase.test.tsx` need them: jsdom ships no `matchMedia`
- * and no router. Neither stub touches a colour, so neither can move a number
- * measured below — they exist only so the pages render at all.
+ * ⚠️ TWO STUBS THE PAGES NEED: jsdom ships no `matchMedia`, and the landing
+ * reads the ideas store. Neither touches a colour, so neither can move a
+ * number measured below — they exist only so the pages render at all.
  */
-const pathname = vi.hoisted(() => ({ value: '/' }))
-vi.mock('next/navigation', () => ({ usePathname: () => pathname.value }))
 // The landing reads live idea titles for the hero brief; no network here.
 vi.mock('@/lib/ideas', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/ideas')>()),
@@ -499,7 +496,6 @@ describe('what the site actually paints, read off the rendered pages', () => {
   ] as const
 
   beforeEach(() => {
-    pathname.value = '/'
     stubMatchMedia()
   })
   afterEach(cleanup)

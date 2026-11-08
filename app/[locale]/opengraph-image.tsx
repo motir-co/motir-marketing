@@ -18,7 +18,7 @@ import {
  * motir.co's landing social card (MOTIR-1154 · 8.3.7), one per locale
  * (MOTIR-7972).
  *
- * ⚠️ IT LIVES BESIDE THE PAGE IT DECORATES, `app/[locale]/page.tsx`, AND MUST
+ * ⚠️ IT LIVES BESIDE THE PAGE IT DECORATES, `app/[locale]/LandingRoute.tsx`, AND MUST
  * STAY THERE. A
  * metadata image file is resolved for the page in its OWN segment and is NOT
  * inherited — motir-core lost every `og:image` tag from `/explore` by leaving

@@ -1,7 +1,7 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { render } from '@/tests/helpers/withCopy'
+import { afterEach, describe, expect, it } from 'vitest'
+import { render as renderOnPage } from '@/tests/helpers/withCopy'
 import { SiteHeader } from '@/app/_components/SiteHeader'
 import { SiteFooter } from '@/app/_components/SiteFooter'
 import { PricePage } from '@/app/_components/PricePage'
@@ -17,15 +17,18 @@ import {
   type Locale,
 } from '@/i18n/routing'
 import { siteUrl } from '@/lib/siteOrigin'
-import { generateMetadata } from '@/app/[locale]/price/page'
+import { generateMetadata } from '@/app/[locale]/price/PriceRoute'
 
 /*
  * The /price route, its metadata and the two ways in (MOTIR-8382 · MOTIR-9683):
  * the header bar and its Menu panel, and the footer's Product column.
  */
 
-const pathname = vi.hoisted(() => ({ value: '/' }))
-vi.mock('next/navigation', () => ({ usePathname: () => pathname.value }))
+const pathname = { value: '/' }
+
+/** Render on the page at `pathname.value` (the built path the header reads). */
+const render: typeof renderOnPage = (ui, options = {}) =>
+  renderOnPage(ui, { pathname: pathname.value, ...options })
 
 afterEach(() => {
   pathname.value = '/'

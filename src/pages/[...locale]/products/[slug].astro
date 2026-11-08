@@ -1,0 +1,26 @@
+---
+/*
+ * A product whose page is not written yet: its name, its one line and a way
+ * into Motir, kept `noindex` (MOTIR-10644). Built for the placeholders only;
+ * the written products have their own pages, and the products whose page is
+ * their documentation are 308s in the built `_redirects` (`lib/redirects.ts`).
+ */
+import ProductPlaceholderRoute, {
+  generateMetadata,
+  PLACEHOLDER_SLUGS,
+} from '@/app/[locale]/products/[slug]/ProductPlaceholderRoute'
+import SitePage from '@/src/layouts/SitePage.astro'
+import { localeSlugStaticPaths, pageLocale } from '@/lib/staticPaths'
+
+export function getStaticPaths() {
+  return localeSlugStaticPaths('slug', PLACEHOLDER_SLUGS)
+}
+const { slug } = Astro.params
+---
+
+<SitePage
+  locale={pageLocale(Astro.params)}
+  page={ProductPlaceholderRoute}
+  params={{ slug }}
+  metadata={[generateMetadata]}
+/>

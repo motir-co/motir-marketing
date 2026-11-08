@@ -1,0 +1,17 @@
+---
+/*
+ * The plan ladder and the credit calculator. The ladder is read once per build; a failed read fails the build. Built once per locale (MOTIR-10644); the page module is the
+ * Next route's, rendered through the shared layout.
+ */
+import PriceRoute, { generateMetadata } from '@/app/[locale]/price/PriceRoute'
+import SitePage from '@/src/layouts/SitePage.astro'
+import { localeStaticPaths, pageLocale } from '@/lib/staticPaths'
+
+export const getStaticPaths = localeStaticPaths
+---
+
+<SitePage
+  locale={pageLocale(Astro.params)}
+  page={PriceRoute}
+  metadata={[generateMetadata]}
+/>

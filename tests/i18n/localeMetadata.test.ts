@@ -97,7 +97,7 @@ describe('the landing reads its words from the locale’s catalogue', () => {
             : actual.getCopy(locale as never),
       }
     })
-    const { generateMetadata } = await import('@/app/[locale]/page')
+    const { generateMetadata } = await import('@/app/[locale]/LandingRoute')
 
     const ja = await generateMetadata({
       params: Promise.resolve({ locale: 'ja' }),
@@ -123,9 +123,12 @@ describe('the landing reads its words from the locale’s catalogue', () => {
  * whose canonical carries a query or a slug is given one below.
  */
 const PAGES: { module: string; path: string; params?: object }[] = [
-  { module: '@/app/[locale]/page', path: '/' },
-  { module: '@/app/[locale]/design/page', path: '/design' },
-  { module: '@/app/[locale]/how-it-works/page', path: '/how-it-works' },
+  { module: '@/app/[locale]/LandingRoute', path: '/' },
+  { module: '@/app/[locale]/design/DesignRoute', path: '/design' },
+  {
+    module: '@/app/[locale]/how-it-works/HowItWorksRoute',
+    path: '/how-it-works',
+  },
   {
     module: '@/app/[locale]/motir-builds-itself/page',
     path: '/motir-builds-itself',
@@ -166,11 +169,11 @@ const PAGES: { module: string; path: string; params?: object }[] = [
     path: `/products/${slug}`,
   })),
   {
-    module: '@/app/[locale]/products/[slug]/page',
+    module: '@/app/[locale]/products/[slug]/ProductPlaceholderRoute',
     path: '/products/project-manager',
     params: { slug: 'project-manager' },
   },
-  { module: '@/app/[locale]/legal/page', path: '/legal' },
+  { module: '@/app/[locale]/legal/LegalIndexRoute', path: '/legal' },
   // A legal DOCUMENT is not here: every language version of it is canonical to
   // the English document (MOTIR-8086), the English-only arm below.
   { module: '@/app/[locale]/explore/page', path: '/explore' },
@@ -205,7 +208,7 @@ describe('every converted page canonicalises to its own language address', () =>
   it('a legal document is the exception: every language version is canonical to the English document, with no hreflang set (MOTIR-8086)', async () => {
     const slug = legalDocumentSlugs()[0]!
     const { generateMetadata } =
-      await import('@/app/[locale]/legal/[slug]/page')
+      await import('@/app/[locale]/legal/[slug]/LegalDocumentRoute')
     for (const locale of ['en', 'fr'] as const) {
       const meta = await generateMetadata({
         params: Promise.resolve({ locale, slug }),
@@ -219,7 +222,7 @@ describe('every converted page canonicalises to its own language address', () =>
   it('no canonical resolves to the root except the English landing’s', () => {
     const roots = PAGES.filter(({ path }) => path === '/')
     expect(roots).toHaveLength(1)
-    expect(roots[0]!.module).toBe('@/app/[locale]/page')
+    expect(roots[0]!.module).toBe('@/app/[locale]/LandingRoute')
   })
 
   it('the explore canonical is the bare square, localised, whatever the filters', async () => {

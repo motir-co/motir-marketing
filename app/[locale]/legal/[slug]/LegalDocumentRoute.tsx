@@ -1,10 +1,8 @@
 import { localizedPath } from '@/i18n/localizedPath'
-import type { Metadata } from 'next'
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import type { Metadata } from '@/lib/metadata'
 import { getCopy, format } from '@/lib/copy'
 import { englishOnlyAlternates, localePageMetadata } from '@/lib/localeMetadata'
-import { getLegalDocument, legalDocumentSlugs } from '@/lib/legal/documents'
+import { getLegalDocument } from '@/lib/legal/documents'
 import { MarkdownBody } from '../_components/MarkdownBody'
 import { BindingEnglishNote } from '../_components/BindingEnglishNote'
 import { englishLegalPath } from '@/lib/legal/englishAddress'
@@ -12,18 +10,14 @@ import { enterLocale } from '@/i18n/locale'
 
 /**
  * One published legal document (MOTIR-4009), built to `design/legal/`
- * (MOTIR-4005). The routes come from the DIRECTORY — `generateStaticParams`
- * globs `content/legal/`, so a document ships by EXISTING and no route table
- * has to be edited to add one.
+ * (MOTIR-4005). The routes come from the DIRECTORY — its Astro page builds
+ * one per `legalDocumentSlugs()`, the glob of `content/legal/`, so a document
+ * ships by EXISTING and no route table has to be edited to add one.
  *
  * Server-rendered and indexable: no `'use client'`, no gate, no `robots`
  * restriction. A legal page a crawler cannot read is one a customer's
  * procurement review cannot find.
  */
-
-export async function generateStaticParams() {
-  return legalDocumentSlugs().map((slug) => ({ slug }))
-}
 
 export async function generateMetadata({
   params,
@@ -61,21 +55,21 @@ export default async function LegalDocumentPage({
   const { slug } = await params
   const doc = getLegalDocument(slug)
 
-  // An unknown slug is a genuine 404, and it stays one: nothing in this tree
-  // renders a `loading.tsx` above this call, so the status code survives.
-  if (!doc) notFound()
+  // Only the documents on disk are built, so an unknown slug is a build
+  // error; an address that names none is the static 404 page.
+  if (!doc) throw new Error(`No legal document is named "${slug}"`)
 
   return (
     /* The width box and the `main` landmark this page used to open with both
-       live in `app/[locale]/legal/layout.tsx`'s `SiteShell` now (MOTIR-4169). */
+       live in `app/[locale]/legal/LegalLayout.tsx`'s `SiteShell` now (MOTIR-4169). */
     <>
       <nav aria-label={copy.legal.breadcrumbAria} className="mb-6">
-        <Link
+        <a
           href={localizedPath(locale, '/legal')}
           className="text-[13px] text-(--el-text-secondary) hover:text-(--el-link)"
         >
           {copy.legal.allDocuments}
-        </Link>
+        </a>
       </nav>
 
       {/* Above the English `h1`, so it is read before the first English word

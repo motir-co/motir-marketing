@@ -1,5 +1,4 @@
 import { localizedPath } from '@/i18n/localizedPath'
-import Link from 'next/link'
 import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { cn } from '@motir/design-system'
 import { useCopy, usePageLocale } from '@/lib/copy'
@@ -53,13 +52,13 @@ export function BuiltByMotirSection() {
           {b.headline}
         </h2>
         <p className="m-0 max-w-[48ch] text-[18px]">{b.body}</p>
-        <Link
+        <a
           href={localizedPath(locale, MOTIR_BUILDS_ITSELF)}
           className="mt-5 inline-flex items-center gap-2 text-[16px] font-semibold text-(--el-showcase-field-ink) underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--el-showcase-ground)"
         >
           {b.story}
           <ArrowRight aria-hidden="true" className="size-4" />
-        </Link>
+        </a>
       </div>
 
       <div className="grid gap-6">

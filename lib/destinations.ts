@@ -134,40 +134,15 @@ export const PRICE = '/price'
  * `SOURCE_REPO` and every `APP_ORIGIN` door are absent on purpose: they are
  * already absolute, on a host that is not this one.
  */
-/*
- * The product pages the header's Products menu points at (2026-10 redesign).
- * Each product gets its own page; until a page is written, its route renders
- * the product's name and one line with a way into Motir, and is kept OUT of
- * `SITE_PATHS` (and so out of the sitemap) on purpose.
- */
-export const PRODUCT_SLUGS = [
-  'ai-planner',
-  'project-management',
-  'project-manager',
-  'ai-debugging',
-  'mcp',
-  'cli',
-  'claude-code-connector',
-  'claude-code-plugin',
-  'agent-fleet',
-  'agent-hosting',
-  'sandbox',
-] as const
-export type ProductSlug = (typeof PRODUCT_SLUGS)[number]
-export const productPath = (slug: ProductSlug) => `/products/${slug}`
-
-/**
- * The products whose page IS their documentation (2026-10 redesign): the
- * tooling, and the sandbox. The Products menu opens these in a new tab and their
- * `/products/<slug>` address forwards here.
- */
-export const PRODUCT_DOCS: Partial<Record<ProductSlug, string>> = {
-  mcp: '/docs/mcp',
-  cli: '/docs/cli',
-  'claude-code-connector': '/docs/claude-code-connector',
-  'claude-code-plugin': '/docs/claude-code-plugin',
-  sandbox: '/docs/sandbox',
-}
+// The product pages' addresses live in `lib/productAddresses.ts`, with no
+// import of their own, so the build config and the static-pages check can read
+// them too. Re-exported here, where every page and the header look for a door.
+export {
+  PRODUCT_DOCS,
+  PRODUCT_SLUGS,
+  productPath,
+  type ProductSlug,
+} from './productAddresses'
 
 /**
  * Motir's own project, public on app.motir.co (the visitor view), and its agent

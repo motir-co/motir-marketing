@@ -1,6 +1,6 @@
 import { localizedPath } from '@/i18n/localizedPath'
 import { localePageMetadata } from '@/lib/localeMetadata'
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 import { format, getCopy } from '@/lib/copy'
 import { DOCS_DIFFICULTY } from '@/lib/destinations'
 import { SITE_HOST } from '@/lib/publicHost'

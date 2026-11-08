@@ -1,6 +1,6 @@
 import { localizedPath } from '@/i18n/localizedPath'
 import { localePageMetadata } from '@/lib/localeMetadata'
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 import { ArrowRight } from 'lucide-react'
 import { cn } from '@motir/design-system'
 import { getCopy } from '@/lib/copy'
@@ -17,7 +17,7 @@ import {
   ReviewArt,
   RunArt,
 } from './_components/ModuleArt'
-import { RackStage } from './_components/RackStage'
+import { RackStageIsland } from '../../_islands'
 import { enterLocale, type LocalePageProps } from '@/i18n/locale'
 
 /*
@@ -125,7 +125,7 @@ export default async function HowItWorksPage({ params }: LocalePageProps) {
         </section>
 
         <div className={GUTTER}>
-          <RackStage />
+          <RackStageIsland />
         </div>
 
         <section

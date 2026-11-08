@@ -1,6 +1,6 @@
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 import { localePageMetadata } from '@/lib/localeMetadata'
-import { DesignShowcase } from '../../_components/DesignShowcase'
+import { DesignShowcaseIsland } from '../../_islands'
 import { SiteShell } from '../../_components/SiteShell'
 import { SITE_HOST } from '@/lib/publicHost'
 import { enterLocale, type LocalePageProps } from '@/i18n/locale'
@@ -37,7 +37,7 @@ export default async function DesignPage({ params }: LocalePageProps) {
   await enterLocale(params)
   return (
     <SiteShell host={SITE_HOST}>
-      <DesignShowcase />
+      <DesignShowcaseIsland />
     </SiteShell>
   )
 }

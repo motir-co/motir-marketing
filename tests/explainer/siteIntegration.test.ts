@@ -8,7 +8,7 @@ import { siteSitemapEntries } from '@/lib/sitemapEntries'
 import { siteUrl } from '@/lib/siteOrigin'
 import { PLAN_LADDER_PATH } from '@/lib/priceLadder'
 import { CATEGORIES_PATH } from '@/app/_components/price/calculatorApi'
-import { generateMetadata } from '@/app/[locale]/how-the-calculation-works/page'
+import { generateMetadata } from '@/app/[locale]/how-the-calculation-works/HowTheCalculationWorksRoute'
 import { withCopy } from '@/tests/helpers/withCopy'
 import recorded from '@/tests/fixtures/price/plans.json'
 
@@ -97,7 +97,7 @@ describe('the explainer route', () => {
     vi.stubGlobal('fetch', fetcher)
     vi.doMock('next/navigation', () => ({ usePathname: () => '/' }))
     const { default: Route } =
-      await import('@/app/[locale]/how-the-calculation-works/page')
+      await import('@/app/[locale]/how-the-calculation-works/HowTheCalculationWorksRoute')
 
     const ui = await Route({ params: Promise.resolve({ locale: 'en' }) })
     const { container } = render(withCopy(ui))

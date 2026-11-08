@@ -31,9 +31,9 @@ const {
   default: LegalDocumentPage,
   generateMetadata,
   generateStaticParams,
-} = await import('@/app/[locale]/legal/[slug]/page')
+} = await import('@/app/[locale]/legal/[slug]/LegalDocumentRoute')
 const { default: LegalIndexPage, generateMetadata: indexMetadata } =
-  await import('@/app/[locale]/legal/page')
+  await import('@/app/[locale]/legal/LegalIndexRoute')
 const { default: sitemap } = await import('@/tests/helpers/sitemap')
 const { proxy } = await import('@/proxy')
 const { NextRequest } = await import('next/server')

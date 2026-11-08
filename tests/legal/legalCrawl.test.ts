@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import sitemap from '@/tests/helpers/sitemap'
-import { generateMetadata as generateDocumentMetadata } from '@/app/[locale]/legal/[slug]/page'
-import { generateMetadata as generateIndexMetadata } from '@/app/[locale]/legal/page'
+import { generateMetadata as generateDocumentMetadata } from '@/app/[locale]/legal/[slug]/LegalDocumentRoute'
+import { generateMetadata as generateIndexMetadata } from '@/app/[locale]/legal/LegalIndexRoute'
 import { format, getCopy } from '@/lib/copy'
 import { getLegalDocument, legalDocumentSlugs } from '@/lib/legal/documents'
 import {

@@ -1,7 +1,7 @@
-import { createElement, useId, type ComponentType } from 'react'
+import { createElement, useId, type ComponentType, type ReactNode } from 'react'
 import { renderToString } from 'react-dom/server'
 import { clientCopy, PageProvider, usePage, type Copy } from '@/lib/copy'
-import { ISLAND_TAG, type IslandName } from '@/lib/islands'
+import { IslandSlot, ISLAND_TAG, type IslandName } from '@/lib/islands'
 
 /*
  * A CLIENT ISLAND INSIDE A BUILT PAGE (MOTIR-10643).
@@ -33,6 +33,15 @@ import { ISLAND_TAG, type IslandName } from '@/lib/islands'
  * than rendering a word at build and crashing in the browser.
  *
  * Props must survive JSON: they are written into the markup and read back.
+ *
+ * ⚠️ `children` IS THE ONE EXCEPTION, AND IT STAYS SERVER-RENDERED. An island
+ * that wraps server-rendered content (the price card's cadence toggle around
+ * the plan cards) gets its children as a SLOT: they are rendered at build, as
+ * part of the page, into a `<motir-slot>` inside the island, and hydration
+ * hands the component that same markup back as its children
+ * (`IslandSlot`). The slot's content is HTML, never hydrated, so it ships
+ * no JavaScript — what a server component's children inside a client
+ * component were under Next.
  */
 
 type JsonValue = string | number | boolean | null | undefined
@@ -51,25 +60,39 @@ export type Serializable<T> = T extends JsonValue
         ? { readonly [K in keyof T]: Serializable<T[K]> }
         : never
 
+type IslandProps<P> = Omit<P, 'children'>
+
 export function island<P extends object>(
   name: IslandName,
   Component: ComponentType<P>,
   // A component whose props do not survive JSON takes a `never` here, so the
-  // call does not compile.
+  // call does not compile. `children` is a slot, and exempt.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- a type-level check
-  ..._serializable: P extends Serializable<P> ? [] : [never]
+  ..._serializable: IslandProps<P> extends Serializable<IslandProps<P>>
+    ? []
+    : [never]
 ) {
-  function Island(props: P) {
+  function Island(allProps: P) {
+    const { children, ...props } = allProps as P & { children?: ReactNode }
     const page = usePage()
     // `useId` is unique within the page's root and stable across builds; the
     // island's own ids hang off it, so no two islands on a page collide.
     const identifierPrefix = `${name}${useId()}`
     const Inner = Component as ComponentType<object>
+    // The slot renders with the page's whole catalogue: it is page markup.
+    const slot =
+      children === undefined
+        ? undefined
+        : renderToString(<PageProvider value={page}>{children}</PageProvider>, {
+            identifierPrefix: `${identifierPrefix}slot`,
+          })
     const html = renderToString(
       <PageProvider
         value={{ ...page, copy: clientCopy(page.copy) as unknown as Copy }}
       >
-        <Inner {...props} />
+        <Inner {...props}>
+          {slot === undefined ? undefined : <IslandSlot html={slot} />}
+        </Inner>
       </PageProvider>,
       { identifierPrefix },
     )

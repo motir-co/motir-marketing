@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { localizedPath } from '@/i18n/localizedPath'
 import { ArrowRight } from 'lucide-react'
 import { buttonVariants, cn } from '@motir/design-system'
@@ -25,13 +24,12 @@ import {
   WatchArt,
 } from '../_components/landing/Art'
 import { BuiltByMotirSection } from '../_components/landing/BuiltByMotirSection'
-import { HeroBrief } from '../_components/landing/HeroBrief'
-import { HeroWaves } from '../_components/landing/HeroWaves'
+import { HeroBriefIsland, HeroWavesIsland } from '../_islands'
 import { ProjectManagerSection } from '../_components/landing/ProjectManagerSection'
 import { enterLocale, type LocalePageProps } from '@/i18n/locale'
 import type { Locale } from '@/i18n/routing'
 import { localePageMetadata } from '@/lib/localeMetadata'
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 
 /*
  * motir.co — the public landing: "Vibe the project" (2026-10 redesign).
@@ -95,7 +93,7 @@ export default async function Page({ params }: LocalePageProps) {
     <>
       <SiteShell host={SITE_HOST} className="bg-(--el-surface)" overlayHeader>
         <section className="relative isolate grid justify-items-center gap-[22px] overflow-hidden px-[clamp(16px,3vw,48px)] pt-[calc(clamp(72px,9vw,136px)+4.75rem)] pb-[clamp(96px,11vw,168px)] text-center">
-          <HeroWaves />
+          <HeroWavesIsland />
           <h1 className="m-0 font-(family-name:--font-serif) text-[clamp(56px,9.6vw,156px)] leading-[0.9] font-bold tracking-[-0.04em]">
             {l.hero.headline}
             {/* The full stop is drawn, not typed: it is the warm touch, and an
@@ -112,7 +110,7 @@ export default async function Page({ params }: LocalePageProps) {
             {l.hero.lede}
           </p>
           <div className="mt-[18px] flex w-full justify-center">
-            <HeroBrief examples={examples} />
+            <HeroBriefIsland examples={examples} />
           </div>
           {/* For a visitor who arrives with a project rather than an idea: the
               import door, the same one the close offers. */}
@@ -258,12 +256,12 @@ export default async function Page({ params }: LocalePageProps) {
               <a href={IMPORT_DOOR} className={CLOSE_BTN.plain}>
                 {l.close.import}
               </a>
-              <Link
+              <a
                 href={localizedPath(locale, HOW_IT_WORKS)}
                 className={CLOSE_BTN.warm}
               >
                 {l.close.developers}
-              </Link>
+              </a>
             </div>
             <p className="m-0 text-[14px] text-(--el-showcase-field-text)/85">
               {l.close.free.lead}{' '}

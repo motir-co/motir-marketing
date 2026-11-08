@@ -1,9 +1,9 @@
-import type { Metadata } from 'next'
+import type { Metadata } from '@/lib/metadata'
 import { enterLocale, type LocalePageProps } from '@/i18n/locale'
 import { getCopy } from '@/lib/copy'
 import { HOW_THE_CALCULATION_WORKS } from '@/lib/destinations'
 import { readExplainerCategories } from '@/lib/explainer/categories'
-import { readExplainerFigures } from '@/lib/explainer/figures'
+import { requireExplainerFigures } from '@/lib/explainer/figures'
 import { localePageMetadata } from '@/lib/localeMetadata'
 import { SITE_HOST } from '@/lib/publicHost'
 import { SiteShell } from '../../_components/SiteShell'
@@ -15,9 +15,10 @@ import { ExplainerPage } from './_components/ExplainerPage'
  *
  * Built as `/how-it-works` is: the page's own metadata and every locale's
  * `hreflang` alternate through `localePageMetadata`, then the site shell around
- * the body. The figures are read once, before render, from the same plan
- * catalog the price card reads; an unreadable or unknown answer renders the
- * same ten sections in words. Reached by plain in-text links only — it has no
+ * the body. The figures are read once per build from the same plan catalog
+ * the price card reads, and an unreadable or unknown answer fails the build
+ * (MOTIR-10644); `ExplainerPage` still draws the ten sections in words for a
+ * caller that hands it none. Reached by plain in-text links only — it has no
  * header or footer entry.
  */
 export function generateMetadata({
@@ -33,9 +34,9 @@ export default async function HowTheCalculationWorksRoute({
   params,
 }: LocalePageProps) {
   const locale = await enterLocale(params)
-  const [copy, result, categories] = await Promise.all([
+  const [copy, figures, categories] = await Promise.all([
     getCopy(locale),
-    readExplainerFigures(),
+    requireExplainerFigures(),
     readExplainerCategories(),
   ])
   return (
@@ -43,7 +44,7 @@ export default async function HowTheCalculationWorksRoute({
       <ExplainerPage
         copy={copy.explainer}
         locale={locale}
-        figures={result.state === 'figures' ? result.figures : null}
+        figures={figures}
         categories={categories}
       />
     </SiteShell>

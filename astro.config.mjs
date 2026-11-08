@@ -1,8 +1,10 @@
+import { writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import react from '@astrojs/react'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'astro/config'
 import { DEFAULT_LOCALE, LOCALES } from './i18n/routing.ts'
+import { redirectsFile } from './lib/redirects.ts'
 import { SITE_ORIGIN } from './lib/siteOrigin.ts'
 
 /*
@@ -29,7 +31,7 @@ import { SITE_ORIGIN } from './lib/siteOrigin.ts'
  * config imports it. English is unprefixed (`prefixDefaultLocale: false`),
  * every other locale sits under `/<locale>/`, and the pages spell that with
  * an optional `[...locale]` segment (`lib/staticPaths.ts`). `/en` and `/en/…`
- * are a 308 to the unprefixed address, from `public/_redirects`.
+ * are a 308 to the unprefixed address, from the `_redirects` file below.
  *
  * ── BUILD-TIME ENV KEEPS ITS NAMES ─────────────────────────────────────────
  *
@@ -50,6 +52,20 @@ const PUBLIC_ENV = [
   'NEXT_PUBLIC_MOTIR_TENANT_DOMAIN',
 ]
 
+/**
+ * Writes `dist/_redirects` from `lib/redirects.ts` once the pages are built:
+ * the rules Workers static assets answer before any file (the `/en` 308s and
+ * the products that forward to their docs).
+ */
+const redirects = {
+  name: 'motir-redirects',
+  hooks: {
+    'astro:build:done': ({ dir }) => {
+      writeFileSync(new URL('_redirects', dir), redirectsFile())
+    },
+  },
+}
+
 const define = Object.fromEntries(
   PUBLIC_ENV.map((name) => [
     `process.env.${name}`,
@@ -62,7 +78,7 @@ export default defineConfig({
   output: 'static',
   trailingSlash: 'never',
   build: { format: 'file' },
-  integrations: [react()],
+  integrations: [react(), redirects],
   i18n: {
     locales: [...LOCALES],
     defaultLocale: DEFAULT_LOCALE,
