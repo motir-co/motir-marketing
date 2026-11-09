@@ -5,7 +5,14 @@ import { cleanup } from '@testing-library/react'
 import { render } from '@/tests/helpers/withCopy'
 import type { Locale } from '@/i18n/routing'
 import { legalDocumentSlugs } from '@/lib/legal/documents'
+import { APP_ORIGIN } from '@/lib/appOrigin'
 import { SITE_ORIGIN } from '@/lib/siteOrigin'
+import type { Env } from '@/worker/env'
+import { resetShell } from '@/worker/render/shell'
+import { route } from '@/worker/router'
+import { PLAN_LADDER_PATH } from '@/lib/priceLadder'
+import plans from '@/tests/fixtures/price/plans.json'
+import { NEUTRAL_FIXTURES } from '@/tests/helpers/docsRoutes'
 
 /*
  * EVERY LINK ON A FRENCH PAGE STAYS FRENCH (MOTIR-7971).
@@ -18,16 +25,16 @@ import { SITE_ORIGIN } from '@/lib/siteOrigin'
  * `fr`, every same-origin `<a href>` and `<form action>` must be `/fr` or start
  * with `/fr/`, unless the `ALLOWED` list below names it and says why. Under
  * `en` no `/en/` address may appear — English is unprefixed.
+ *
+ * Two kinds of page, asked the same question (MOTIR-10758): a BUILT page is its
+ * route module rendered as the build renders it, and a LIVE page is the
+ * document the Worker answers for its address — `route()` over the same
+ * contract stub — parsed back into a DOM.
  */
 
-vi.mock('next/headers', () => ({ headers: async () => new Headers() }))
-const pathname = vi.hoisted(() => ({ value: '/fr' }))
-vi.mock('next/navigation', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('next/navigation')>()),
-  usePathname: () => pathname.value,
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
-  useSearchParams: () => new URLSearchParams(),
-}))
+// The built explainer route refuses to build without its figures, so the
+// plan ladder is answered from the recorded catalog.
+vi.mock('@/lib/aiOrigin', () => ({ AI_ORIGIN: 'https://ai.example' }))
 
 const fixture = (name: string) =>
   JSON.parse(readFileSync(`e2e/fixtures/${name}`, 'utf8')) as unknown
@@ -40,6 +47,17 @@ function stubContract() {
       const url = new URL(String(input instanceof Request ? input.url : input))
       const path = url.pathname.replace(/^\/api\/public/, '')
       const json = (name: string) => Response.json(fixture(name))
+      if (url.origin === 'https://ai.example')
+        return url.pathname === PLAN_LADDER_PATH
+          ? Response.json(plans)
+          : new Response('not stubbed', { status: 404 })
+      // A docs guide is never built without the three published documents.
+      if (url.pathname === '/api/openapi/v1.json')
+        return Response.json(NEUTRAL_FIXTURES.openapi)
+      if (url.pathname === '/api/docs/mcp-tools.json')
+        return Response.json(NEUTRAL_FIXTURES.mcpTools)
+      if (url.pathname === '/api/docs/cli-commands.json')
+        return Response.json(NEUTRAL_FIXTURES.cliCommands)
       if (path === '/explore') return json('explore.json')
       if (path === '/categories') return json('categories.json')
       if (path === '/ideas') return json('ideas.json')
@@ -71,25 +89,14 @@ const PAGES: { label: string; module: string; params?: object }[] = [
     label: 'how it works',
     module: '@/app/[locale]/how-it-works/HowItWorksRoute',
   },
-  // MOTIR-8383 — rendered with the contract stub below, which answers the
-  // plan catalog with a 404, so this is the figure-free page.
+  // MOTIR-8383 — rendered with the recorded plan catalog, which the built
+  // page cannot be made without.
   {
     label: 'how the calculation works',
     module:
       '@/app/[locale]/how-the-calculation-works/HowTheCalculationWorksRoute',
   },
-  {
-    label: 'Motir builds itself',
-    module: '@/app/[locale]/motir-builds-itself/page',
-  },
   { label: '/design', module: '@/app/[locale]/design/DesignRoute' },
-  { label: '/ideas', module: '@/app/[locale]/ideas/page' },
-  { label: '/explore', module: '@/app/[locale]/explore/page' },
-  {
-    label: 'a topic page',
-    module: '@/app/[locale]/explore/topic/[slug]/page',
-    params: { slug: 'developer-tools' },
-  },
   {
     label: 'the docs index',
     module: '@/app/[locale]/docs/(guides)/DocsIndexRoute',
@@ -104,11 +111,15 @@ const PAGES: { label: string; module: string; params?: object }[] = [
     module: '@/app/[locale]/legal/[slug]/LegalDocumentRoute',
     params: { slug: legalDocumentSlugs()[0] },
   },
-  {
-    label: 'a public project overview',
-    module: '@/app/[locale]/p/[identifier]/page',
-    params: { identifier: 'ACME' },
-  },
+]
+
+/** The pages the Worker answers per request, by their unprefixed address. */
+const LIVE: { label: string; path: string }[] = [
+  { label: 'Motir builds itself', path: '/motir-builds-itself' },
+  { label: '/ideas', path: '/ideas' },
+  { label: '/explore', path: '/explore' },
+  { label: 'a topic page', path: '/explore/topic/developer-tools' },
+  { label: 'a public project overview', path: '/p/ACME' },
 ]
 
 /**
@@ -123,7 +134,7 @@ const ALLOWED: { target: string; reason: string }[] = [
   {
     target: '/en/legal/',
     reason:
-      'the binding-English note’s deliberate link to the binding text in English (MOTIR-8088); the unprefixed English address would be bounced back to the reader’s language by the proxy',
+      'the binding-English note’s deliberate link to the binding text in English (MOTIR-8088); `_redirects` answers it with a 308 to the unprefixed English page, choosing no language on the way',
   },
 ]
 
@@ -147,7 +158,6 @@ function sameOriginTargets(root: HTMLElement): string[] {
 }
 
 async function renderPage(module: string, locale: Locale, params = {}) {
-  pathname.value = locale === 'en' ? '/' : `/${locale}`
   const Page = (await import(/* @vite-ignore */ module)).default as Page
   const ui = await Page({
     params: Promise.resolve({ locale, ...params }),
@@ -156,7 +166,44 @@ async function renderPage(module: string, locale: Locale, params = {}) {
   return render(<>{ui}</>, { locale })
 }
 
+/** A Worker env over the contract stub; the shell is read from a built `/404`. */
+const ENV: Env = {
+  ASSETS: {
+    fetch: async () =>
+      new Response(
+        '<html><head><link rel="stylesheet" href="/_astro/s.css"></head><body><script type="module" src="/_astro/s.js"></script></body></html>',
+      ),
+  },
+  MOTIR_APP_ORIGIN: APP_ORIGIN,
+  MOTIR_SITE_ORIGIN: SITE_ORIGIN,
+}
+
+/** The document the Worker answers for `path` under `locale`, as a DOM. */
+async function renderLive(path: string, locale: Locale) {
+  const prefixed = locale === 'en' ? path : `/${locale}${path}`
+  const response = await route(new Request(`${SITE_ORIGIN}${prefixed}`), ENV)
+  expect(response.status, prefixed).toBe(200)
+  const doc = new DOMParser().parseFromString(
+    await response.text(),
+    'text/html',
+  )
+  return { container: doc.body }
+}
+
+const PAGE_CASES = [
+  ...PAGES.map(({ label, module, params }) => ({
+    label,
+    open: (locale: Locale) => renderPage(module, locale, params),
+  })),
+  ...LIVE.map(({ label, path }) => ({
+    label,
+    open: (locale: Locale) => renderLive(path, locale),
+  })),
+]
+
 beforeEach(() => {
+  resetShell()
+  vi.spyOn(console, 'log').mockImplementation(() => {})
   stubContract()
   // jsdom has no matchMedia; the design showcase reads it.
   vi.stubGlobal('matchMedia', () => ({
@@ -168,12 +215,13 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   vi.unstubAllGlobals()
+  vi.restoreAllMocks()
 })
 
 describe('under fr on the site host, every internal link is French', () => {
-  for (const { label, module, params } of PAGES) {
+  for (const { label, open } of PAGE_CASES) {
     it(label, async () => {
-      const { container } = await renderPage(module, 'fr', params)
+      const { container } = await open('fr')
       const targets = sameOriginTargets(container)
       // A page that rendered no link would pass vacuously.
       expect(targets.length, label).toBeGreaterThan(0)
@@ -204,9 +252,9 @@ describe('under fr on the site host, every internal link is French', () => {
 })
 
 describe('under en, English stays unprefixed', () => {
-  for (const { label, module, params } of PAGES) {
+  for (const { label, open } of PAGE_CASES) {
     it(label, async () => {
-      const { container } = await renderPage(module, 'en', params)
+      const { container } = await open('en')
       const targets = sameOriginTargets(container)
       expect(
         targets.filter((t) => t === '/en' || t.startsWith('/en/')),

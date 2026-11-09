@@ -1,23 +1,23 @@
 // @vitest-environment node
 import { afterEach, expect, it, vi } from 'vitest'
+import type { Env } from '@/worker/env'
+import { route } from '@/worker/router'
 
 /*
  * MOTIR-8842 — the per-host project half of the sitemap, split out of
  * `tests/sitemapRoutes.test.ts` when the site half became built files
- * (MOTIR-10646). `/sitemap-projects.xml` renders per request, so it is the
- * Worker-routes story's (MOTIR-10635) to port, and this case waits with it in
- * `held-out.json`.
+ * (MOTIR-10646). `/sitemap-projects.xml` renders per request in the Worker
+ * (MOTIR-10756); re-included by MOTIR-10758, it now asks the Worker's route
+ * rather than the Next route file it was written against.
  */
 
 afterEach(() => {
-  vi.doUnmock('next/headers')
   vi.unstubAllGlobals()
-  vi.resetModules()
+  vi.restoreAllMocks()
 })
 
 it('/sitemap-projects.xml lists the projects whose canonical is motir.co', async () => {
-  vi.resetModules()
-  vi.doMock('next/headers', () => ({ headers: async () => new Headers() }))
+  vi.spyOn(console, 'log').mockImplementation(() => {})
   vi.stubGlobal('fetch', async () =>
     Response.json({
       projects: [
@@ -35,8 +35,16 @@ it('/sitemap-projects.xml lists the projects whose canonical is motir.co', async
       nextCursor: null,
     }),
   )
-  const { GET } = await import('@/app/sitemap-projects.xml/route')
-  const xml = await (await GET()).text()
+  const env: Env = {
+    ASSETS: { fetch: async () => new Response('built') },
+    MOTIR_APP_ORIGIN: 'https://app.motir.co',
+    MOTIR_SITE_ORIGIN: 'https://motir.co',
+  }
+  const response = await route(
+    new Request('https://motir.co/sitemap-projects.xml'),
+    env,
+  )
+  const xml = await response.text()
 
   expect(xml).toContain('<loc>https://motir.co/p/MOTIR/changelog</loc>')
   expect(xml).not.toContain('PROD')

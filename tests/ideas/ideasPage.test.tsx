@@ -11,7 +11,9 @@ import {
   type PublicIdeaListDto,
   type PublicIdeaTagListDto,
 } from '@/lib/ideas'
-import IdeasPage, { generateMetadata } from '@/app/[locale]/ideas/page'
+import { IdeasPage } from '@/app/[locale]/ideas/IdeasPage'
+import { ideasMetadata } from '@/app/[locale]/ideas/ideasMetadata'
+import { readIdeas } from '@/worker/ideas/handler'
 import ideasFixture from '../../e2e/fixtures/ideas.json'
 import tagsFixture from '../../e2e/fixtures/ideas-tags.json'
 import ideaFixture from '../../e2e/fixtures/idea-stop-returns-before-they-happen.json'
@@ -28,12 +30,10 @@ import ideaFixture from '../../e2e/fixtures/idea-stop-returns-before-they-happen
  * of the page, so it is the oracle the render is checked against.
  */
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), back: vi.fn(), replace: vi.fn() }),
-  usePathname: () => '/ideas',
-}))
-
-const API = 'https://app.test.motir.co/api/public/ideas'
+const APP = 'https://app.test.motir.co'
+const API = `${APP}/api/public/ideas`
+/** The Worker's store source, reading through the stubbed global `fetch`. */
+const SOURCE = { origin: APP, fetch: (url: string) => fetch(url) }
 const LIST = ideasFixture as PublicIdeaListDto
 const TAGS = tagsFixture as PublicIdeaTagListDto
 const ONE = ideaFixture as PublicIdeaDto
@@ -101,21 +101,25 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
+/** The page for `query`, as the Worker's `ideas` slot reads and renders it. */
 async function open(query: string) {
-  const searchParams = Promise.resolve(
-    Object.fromEntries(
-      [...new URLSearchParams(query).keys()].map((k) => {
-        const all = new URLSearchParams(query).getAll(k)
-        return [k, all.length > 1 ? all : all[0]]
-      }),
-    ),
-  )
+  const params = parseIdeasParams(new URLSearchParams(query))
+  const { list, tags, found } = await readIdeas(params, 'en', SOURCE)
   render(
-    await IdeasPage({
-      params: Promise.resolve({ locale: 'en' }),
-      searchParams,
-    }),
+    <IdeasPage
+      params={params}
+      list={list}
+      tags={tags}
+      open={list ? found : null}
+    />,
   )
+}
+
+/** The head for `query`, as the Worker's `ideas` slot builds it. */
+async function head(query: Record<string, string>) {
+  const params = parseIdeasParams(new URLSearchParams(query))
+  const { found } = await readIdeas(params, 'en', SOURCE)
+  return ideasMetadata('en', copy, params, found)
 }
 
 /** The titles of every idea card on the page, in order. */
@@ -291,10 +295,7 @@ describe('the idea open in place', () => {
   })
 
   it('the metadata names the open idea and keeps the idea in the canonical', async () => {
-    const meta = await generateMetadata({
-      params: Promise.resolve({ locale: 'en' }),
-      searchParams: Promise.resolve({ tag: 'smb', idea: ONE.slug }),
-    })
+    const meta = await head({ tag: 'smb', idea: ONE.slug })
     expect(meta.title).toBe(`${ONE.title} · ${copy.ideas.metaTitle}`)
     expect(meta.description).toBe(ONE.pitch)
     expect(String(meta.alternates?.canonical)).toMatch(
@@ -305,13 +306,7 @@ describe('the idea open in place', () => {
 
   it('with no idea, or an unknown one, the metadata is the page’s own', async () => {
     for (const idea of [undefined, 'no-such-idea']) {
-      const meta = await generateMetadata({
-        params: Promise.resolve({ locale: 'en' }),
-        searchParams: Promise.resolve({
-          tag: 'smb',
-          ...(idea ? { idea } : {}),
-        }),
-      })
+      const meta = await head({ tag: 'smb', ...(idea ? { idea } : {}) })
       expect(meta.title).toBe(copy.ideas.metaTitle)
       expect(String(meta.alternates?.canonical)).toMatch(/\/ideas\?tag=smb$/)
     }

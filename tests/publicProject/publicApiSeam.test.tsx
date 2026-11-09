@@ -1,3 +1,4 @@
+import { APP_ORIGIN } from '@/lib/appOrigin'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -48,7 +49,7 @@ const serve = (name: string) =>
 describe('a recorded response reaches the props a component renders', () => {
   it('the project subject → the hero', async () => {
     serve('project.json')
-    const read = await loadProject('MOTIR')
+    const read = await loadProject(APP_ORIGIN, 'MOTIR')
     if (read.status !== 'ok') throw new Error('fixture did not parse as ok')
 
     render(<ProjectHeader project={read.data} current="" />)
@@ -66,12 +67,12 @@ describe('a recorded response reaches the props a component renders', () => {
 
 describe('every recorded shape parses, field for field', () => {
   const cases: Array<[string, string, () => Promise<unknown>]> = [
-    ['project', 'project.json', () => loadProject('MOTIR')],
-    ['changelog', 'changelog.json', () => loadChangelog('MOTIR')],
+    ['project', 'project.json', () => loadProject(APP_ORIGIN, 'MOTIR')],
+    ['changelog', 'changelog.json', () => loadChangelog(APP_ORIGIN, 'MOTIR')],
     [
       'request',
       'request-detail.json',
-      () => loadRequest('MOTIR', 'MOTIR-4051'),
+      () => loadRequest(APP_ORIGIN, 'MOTIR', 'MOTIR-4051'),
     ],
   ]
 

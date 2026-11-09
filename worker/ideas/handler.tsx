@@ -10,7 +10,9 @@ import {
   type IdeaLocale,
   type IdeasParams,
   type IdeasSource,
+  type PublicIdeaDto,
   type PublicIdeaListDto,
+  type PublicIdeaTagListDto,
 } from '@/lib/ideas'
 import { ideasSource } from '../ideasStore'
 import { renderPage } from '../render/document'
@@ -54,22 +56,28 @@ async function loadList(
   }
 }
 
-export async function ideasHandler(
-  _request: Request,
-  context: RouteContext,
-): Promise<Response> {
-  const { env, ctx, locale, url } = context
-  const source = ideasSource(env, ctx)
-  const params = parseIdeasParams(url.searchParams)
-  const [copy, list, tags] = await Promise.all([
-    getCopy(locale),
+/** What `/ideas` shows: the list, the tags and the idea named by `?idea=`. */
+export interface IdeasRead {
+  list: PublicIdeaListDto | null
+  tags: PublicIdeaTagListDto | null
+  /** The open idea when it was found — named by the head whether or not the list was read. */
+  found: PublicIdeaDto | null
+}
+
+/**
+ * The page's three reads. The open idea is the list item when the list carries
+ * it (the list carries every field), else one read by slug — an idea outside
+ * the current filters, opened from a shared link.
+ */
+export async function readIdeas(
+  params: IdeasParams,
+  locale: IdeaLocale,
+  source: IdeasSource,
+): Promise<IdeasRead> {
+  const [list, tags] = await Promise.all([
     loadList(params, locale, source),
     fetchIdeaTags(locale, source).catch(() => null),
   ])
-  // The open idea: the list item when it is in the list (the list carries
-  // every field), else one read by slug — an idea outside the current
-  // filters, opened from a shared link. The head names it whenever it was
-  // found; the sheet opens only over a list that was read.
   const listed = params.idea
     ? list?.items.find((idea) => idea.slug === params.idea)
     : undefined
@@ -78,6 +86,21 @@ export async function ideasHandler(
     (params.idea
       ? await fetchIdea(params.idea, locale, source).catch(() => null)
       : null)
+  return { list, tags, found }
+}
+
+export async function ideasHandler(
+  _request: Request,
+  context: RouteContext,
+): Promise<Response> {
+  const { env, ctx, locale, url } = context
+  const params = parseIdeasParams(url.searchParams)
+  const [copy, { list, tags, found }] = await Promise.all([
+    getCopy(locale),
+    readIdeas(params, locale, ideasSource(env, ctx)),
+  ])
+  // The head names the open idea whenever it was found; the sheet opens only
+  // over a list that was read.
   return renderPage({
     env,
     url,

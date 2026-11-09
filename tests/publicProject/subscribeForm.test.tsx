@@ -4,6 +4,7 @@ import { render } from '@/tests/helpers/withCopy'
 import userEvent from '@testing-library/user-event'
 import { SubscribeForm } from '@/app/[locale]/p/[identifier]/_components/SubscribeForm'
 import { APP_ORIGIN } from '@/lib/appOrigin'
+import { publicApiBase } from '@/lib/publicProject'
 
 /*
  * SUBSCRIBE (MOTIR-4121) — the ONE write `public-surface-hosts.md` AMENDMENT 4
@@ -25,7 +26,9 @@ afterEach(() => {
 
 const fill = async (email = 'reader@example.test') => {
   const user = userEvent.setup()
-  render(<SubscribeForm identifier="ACME" />)
+  render(
+    <SubscribeForm identifier="ACME" apiBase={publicApiBase(APP_ORIGIN)} />,
+  )
   await user.type(screen.getByLabelText('Email for changelog updates'), email)
   await user.click(screen.getByRole('button', { name: 'Subscribe' }))
   return user
@@ -52,7 +55,10 @@ describe('the request it makes', () => {
     // the language of the `/[locale]` page the visitor was reading.
     fetchMock.mockResolvedValue({ status: 202 })
     const user = userEvent.setup()
-    render(<SubscribeForm identifier="ACME" />, { locale: 'it' })
+    render(
+      <SubscribeForm identifier="ACME" apiBase={publicApiBase(APP_ORIGIN)} />,
+      { locale: 'it' },
+    )
     await user.type(screen.getByRole('textbox'), 'lettore@example.test')
     await user.click(screen.getByRole('button'))
 
@@ -80,7 +86,12 @@ describe('the request it makes', () => {
   it('encodes the identifier in the path', async () => {
     fetchMock.mockResolvedValue({ status: 202 })
     const user = userEvent.setup()
-    render(<SubscribeForm identifier="OPEN CORE" />)
+    render(
+      <SubscribeForm
+        identifier="OPEN CORE"
+        apiBase={publicApiBase(APP_ORIGIN)}
+      />,
+    )
     await user.type(
       screen.getByLabelText('Email for changelog updates'),
       'a@b.test',
@@ -157,7 +168,9 @@ describe('the outcomes, each its own state', () => {
     const seen = new Set<string>()
     for (const status of [422, 409, 429, 500]) {
       fetchMock.mockResolvedValue({ status })
-      const { unmount } = render(<SubscribeForm identifier="ACME" />)
+      const { unmount } = render(
+        <SubscribeForm identifier="ACME" apiBase={publicApiBase(APP_ORIGIN)} />,
+      )
       const user = userEvent.setup()
       await user.type(
         screen.getAllByLabelText('Email for changelog updates')[0]!,

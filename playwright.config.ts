@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test'
 import { SKILLS_RELEASE_PIN } from './lib/skillsRelease'
+import { WORKER_LOG } from './e2e/support/workerLog'
 import {
   SITE_ORIGIN,
   SITE_PORT,
@@ -62,37 +63,6 @@ import {
 
 export default defineConfig({
   testDir: './e2e/specs',
-  /*
-   * ⚠️ THE PER-REQUEST SPECS, LEFT OUT BY FILE NAME (MOTIR-10649).
-   *
-   * This lane serves the static build alone, so a spec whose subject renders
-   * per request — `/p/**`, `/explore`, `/explore/topic/*`, `/ideas`,
-   * `/motir-builds-itself`, `/sitemap-projects.xml` — or is the bare-`/`
-   * language detection cannot pass here. Those routes are the Worker-routes
-   * story's (MOTIR-10635), and it re-includes each file by deleting its entry. The `-live`
-   * files are the per-request halves of specs whose static cases still run.
-   */
-  testIgnore: [
-    'acceptance-ideas.spec.ts',
-    'acceptance-ideas-categories.spec.ts',
-    'acceptance-ideas-localized.spec.ts',
-    'acceptance-public-project.spec.ts',
-    'acceptance-read-pages-move.spec.ts',
-    'acceptance-public-address.spec.ts',
-    'project-acts.spec.ts',
-    'project-crawl.spec.ts',
-    'project-detail.spec.ts',
-    'project-overview.spec.ts',
-    'project-tabs.spec.ts',
-    'acceptance-eleven-languages-live.spec.ts',
-    'acceptance-docs-eleven-languages-live.spec.ts',
-    'smoke-live.spec.ts',
-    'locale-links-live.spec.ts',
-    'not-found-live.spec.ts',
-    'landmark-live.spec.ts',
-    'languageSwitcher-live.spec.ts',
-    'acceptance-legal-binding-english-live.spec.ts',
-  ].map((file) => `**/${file}`),
   // ⚠️ A LANE THAT PASSES WITH NO TESTS IS NOT A LANE. The card asks for this in
   // terms — "the job fails if the spec is removed (no empty-suite pass)" — and
   // Playwright's default is to exit 0 on an empty run.
@@ -139,7 +109,8 @@ export default defineConfig({
       env: { MOTIR_PUBLIC_API_STUB_PORT: String(STUB_PORT) },
     },
     {
-      // ⚠️ THE STATIC BUILD, SERVED AS CLOUDFLARE SERVES IT (MOTIR-10649).
+      // ⚠️ THE BUILD AND THE WORKER, SERVED AS CLOUDFLARE SERVES THEM
+      // (MOTIR-10649 · MOTIR-10758).
       //
       // `astro build` renders every page ahead, and the pages that read an
       // artifact read it NOW: the docs (`/docs/api`, `/docs/cli`, `/docs/mcp`,
@@ -150,21 +121,27 @@ export default defineConfig({
       // this order, and waits for each one's `url` before starting the one after it, so the
       // entry above is up before this command runs. A build that reached no
       // stub fails loudly (a docs artifact that cannot be read fails the build,
-      // `lib/docs.ts`), so it can never fall through to a live host — neither
-      // origin below is ever left unset.
+      // `lib/docs.ts`), so it can never fall through to a live host.
       //
-      // `wrangler dev --assets dist` then serves `dist/` with the repository's
-      // `wrangler.jsonc`: static assets only, no Worker script, so Cloudflare's
-      // own trailing-slash, `_redirects`, `_headers` and 404-page handling is
-      // what the specs measure. It needs no Cloudflare login, so the job needs
-      // no secret.
+      // `wrangler dev` then runs the repository's `wrangler.jsonc` whole: the
+      // built `dist/` as static assets AND the Worker in front of the live
+      // surface (`/p/**`, `/explore`, `/ideas`, `/motir-builds-itself`, the
+      // project sitemap, the bare `/`, and any path no file matches). The
+      // Worker reads its origins at request time, so `--var` points it at the
+      // stub; nothing about the Worker is baked into the build. It needs no
+      // Cloudflare login, so the job needs no secret.
       //
-      // The specs whose subject is a per-request route are on `testIgnore`
-      // above; the Worker-routes story serves them.
+      // The output is teed to `e2e/.worker.log` (`e2e/support/workerLog.ts`):
+      // the Worker writes one JSON line per request it runs, and
+      // `worker-invocation.spec.ts` reads the file to show a built page runs
+      // no code. Only the server is piped, so a failed build still fails the
+      // command rather than hiding behind `tee`'s exit status.
       command: [
-        'pnpm build',
-        `node_modules/.bin/wrangler dev --ip 127.0.0.1 --port ${SITE_PORT} --assets dist`,
-      ].join(' && '),
+        'pnpm build &&',
+        `node_modules/.bin/wrangler dev --ip 127.0.0.1 --port ${SITE_PORT}`,
+        `--var MOTIR_APP_ORIGIN:${STUB_ORIGIN}`,
+        `2>&1 | tee ${WORKER_LOG}`,
+      ].join(' '),
       url: SITE_ORIGIN,
       reuseExistingServer: !process.env['CI'],
       timeout: 300_000,

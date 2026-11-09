@@ -161,6 +161,9 @@ function head(html: string) {
       ...html.matchAll(/<link rel="alternate" hrefLang="([^"]+)"/g),
     ].map((match) => match[1]),
     ogLocale: /<meta property="og:locale" content="([^"]+)"/.exec(html)?.[1],
+    ogImage: [
+      ...html.matchAll(/<meta property="og:image" content="([^"]+)"/g),
+    ].map((match) => match[1]),
   }
 }
 
@@ -202,6 +205,26 @@ describe('the project page', () => {
     knownProject()
     expect(head((await get('/de/p/ACME')).html).ogLocale).toBe('de_DE')
   })
+
+  // MOTIR-10758 — found by `project-crawl.spec.ts`: Next added the segment's
+  // `opengraph-image` to every page under `/p/<identifier>`; the Worker must
+  // name it itself, or a shared project link previews with the site's card.
+  it.each([
+    '/p/ACME',
+    '/de/p/ACME',
+    '/p/ACME/changelog',
+    '/ja/p/ACME/requests/ACME-12',
+    '/p/ACME/requests/new',
+  ])(
+    '%s names the project’s own share card, one address for every locale',
+    async (path) => {
+      knownProject()
+      const { html } = await get(path)
+      expect(head(html).ogImage).toEqual([`${SITE}/p/ACME/opengraph-image`])
+      expect(html).toContain('<meta property="og:image:width" content="1200"/>')
+      expect(html).toContain('<meta property="og:image:height" content="630"/>')
+    },
+  )
 
   it('shows the empty state when the project wrote no overview', async () => {
     answer('/api/public/p/ACME', json({ ...PROJECT, publicOverviewMd: null }))

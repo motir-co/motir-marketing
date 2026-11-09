@@ -23,7 +23,9 @@ import { scanFile, type CopyFinding } from '@/tests/helpers/scanJsxCopy'
  * matching anything fails the suite, so none can outlive its reason.
  */
 
-const APP = join(process.cwd(), 'app')
+// The page tree, and the Worker that renders the live pages (MOTIR-10752…10757):
+// its handlers write JSX too, and a word written there is as English on `/ja/`.
+const TREES = ['app', 'worker'].map((dir) => join(process.cwd(), dir))
 
 /**
  * Prose owned by another card, out of this guard's reach by decision. A path
@@ -45,11 +47,6 @@ const EXCLUDED: readonly { path: string; owner: string }[] = [
     owner:
       'the share image’s wordmark, drawn with satori at build — every word of it is read through getCopy (MOTIR-7972 · MOTIR-10647)',
   },
-  {
-    path: 'app/[locale]/p/[identifier]/opengraph-image.tsx',
-    owner:
-      'a project’s share image, drawn with satori — Crawl data per language (MOTIR-7956)',
-  },
 ]
 
 /**
@@ -64,6 +61,12 @@ const NOT_YET_SWEPT: readonly { path: string; owner: string }[] = []
  * are a proper noun no locale translates, code shown as code, or a key cap.
  */
 const ALLOWED: readonly { path: string; literal: string; reason: string }[] = [
+  {
+    path: 'worker/share/drawProjectCard.tsx',
+    literal: 'Motir',
+    reason:
+      'the wordmark on a project’s share card — the product’s name, which no locale translates (MOTIR-10757)',
+  },
   {
     path: 'app/[locale]/motir-builds-itself/_components/StoryArt.tsx',
     literal: 'checkout.ts:42 TypeError',
@@ -90,8 +93,8 @@ function tsxFiles(dir: string): string[] {
   })
 }
 
-/** `app/...` with forward slashes, whatever the platform. */
-const ALL = tsxFiles(APP)
+/** `app/...` and `worker/...` with forward slashes, whatever the platform. */
+const ALL = TREES.flatMap((tree) => tsxFiles(tree))
   .map((file) => relative(process.cwd(), file).split(sep).join('/'))
   .sort()
 
@@ -116,7 +119,8 @@ describe('the covered pages hold no hard-coded copy', () => {
     expect(COVERED.length).toBeGreaterThanOrEqual(60)
     expect(COVERED).toContain('app/_components/NotFoundRoom.tsx')
     expect(COVERED).toContain('app/[locale]/docs/_components/DocsRail.tsx')
-    expect(COVERED).toContain('app/[locale]/p/[identifier]/page.tsx')
+    expect(COVERED).toContain('app/[locale]/p/[identifier]/ProjectOverview.tsx')
+    expect(COVERED).toContain('worker/project/pages.tsx')
     expect(COVERED).toContain('app/[locale]/not-found.tsx')
   })
 

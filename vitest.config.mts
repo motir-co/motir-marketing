@@ -136,11 +136,9 @@ export default defineConfig({
       include: [
         'lib/publicProject.ts',
         'app/?locale?/p/**/*.tsx',
-        // MOTIR-6743 — the five retired read pages are ROUTE HANDLERS now
-        // (board, items, tree, roadmap and an item), each a permanent redirect
-        // into the app. `.ts`, so the `.tsx` glob above does not reach them;
-        // added WITH the files, per the rule the entry below records.
-        'app/?locale?/p/**/route.ts',
+        // MOTIR-6743's five retired read views are a redirect the Worker's
+        // project slot answers (`worker/project/path.ts`), measured with it.
+        'app/?locale?/p/**/*.ts',
         // MOTIR-4220. Added WITH the files rather than after them, which is the
         // rule the entry above earned: a file outside this list is not
         // measured, and a gate that measures nothing is green.
@@ -153,7 +151,6 @@ export default defineConfig({
         // a built file plus a tenant route. Added WITH the files.
         'lib/sitemapEntries.ts',
         'lib/sitemapXml.ts',
-        'app/sitemap-projects.xml/route.ts',
         // MOTIR-10646 — robots and the two built sitemaps are Astro endpoints
         // now, and the site half is its own module. Added WITH their tests.
         'lib/robots.ts',
@@ -267,33 +264,12 @@ export default defineConfig({
         'worker/share/*.tsx',
       ].filter(notHeld),
       /*
-       * ⚠️ EVERY EXCLUSION HAS A REASON, and the reasons are different — a list
-       * of paths with one blanket justification is how a gate stops measuring
-       * things nobody decided to stop measuring.
-       *
-       *  • `changelog.xml/route.ts` — a pass-through whose whole behaviour is a
-       *    status mapping against a real upstream. Covered end to end in the
-       *    browser lane, which has one; a jsdom test would assert a mock.
-       *  • `opengraph-image.tsx` — renders a raster through satori, which jsdom
-       *    cannot execute at all. The browser lane FETCHES the image and checks
-       *    its bytes, which is the only assertion that means anything.
-       *  • `**\/page.tsx` and `tabPage.tsx` — async Server Components. Covering
-       *    one means awaiting it, and what it does is compose a read with a
-       *    render: both halves are already covered — the read in
-       *    `lib/publicProject.ts` at 100%, the render in the component tests —
-       *    and the composition is what the browser lane walks. MOTIR-4121 says
-       *    in terms not to duplicate the E2E. This is the same gap motir-core's
-       *    own config records for its `page.tsx` files, for the same reason.
-       *  • `layout.tsx` — nine lines of chrome composition with no branch.
+       * The held sources only (`held-out.json`): the `/p/*` exclusions — the
+       * Next pages, layout, tab helper, feed route and share-image route —
+       * went with the files when the Worker took the surface (MOTIR-10753 ·
+       * MOTIR-10757). `tests/publicProject/standingRules.test.ts` keeps it so.
        */
-      exclude: [
-        'app/?locale?/p/**/changelog.xml/route.ts',
-        'app/?locale?/p/**/opengraph-image.tsx',
-        'app/?locale?/p/**/page.tsx',
-        'app/?locale?/p/**/layout.tsx',
-        'app/?locale?/p/**/_components/tabPage.tsx',
-        ...HELD_SOURCES.flatMap((source) => [source, `${source}/**`]),
-      ],
+      exclude: [...HELD_SOURCES.flatMap((source) => [source, `${source}/**`])],
       /*
        * MEASURED FIRST, then pinned at the floor — motir-core's rule for its own
        * list, followed here. On this branch: `lib/publicProject.ts` 100 across;
@@ -359,18 +335,6 @@ export default defineConfig({
           'proxy.ts': { lines: 90, functions: 90, branches: 85 },
           'lib/sitemapEntries.ts': { lines: 90, functions: 90, branches: 85 },
           'lib/sitemapXml.ts': { lines: 90, functions: 90, branches: 85 },
-          'app/sitemap-projects.xml/route.ts': {
-            lines: 90,
-            functions: 90,
-            branches: 85,
-          },
-          // MOTIR-6743 — measured first: the five redirect handlers are 100
-          // across under `tests/publicProject/readPageRedirects.test.ts`.
-          'app/?locale?/p/**/route.ts': {
-            lines: 90,
-            functions: 90,
-            branches: 90,
-          },
           'app/?locale?/p/**/_components/*.tsx': {
             lines: 90,
             functions: 90,

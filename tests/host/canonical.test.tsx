@@ -1,6 +1,8 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { render } from '@/tests/helpers/withCopy'
 import { ProjectJsonLd } from '@/app/[locale]/p/[identifier]/_components/JsonLd'
+import { tabMetadata } from '@/app/[locale]/p/[identifier]/projectMetadata'
+import { englishCopy } from '@/lib/copy'
 import type { PublicProjectOverviewDto } from '@/lib/publicProject'
 
 /*
@@ -15,9 +17,11 @@ import type { PublicProjectOverviewDto } from '@/lib/publicProject'
  * primary is a property of the PROJECT, so a page served at three addresses
  * emits ONE canonical — the case that would split one project into three
  * entities is the one where it varies.
+ *
+ * Re-included by MOTIR-10758: the head is built by the Worker's
+ * `projectMetadata.ts` from the project the route already read (MOTIR-10753),
+ * so the builder is handed that project rather than a mocked read.
  */
-
-vi.mock('next/headers', () => ({ headers: async () => new Headers() }))
 
 const project = (primary: string): PublicProjectOverviewDto => ({
   id: 'proj_1',
@@ -56,32 +60,17 @@ const PRIMARIES: Array<[string, string, string]> = [
 describe.each(PRIMARIES)(
   'a project whose primary is %s',
   (_label, primary, boardUrl) => {
-    it('names it in the tab’s canonical AND og:url', async () => {
-      const loadProject = vi.fn(async () => ({
-        status: 'ok' as const,
-        data: project(primary),
-      }))
-      vi.doMock('@/lib/publicProject', async (importOriginal) => ({
-        ...(await importOriginal<typeof import('@/lib/publicProject')>()),
-        loadProject,
-      }))
-      try {
-        vi.resetModules()
-        const { tabMetadata } =
-          await import('@/app/[locale]/p/[identifier]/_components/tabPage')
-        const meta = await tabMetadata({
-          locale: 'en',
-          identifier: 'PROD',
-          segment: 'board',
-          labelKey: 'board',
-        })
+    it('names it in the tab’s canonical AND og:url', () => {
+      const meta = tabMetadata(
+        'en',
+        englishCopy.publicProject,
+        project(primary),
+        'board',
+        'board',
+      )
 
-        expect(meta.alternates?.canonical).toBe(boardUrl)
-        expect(meta.openGraph?.url).toBe(boardUrl)
-      } finally {
-        vi.doUnmock('@/lib/publicProject')
-        vi.resetModules()
-      }
+      expect(meta.alternates?.canonical).toBe(boardUrl)
+      expect(meta.openGraph?.url).toBe(boardUrl)
     })
 
     it('names it in every JSON-LD `@id` and `url`', () => {

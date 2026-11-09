@@ -18,14 +18,17 @@ import {
 
 /*
  * THE PER-REQUEST HALF OF `acceptance-docs-eleven-languages.spec.ts`
- * (MOTIR-10649).
+ * (MOTIR-10649), served by the Worker since MOTIR-10758.
  *
- * Cases 1, 2 and 2a of the /docs walk arrive on the unprefixed `/docs/sandbox`
- * and are moved to `/ja/…` and `/zh-tw/…` by the request-time language
- * detection, which a static-only serve does not do. They are moved here
- * VERBATIM; the static walk opens each language's own address with every other
- * assertion unchanged. This file is on `playwright.config.ts`'s `testIgnore`
- * list; the Worker-routes story re-includes it by deleting that one entry.
+ * Cases 1, 2 and 2a of the /docs walk arrived on the unprefixed `/docs/sandbox`
+ * and were moved to `/ja/…` and `/zh-tw/…` by Next's detection, which ran on
+ * every unprefixed page. The Worker detects on the bare `/` ONLY: every other
+ * unprefixed address is a built English page that runs no code, so a cached
+ * `/docs/sandbox` is the same document for every reader. The cases are ported
+ * to that rule, not dropped: a Japanese or Taiwan browser on `/docs/sandbox`
+ * is served the English guide at that address with no redirect, its first
+ * visit to `/` is detected and sent to its language, and the guide in its
+ * language — at its own address — is the same command, copied byte for byte.
  */
 
 test.setTimeout(600_000)
@@ -67,8 +70,17 @@ test('/docs detects the reader’s language, as Stories MOTIR-7739 and MOTIR-893
   await beat(page, 800)
 
   await freshVisitor(page, 'ja-JP,ja;q=0.9')
+  // An unprefixed guide is the English document, for every reader.
+  const unprefixed = await page.goto('/docs/sandbox')
+  expect(unprefixed?.request().redirectedFrom()).toBeNull()
+  await expect(page).toHaveURL(`${SITE_ORIGIN}/docs/sandbox`)
+  await expect(html(page)).toHaveAttribute('lang', 'en')
+  expect(await firstParagraph(page)).toBe(englishIntro)
+  // The first visit to the site's root is where the language is chosen.
+  await page.goto('/')
+  await expect(page).toHaveURL(`${SITE_ORIGIN}/ja`)
   const requested = watchFontRequests(page)
-  await page.goto('/docs/sandbox')
+  await page.goto('/ja/docs/sandbox')
   await expect(page).toHaveURL(`${SITE_ORIGIN}/ja/docs/sandbox`)
   await expect(html(page)).toHaveAttribute('lang', 'ja')
   await expect(runPane(page)).toBeVisible()
@@ -98,8 +110,13 @@ test('/docs detects the reader’s language, as Stories MOTIR-7739 and MOTIR-893
   // ── 2a · THE GUIDE FOR A TAIWAN READER (MOTIR-8937) ─────────────────────
   chapter('The sandbox guide for a Taiwan browser, and its copy button')
   await freshVisitor(page, 'zh-TW,zh;q=0.9')
+  const unprefixedTw = await page.goto('/docs/sandbox')
+  expect(unprefixedTw?.request().redirectedFrom()).toBeNull()
+  await expect(html(page)).toHaveAttribute('lang', 'en')
+  await page.goto('/')
+  await expect(page).toHaveURL(`${SITE_ORIGIN}/zh-tw`)
   const requestedTw = watchFontRequests(page)
-  await page.goto('/docs/sandbox')
+  await page.goto('/zh-tw/docs/sandbox')
   await expect(page).toHaveURL(`${SITE_ORIGIN}/zh-tw/docs/sandbox`)
   await expect(html(page)).toHaveAttribute('lang', 'zh-TW')
   await expect(runPane(page)).toBeVisible()

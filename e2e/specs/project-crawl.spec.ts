@@ -1,5 +1,4 @@
 import { expect, test } from '@playwright/test'
-import { CUSTOM_ORIGIN, TENANT_ORIGIN } from '../stub/origin'
 import { readSitemap } from '../support/sitemap'
 
 /*
@@ -78,32 +77,10 @@ test('and OMITS one whose canonical has moved to a tenant host', async ({
   expect(xml).not.toContain('/p/ROAD')
 })
 
-test('a customer domain has no sitemap here — it is not this site’s', async ({
-  request,
-}) => {
-  // MOTIR-9528 (Story MOTIR-4533): a customer's own domain belongs to its
-  // workspace's application, answered at Motir's edge, so this site lists
-  // nothing for it — its `/sitemap.xml` is the one 404 room.
-  const res = await request.get(`${CUSTOM_ORIGIN}/sitemap.xml`)
-
-  expect(res.status()).toBe(404)
-  expect(await res.text()).not.toContain('<loc>')
-})
-
-test('a workspace host’s sitemap lists nothing — it serves no project', async ({
-  request,
-}) => {
-  // MOTIR-9512: the bare workspace host belongs to the default application.
-  const xml = await (await request.get(`${TENANT_ORIGIN}/sitemap.xml`)).text()
-  expect(xml).not.toContain('<loc>')
-})
-
-test('and its robots.txt names ITS OWN sitemap', async ({ request }) => {
-  const txt = await (await request.get(`${TENANT_ORIGIN}/robots.txt`)).text()
-
-  expect(txt).toContain(`${TENANT_ORIGIN}/sitemap.xml`)
-  expect(txt).not.toContain('motir.co/sitemap.xml')
-})
+// MOTIR-10758 — the customer-domain and workspace-host cases (their sitemap
+// and robots.txt) are deleted, not ported: the customer-host decision
+// MOTIR-10113 took those hosts off this site, and the Worker reads no `Host`
+// header, so motir.co's crawl surface is the only one there is.
 
 test('the sitemap does NOT list the noindex hand-off doorway', async ({
   request,

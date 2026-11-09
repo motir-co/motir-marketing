@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { APP_ORIGIN } from '@/lib/appOrigin'
 import { SITE_ORIGIN } from '@/lib/siteOrigin'
+import { projectAddress } from '@/worker/project/path'
 
 /*
  * THE GUARANTEES COVERAGE CANNOT SEE (MOTIR-4121).
@@ -23,6 +24,22 @@ const tracked = (dir: string): string[] =>
 
 const read = (file: string) => readFileSync(join(ROOT, file), 'utf8')
 
+/** A file with its comments stripped — the rules below are asked of CODE. */
+const code = (file: string): string =>
+  read(file)
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/[^\n]*/g, '')
+
+/**
+ * The `/p/*` surface: its components, the Worker slot that reads and renders
+ * them (MOTIR-10753), and the read module.
+ */
+const surface = (): string[] => [
+  ...tracked('app/[locale]/p'),
+  ...tracked('worker/project'),
+  'lib/publicProject.ts',
+]
+
 describe('the standing NO-DATABASE rule reaches the new tree', () => {
   it('finds the /p/* files at all — the vacuous-pass floor', () => {
     // `tests/legal/legalRoutes.test.ts` walks `app` and `lib` from the
@@ -36,7 +53,7 @@ describe('the standing NO-DATABASE rule reaches the new tree', () => {
   it('no /p/* file imports a database client or a connection string', () => {
     const forbidden = [/@prisma\/client/, /from\s+['"]pg['"]/, /DATABASE_URL/]
     const hits: string[] = []
-    for (const file of [...tracked('app/[locale]/p'), 'lib/publicProject.ts']) {
+    for (const file of surface()) {
       const src = read(file)
       for (const pattern of forbidden) {
         if (pattern.test(src)) hits.push(`${file}: ${pattern}`)
@@ -69,11 +86,11 @@ describe('ORIGINS DO NOT CROSS', () => {
     // `lib/siteOrigin.ts`'s own header warns about exactly that — and a literal
     // is how it happens.
     const hits: string[] = []
-    for (const file of [...tracked('app/[locale]/p'), 'lib/publicProject.ts']) {
-      const src = read(file)
+    for (const file of surface()) {
       // In prose, naming the host is how these files explain themselves; in
-      // CODE it is a second source of truth. Strings are what this looks for.
-      for (const match of src.matchAll(
+      // CODE it is a second source of truth. Strings in code are what this
+      // looks for, so comments — where a backticked host is prose — go first.
+      for (const match of code(file).matchAll(
         /['"`]https:\/\/(app\.)?motir\.co[^'"`]*['"`]/g,
       )) {
         hits.push(`${file}: ${match[0]}`)
@@ -106,12 +123,7 @@ describe('ONE CANONICAL PER PAGE — MOTIR-4222', () => {
     // expression to explain it, and a guard that forbade naming the thing it
     // forbids would have exactly one repair available — deleting the
     // explanation.
-    const code = (f: string): string =>
-      read(f)
-        .replace(/\/\*[\s\S]*?\*\//g, '')
-        .replace(/\/\/[^\n]*/g, '')
-
-    const offenders = tracked('app/[locale]/p').filter((f) =>
+    const offenders = surface().filter((f) =>
       /siteUrl\(\s*[`'"]\/p\//.test(code(f)),
     )
     expect(
@@ -120,58 +132,43 @@ describe('ONE CANONICAL PER PAGE — MOTIR-4222', () => {
     ).toEqual([])
   })
 
-  it('and the sitemap and robots read the REQUEST’s host', () => {
-    // Both are served at every address the renderer answers for, and a sitemap
-    // may only list URLs on its own host. Asserted at the source because the
-    // behavioural half needs a request scope — `tests/host/crawlSurface.test.ts`
-    // supplies one and asks all three.
-    // `app/robots.ts` is motir.co's static file now (MOTIR-8842); the tenant
-    // half of robots is the route handler `proxy.ts` rewrites to.
-    for (const file of [
-      'app/sitemap-projects.xml/route.ts',
-      'app/robots-tenant.txt/route.ts',
-    ]) {
-      expect(read(file), `${file} answers as motir.co on every host`).toContain(
-        'requestPublicHost',
-      )
-    }
+  it('and the project sitemap lists this site’s projects alone', () => {
+    // A sitemap may only list URLs on its own host. There is one host now
+    // (MOTIR-10113), so the project half filters by the Worker's
+    // `MOTIR_SITE_ORIGIN` — the behavioural half is
+    // `tests/worker/sitemapProjects.test.ts`.
+    expect(code('worker/projectSitemap/handler.ts')).toContain(
+      'env.MOTIR_SITE_ORIGIN',
+    )
   })
 })
 
 describe('THE ERROR STATE IS REACHABLE — every /p/* screen has one', () => {
-  it('every page that reads renders the error state rather than throwing', () => {
-    // A screen that let the read throw would 500 the whole route on an outage,
-    // which is the one thing `public-surface-hosts.md` §8 cost 1 says this
-    // surface must not do. Derived from the filesystem so a screen added later
-    // cannot skip it.
-    const pages = tracked('app/[locale]/p').filter((f) =>
-      f.endsWith('page.tsx'),
-    )
-    // Four since MOTIR-6743: the overview, the changelog and the two request
-    // pages. The board, items, tree, roadmap and item pages are route handlers
-    // answering a redirect into the app, which read nothing and so have no
-    // outage to render.
-    expect(pages.length).toBeGreaterThanOrEqual(4)
+  /*
+   * A screen that let the read throw would 500 the whole route on an outage,
+   * which is the one thing `public-surface-hosts.md` §8 cost 1 says this
+   * surface must not do. Every `/p/*` page is rendered by ONE handler since
+   * the Worker took the surface (MOTIR-10753), so the rule is asked of it: its
+   * read has three outcomes and each is a different answer. The behavioural
+   * half — every page in each outcome — is `tests/worker/project.test.ts`.
+   */
+  const handler = () => code('worker/project/handler.tsx')
 
-    const missing = pages.filter((file) => {
-      const src = read(file)
-      // Either it renders the state itself, or it delegates to the shared tab
-      // helper that does — both are the state being reachable.
-      return !src.includes('ErrorState') && !src.includes('renderTabPage')
-    })
-    expect(missing, missing.join('\n')).toEqual([])
+  it('every page that reads renders the error state rather than throwing', () => {
+    expect(handler()).toMatch(/readProjectPage\(/)
+    expect(handler()).toMatch(/unavailableDocument\(/)
+    const pages = code('worker/project/pages.tsx')
+    expect(pages).toMatch(/ProjectOverviewUnavailable/)
+    expect(pages).toMatch(/ProjectUnavailable/)
+    expect(code('app/[locale]/p/[identifier]/ProjectOverview.tsx')).toMatch(
+      /<ErrorState[\s/>]/,
+    )
   })
 
   it('and the 404 stays distinct from the outage on every screen that can 404', () => {
-    const pages = tracked('app/[locale]/p').filter((f) =>
-      f.endsWith('page.tsx'),
+    expect(handler()).toMatch(
+      /read\.status === 'not-found'\)\s*return notFoundPage\(/,
     )
-    const both = pages.filter((file) => {
-      const src = read(file)
-      return src.includes('notFound()') || src.includes('renderTabPage')
-    })
-    // Every screen either decides existence itself or delegates that decision.
-    expect(both.length).toBe(pages.length)
   })
 })
 
@@ -230,33 +227,25 @@ describe('THE COVERAGE LIST IS NOT A PLACE TO FORGET A FILE', () => {
     }
   })
 
-  it('every exclusion in that config is a path that exists', () => {
-    // An exclusion whose path has moved silently stops excluding, and — worse —
-    // reads as though something is still deliberately out of scope.
+  it('no /p/* file is excluded — the surface is measured whole', () => {
+    // The five exclusions this tree once carried (the Next pages, layout,
+    // tab helper, feed route and share-image route) went with the files when
+    // the Worker took the surface (MOTIR-10753 · MOTIR-10757): what is left is
+    // components the unit suites render, so none is out of scope. An exclusion
+    // added back reads as something deliberately unmeasured, which is the
+    // decision this asks to be made in the open.
     const config = read('vitest.config.mts')
     // ⚠️ SCOPED TWICE, and both scopings were earned by a red run. First to the
-    // COVERAGE section — the file has an earlier `exclude:` for the test glob,
-    // and anchoring on the first one finds `node_modules` instead. Then to the
-    // `exclude` array within it — a tree-wide match for the same glob shape also
-    // picks up the THRESHOLD key, which is a different thing with a different
-    // meaning, and asserting that a threshold glob "matches a file" is both
-    // wrong and confusing when it fails.
+    // COVERAGE section — the file has an earlier `exclude:` for the test glob.
+    // Then to the `exclude` array within it — a tree-wide match also picks up
+    // the THRESHOLD keys, which are a different thing.
     const coverage = config.slice(config.indexOf('coverage: {'))
     const block = coverage.slice(
       coverage.indexOf('exclude: ['),
       coverage.indexOf(']', coverage.indexOf('exclude: [')),
     )
-    const excluded = [...block.matchAll(/'(app\/\?locale\?\/p\/[^']+)'/g)].map(
-      (m) => m[1]!,
-    )
-    expect(excluded.length).toBeGreaterThan(0)
-
-    const files = tracked('app/[locale]/p')
-    for (const pattern of excluded) {
-      const suffix = pattern.replace('app/?locale?/p/**/', '')
-      const matched = files.some((f) => f.endsWith(`/${suffix}`))
-      expect(matched, `nothing matches the exclusion ${pattern}`).toBe(true)
-    }
+    expect(block).toContain('HELD_SOURCES')
+    expect([...block.matchAll(/'(app\/\?locale\?\/p\/[^']+)'/g)]).toEqual([])
   })
   it('no e2e spec reconstructs an origin from the environment', () => {
     /*
@@ -370,8 +359,8 @@ describe('NO READ VIEW COMES BACK TO motir.co — MOTIR-6747', () => {
     }
   })
 
-  it('no module under app/p/**, nor the read module, reads a read view', () => {
-    const files = [...tracked('app/[locale]/p'), 'lib/publicProject.ts']
+  it('no module under app/p/**, the Worker slot, nor the read module, reads a read view', () => {
+    const files = surface()
     expect(files.length).toBeGreaterThanOrEqual(10)
     const hits = files.flatMap((file) =>
       readViewReads(read(file)).map((hit) => `${file}: ${hit}`),
@@ -379,11 +368,17 @@ describe('NO READ VIEW COMES BACK TO motir.co — MOTIR-6747', () => {
     expect(hits, hits.join('\n')).toEqual([])
   })
 
-  it('and each retired read path is a route handler, never a page', () => {
-    for (const view of ['board', 'items', 'tree', 'roadmap', 'items/[key]']) {
-      const dir = `app/[locale]/p/[identifier]/${view}`
-      expect(existsSync(join(ROOT, dir, 'route.ts')), dir).toBe(true)
-      expect(existsSync(join(ROOT, dir, 'page.tsx')), dir).toBe(false)
+  it('and each retired read path is a redirect, never a page', () => {
+    // The Worker decides it from the path alone (`worker/project/path.ts`),
+    // before any read; `tests/publicProject/readPageRedirects.test.ts` asks
+    // for the 308 itself.
+    const url = new URL('https://motir.co/')
+    for (const view of ['board', 'items', 'tree', 'roadmap', 'items/ACME-1']) {
+      expect(projectAddress(`/p/ACME/${view}`, url)?.page.kind, view).toBe(
+        'retired',
+      )
+      const dir = `app/[locale]/p/[identifier]/${view.split('/')[0]}`
+      expect(existsSync(join(ROOT, dir)), dir).toBe(false)
     }
   })
 })

@@ -24,3 +24,7 @@ node_modules/
 /.i18n-work/
 .vercel
 parity-report.md
+
+# The Worker's output in the browser lane (MOTIR-10758), read by
+# e2e/specs/worker-invocation.spec.ts.
+/e2e/.worker.log

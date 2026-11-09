@@ -1,15 +1,15 @@
 import { readFileSync } from 'node:fs'
-import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { render } from '@/tests/helpers/withCopy'
 import { type Copy, englishCopy } from '@/lib/copy'
-import {
-  PUBLIC_ADDRESS_KIND_HEADER,
-  PUBLIC_HOST_HEADER,
-  PUBLIC_ORIGIN_HEADER,
-} from '@/lib/publicHost'
+import { SubscribeForm } from '@/app/[locale]/p/[identifier]/_components/SubscribeForm'
+import { publicApiBase } from '@/lib/publicProject'
+import { SITE_ORIGIN } from '@/lib/siteOrigin'
+import type { Env } from '@/worker/env'
+import { resetShell } from '@/worker/render/shell'
+import { route } from '@/worker/router'
 
 /*
  * THE PUBLIC-PROJECT TREE RENDERS NO WORD THE CATALOGUE DID NOT GIVE IT
@@ -30,12 +30,14 @@ import {
  * Every screen and every state of the tree is rendered here: the overview with
  * and without its prose and failed; the changelog with entries and an older
  * page, empty, and failed; the request doorway; a request with and without
- * discussion, and failed; `/w` with projects, empty, and failed;
- * `/host-unavailable`; and the subscribe form in each of its five results.
+ * discussion, and failed; and the subscribe form in each of its five
+ * results. Each page is the document the Worker answers for its address
+ * (MOTIR-10758), mounted back into a DOM.
+ *
+ * The workspace-host screens (`/no-application`, `/host-unavailable`) left with
+ * the tenant hosts (MOTIR-10113) and their pages with the Next app
+ * (MOTIR-10634); a project is served on motir.co alone.
  */
-
-const headerScope = vi.hoisted(() => ({ current: new Headers() }))
-vi.mock('next/headers', () => ({ headers: async () => headerScope.current }))
 
 /* ── the two wrappings ────────────────────────────────────────────────────── */
 
@@ -177,7 +179,6 @@ interface Reads {
   project?: Record<string, unknown> | 'failed'
   changelog?: Record<string, unknown> | 'failed'
   request?: Record<string, unknown> | 'failed'
-  host?: Record<string, unknown> | 'failed'
 }
 
 function stubContract(reads: Reads) {
@@ -192,7 +193,6 @@ function stubContract(reads: Reads) {
           : read
             ? Response.json(read)
             : new Response('unexpected read', { status: 404 })
-      if (path.startsWith('/hosts/')) return answer(reads.host)
       if (path === '/p/ACME') return answer(reads.project)
       if (path.startsWith('/p/ACME/changelog')) return answer(reads.changelog)
       if (path.startsWith('/p/ACME/requests/')) return answer(reads.request)
@@ -208,78 +208,60 @@ const project = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 })
 
-const { resetHostResolutionCache } = await import('@/lib/hostResolution')
-const OverviewPage = (await import('@/app/[locale]/p/[identifier]/page'))
-  .default
-const ChangelogPage = (
-  await import('@/app/[locale]/p/[identifier]/changelog/page')
-).default
-const IntakePage = (
-  await import('@/app/[locale]/p/[identifier]/requests/new/page')
-).default
-const RequestPage = (
-  await import('@/app/[locale]/p/[identifier]/requests/[requestKey]/page')
-).default
-const NoApplicationPage = (await import('@/app/[locale]/no-application/page'))
-  .default
-const HostUnavailablePage = (
-  await import('@/app/[locale]/host-unavailable/page')
-).default
-const { SubscribeForm } =
-  await import('@/app/[locale]/p/[identifier]/_components/SubscribeForm')
+const ENV: Env = {
+  ASSETS: {
+    fetch: async () =>
+      new Response(
+        '<html><head><link rel="stylesheet" href="/_astro/s.css"></head><body><script type="module" src="/_astro/s.js"></script></body></html>',
+      ),
+  },
+  MOTIR_APP_ORIGIN: APP,
+  MOTIR_SITE_ORIGIN: SITE_ORIGIN,
+}
 
-const ACME = { locale: 'en', identifier: 'ACME' }
-const WORKSPACE_HEADERS = {
-  [PUBLIC_ADDRESS_KIND_HEADER]: 'workspace',
-  [PUBLIC_HOST_HEADER]: 'acme.motir.site',
-  [PUBLIC_ORIGIN_HEADER]: 'https://acme.motir.site',
+/** The document the Worker answers for `path`, mounted in the test's DOM. */
+async function serve(path: string): Promise<{ container: HTMLElement }> {
+  const response = await route(new Request(`${SITE_ORIGIN}${path}`), ENV)
+  const served = new DOMParser().parseFromString(
+    await response.text(),
+    'text/html',
+  )
+  document.body.innerHTML = served.body.innerHTML
+  return { container: document.body }
 }
 
 interface Screen {
   label: string
   reads: Reads
-  headers?: Record<string, string>
-  page: () => Promise<ReactNode>
+  /** The page's address on motir.co. */
+  path: string
 }
 
-const overview = () => OverviewPage({ params: Promise.resolve(ACME) })
-const changelog = (cursor?: string) => () =>
-  ChangelogPage({
-    params: Promise.resolve(ACME),
-    searchParams: Promise.resolve(cursor ? { cursor } : {}),
-  })
-const requestPage = () =>
-  RequestPage({
-    params: Promise.resolve({ ...ACME, requestKey: 'ACME-4051' }),
-  })
-const noApplication = () =>
-  NoApplicationPage({ params: Promise.resolve({ locale: 'en' }) })
-
-const noApplicationRead = {
-  kind: 'no_application',
-  workspace: { name: '«Acme»' },
-}
+const overview = '/p/ACME'
+const changelog = (cursor?: string) =>
+  `/p/ACME/changelog${cursor ? `?cursor=${cursor}` : ''}`
+const requestPage = '/p/ACME/requests/ACME-4051'
 
 const SCREENS: Screen[] = [
   {
     label: 'the overview, with its prose',
     reads: { project: project() },
-    page: overview,
+    path: overview,
   },
   {
     label: 'the overview, with none',
     reads: { project: project({ publicOverviewMd: null }) },
-    page: overview,
+    path: overview,
   },
   {
     label: 'the overview, failed',
     reads: { project: 'failed' },
-    page: overview,
+    path: overview,
   },
   {
     label: 'the changelog, with entries and an older page',
     reads: { project: project(), changelog: fixture('changelog.json') },
-    page: changelog('cl_4'),
+    path: changelog('cl_4'),
   },
   {
     label: 'the changelog, empty',
@@ -287,22 +269,22 @@ const SCREENS: Screen[] = [
       project: project(),
       changelog: { entries: [], nextCursor: null },
     },
-    page: changelog(),
+    path: changelog(),
   },
   {
     label: 'the changelog, failed',
     reads: { project: project(), changelog: 'failed' },
-    page: changelog(),
+    path: changelog(),
   },
   {
     label: 'the request doorway',
     reads: { project: project() },
-    page: () => IntakePage({ params: Promise.resolve(ACME) }),
+    path: '/p/ACME/requests/new',
   },
   {
     label: 'a request, with discussion',
     reads: { project: project(), request: fixture('request-detail.json') },
-    page: requestPage,
+    path: requestPage,
   },
   {
     label: 'a request, with none',
@@ -310,48 +292,30 @@ const SCREENS: Screen[] = [
       project: project(),
       request: { ...fixture('request-detail.json'), comments: [] },
     },
-    page: requestPage,
+    path: requestPage,
   },
   {
     label: 'a request, failed',
     reads: { project: project(), request: 'failed' },
-    page: requestPage,
-  },
-  {
-    label: 'the no-application page',
-    reads: { host: noApplicationRead },
-    headers: WORKSPACE_HEADERS,
-    page: noApplication,
-  },
-  {
-    label: 'the no-application page, failed',
-    reads: { host: 'failed' },
-    headers: WORKSPACE_HEADERS,
-    page: noApplication,
-  },
-  {
-    label: 'the host-unavailable page',
-    reads: {},
-    page: () =>
-      HostUnavailablePage({ params: Promise.resolve({ locale: 'en' }) }),
+    path: requestPage,
   },
 ]
 
 beforeEach(() => {
-  resetHostResolutionCache()
+  resetShell()
+  vi.spyOn(console, 'log').mockImplementation(() => {})
   served.catalogue = PSEUDO
 })
 afterEach(() => {
   cleanup()
+  document.body.innerHTML = ''
   vi.unstubAllGlobals()
-  headerScope.current = new Headers()
+  vi.restoreAllMocks()
 })
 
 async function renderScreen(screenCase: Screen) {
-  resetHostResolutionCache()
-  headerScope.current = new Headers(screenCase.headers ?? {})
   stubContract(screenCase.reads)
-  return render(<>{await screenCase.page()}</>, { messages: PSEUDO })
+  return serve(screenCase.path)
 }
 
 describe('every screen and state draws its words from the catalogue', () => {
@@ -380,19 +344,12 @@ describe('every screen and state draws its words from the catalogue', () => {
       ['the request doorway', PSEUDO.publicProject.requestNew.heading],
       ['a request, with none', PSEUDO.publicProject.request.noComments],
       ['a request, failed', PSEUDO.publicProject.states.error.request],
-      ['the no-application page', PSEUDO.publicProject.noApplication.heading],
-      [
-        'the no-application page, failed',
-        PSEUDO.publicProject.states.error.address,
-      ],
-      ['the host-unavailable page', PSEUDO.publicProject.states.error.address],
     ]
     for (const [label, marker] of expectations) {
       const { container } = await renderScreen(
         SCREENS.find((s) => s.label === label)!,
       )
       expect(container.textContent, label).toContain(marker)
-      cleanup()
     }
   })
 })
@@ -410,9 +367,12 @@ describe('the subscribe form, in each of its five results', () => {
       vi.fn(async () => ({ status })),
     )
     const user = userEvent.setup()
-    const { container } = render(<SubscribeForm identifier="ACME" />, {
-      messages: PSEUDO,
-    })
+    const { container } = render(
+      <SubscribeForm identifier="ACME" apiBase={publicApiBase(APP)} />,
+      {
+        messages: PSEUDO,
+      },
+    )
     await user.type(
       screen.getByLabelText(PSEUDO.publicProject.subscribe.label),
       'reader@example.test',
@@ -437,9 +397,12 @@ describe('the subscribe form, in each of its five results', () => {
       vi.fn(() => new Promise(() => {})),
     )
     const user = userEvent.setup()
-    const { container } = render(<SubscribeForm identifier="ACME" />, {
-      messages: PSEUDO,
-    })
+    const { container } = render(
+      <SubscribeForm identifier="ACME" apiBase={publicApiBase(APP)} />,
+      {
+        messages: PSEUDO,
+      },
+    )
     await user.type(
       screen.getByLabelText(PSEUDO.publicProject.subscribe.label),
       'reader@example.test',
@@ -467,9 +430,7 @@ describe('the check itself', () => {
     literal.publicProject.overview.empty.title = 'Nothing written yet'
     served.catalogue = literal
     stubContract({ project: project({ publicOverviewMd: null }) })
-    const { container } = render(<>{await overview()}</>, {
-      messages: literal,
-    })
+    const { container } = await serve(overview)
 
     expect(unwrappedWords(container)).toEqual([
       'text: Nothing',

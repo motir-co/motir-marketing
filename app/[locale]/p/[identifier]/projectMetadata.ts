@@ -1,7 +1,7 @@
 import type { Locale } from '@/i18n/routing'
 import { format, type Copy } from '@/lib/copy'
 import { openGraphLocales, projectAlternates } from '@/lib/localeMetadata'
-import type { Metadata } from '@/lib/metadata'
+import type { Metadata, MetadataImage } from '@/lib/metadata'
 import { publicUrlFor } from '@/lib/publicHost'
 import {
   deriveDescription,
@@ -26,8 +26,38 @@ import {
 
 type ProjectCopy = Copy['publicProject']
 
-function openGraph(locale: Locale, url: string, type = 'website') {
-  return { type, url, siteName: 'Motir', ...openGraphLocales(locale) }
+/**
+ * THE PROJECT'S OWN SHARE CARD (MOTIR-10758), drawn by the Worker
+ * (`worker/share/projectShareImage.ts`). Next added it to every page under
+ * `/p/<identifier>` from the segment's `opengraph-image` file; a page's
+ * `openGraph` replaces the site's whole here (`lib/metadata.ts`), so each
+ * builder names it. One address for every locale, relative to the site's
+ * `metadataBase`: the card is keyed by the identifier alone, so `/de/…` and
+ * `/…` would only be two URLs for one image.
+ */
+export function projectCardImage(identifier: string): MetadataImage {
+  return {
+    url: `/p/${encodeURIComponent(identifier)}/opengraph-image`,
+    width: 1200,
+    height: 630,
+    type: 'image/png',
+    alt: 'A public project on Motir',
+  }
+}
+
+function openGraph(
+  locale: Locale,
+  url: string,
+  project: PublicProjectOverviewDto,
+  type = 'website',
+) {
+  return {
+    type,
+    url,
+    siteName: 'Motir',
+    ...openGraphLocales(locale),
+    images: [projectCardImage(project.identifier)],
+  }
 }
 
 /** The project page — `/p/<identifier>`. */
@@ -47,7 +77,7 @@ export function overviewMetadata(
     description,
     alternates,
     openGraph: {
-      ...openGraph(locale, alternates.canonical as string),
+      ...openGraph(locale, alternates.canonical as string, project),
       title,
       description,
     },
@@ -74,7 +104,7 @@ export function tabMetadata(
       name: project.name,
     }),
     alternates,
-    openGraph: openGraph(locale, alternates.canonical as string),
+    openGraph: openGraph(locale, alternates.canonical as string, project),
   }
 }
 
@@ -92,7 +122,12 @@ export function requestMetadata(
     title: `${request.title} · ${project.identifier}`,
     description: deriveDescription(request.descriptionMd, request.title),
     alternates,
-    openGraph: openGraph(locale, alternates.canonical as string, 'article'),
+    openGraph: openGraph(
+      locale,
+      alternates.canonical as string,
+      project,
+      'article',
+    ),
   }
 }
 
@@ -115,5 +150,10 @@ export function requestNewMetadata(
       publicUrlFor(project, 'requests/new'),
     ),
     robots: { index: false, follow: true },
+    openGraph: openGraph(
+      locale,
+      publicUrlFor(project, 'requests/new'),
+      project,
+    ),
   }
 }
