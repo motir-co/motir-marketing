@@ -233,6 +233,8 @@ export default defineConfig({
         'worker/render/*.ts',
         'worker/render/*.tsx',
         'lib/appOriginContext.tsx',
+        // MOTIR-10754 — the explore slot, added WITH its tests.
+        'worker/explore/*.tsx',
       ].filter(notHeld),
       /*
        * ⚠️ EVERY EXCLUSION HAS A REASON, and the reasons are different — a list
@@ -399,6 +401,7 @@ export default defineConfig({
           'worker/project/*.tsx': { lines: 90, functions: 90, branches: 90 },
           'worker/render/*.ts': { lines: 90, functions: 90, branches: 90 },
           'worker/render/*.tsx': { lines: 90, functions: 90, branches: 90 },
+          'worker/explore/*.tsx': { lines: 90, functions: 90, branches: 90 },
           'lib/scriptJson.ts': { lines: 90, functions: 90, branches: 90 },
           'lib/island.tsx': { lines: 90, functions: 90, branches: 90 },
           'lib/islands.ts': { lines: 90, functions: 90, branches: 90 },

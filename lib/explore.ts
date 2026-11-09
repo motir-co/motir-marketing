@@ -1,4 +1,4 @@
-import { APP_ORIGIN } from '@/lib/appOrigin'
+import { publicApiBase } from '@/lib/publicProject'
 
 /**
  * The project-square data layer for `motir-marketing` (MOTIR-4045).
@@ -160,20 +160,27 @@ export interface SquareData {
   failed: boolean
 }
 
-/** The public API origin — `app.motir.co`, from `lib/appOrigin.ts`. */
-const API_BASE = `${APP_ORIGIN}/api/public`
-
-async function fetchJson<T>(path: string): Promise<T> {
-  // The square ranks by recent activity, so the read must be fresh, not baked
-  // into the static build. `next: { revalidate: 0 }` keeps it request-time.
-  const res = await fetch(`${API_BASE}${path}`, { next: { revalidate: 0 } })
+async function fetchJson<T>(appOrigin: string, path: string): Promise<T> {
+  // The square ranks by recent activity, so the read must be fresh, never a
+  // stored copy: `cache: 'no-store'` keeps it request-time.
+  const res = await fetch(`${publicApiBase(appOrigin)}${path}`, {
+    cache: 'no-store',
+  })
   if (!res.ok) throw new Error(`public API ${res.status} for ${path}`)
   return (await res.json()) as T
 }
 
+/**
+ * The square's two reads — the page of cards and the category list — from the
+ * public API under `appOrigin`.
+ *
+ * ⚠️ THE ORIGIN IS A PARAMETER (MOTIR-10754). The square renders in the
+ * Worker, which reads the app origin per request from `MOTIR_APP_ORIGIN`; a
+ * module-level base would freeze it at import.
+ */
 export async function loadSquare(
+  appOrigin: string,
   query: ExploreQuery,
-  opts: { strictCategory?: boolean } = {},
 ): Promise<SquareData> {
   const params = new URLSearchParams()
   if (query.cursor) params.set('cursor', query.cursor)
@@ -187,18 +194,17 @@ export async function loadSquare(
 
   try {
     const [page, { categories }] = await Promise.all([
-      fetchJson<ProjectSquarePageDto>(`/explore${qs ? `?${qs}` : ''}`),
-      fetchJson<{ categories: ProjectCategoryDto[] }>('/categories'),
+      fetchJson<ProjectSquarePageDto>(
+        appOrigin,
+        `/explore${qs ? `?${qs}` : ''}`,
+      ),
+      fetchJson<{ categories: ProjectCategoryDto[] }>(appOrigin, '/categories'),
     ])
     return { page, categories, failed: false }
   } catch {
     // An unreachable API is a REAL state for this surface — the page renders
-    // the error state rather than crashing (asserted by a test).
-    if (opts.strictCategory) {
-      // A topic page still needs to distinguish "API down" from "unknown slug".
-      // Without categories we cannot resolve the label, but the slug is still
-      // the category param — leave the 404 decision to the page via the data.
-    }
+    // the error state rather than crashing. A topic page tells "API down" from
+    // "unknown slug" by `failed`: only a reachable API can say a slug is unknown.
     return { page: null, categories: [], failed: true }
   }
 }

@@ -1,5 +1,4 @@
 import { localizedPath } from '@/i18n/localizedPath'
-import Link from 'next/link'
 import { FilterLink } from './FilterLink'
 import {
   Building2,
@@ -56,7 +55,7 @@ function ProjectCard({ card }: { card: ProjectSquareCardDto }) {
     : null
   return (
     <article className="min-w-0">
-      <Link
+      <a
         href={localizedPath(
           locale,
           `/p/${encodeURIComponent(card.identifier)}`,
@@ -107,7 +106,7 @@ function ProjectCard({ card }: { card: ProjectSquareCardDto }) {
             aria-hidden
           />
         </div>
-      </Link>
+      </a>
     </article>
   )
 }
@@ -208,7 +207,7 @@ export function ExploreGallery({
 
       {page.nextCursor ? (
         <div className="mt-8 flex flex-col items-center gap-2">
-          <Link
+          <a
             href={buildExploreHref(basePath, query, {
               cursor: page.nextCursor,
             })}
@@ -218,7 +217,7 @@ export function ExploreGallery({
           >
             <Plus className="mr-1.5 h-4 w-4" aria-hidden />
             {copy.explore.loadMore}
-          </Link>
+          </a>
         </div>
       ) : null}
     </section>

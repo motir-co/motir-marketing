@@ -1,5 +1,6 @@
 import { DEFAULT_LOCALE, LOCALES, type Locale } from '@/i18n/routing'
 import type { Env } from './env'
+import { exploreHandler } from './explore/handler'
 import { projectHandler } from './project/handler'
 
 /*
@@ -91,7 +92,7 @@ export const ROUTES: readonly RouteSlot[] = [
   {
     name: 'explore',
     matches: (path) => EXPLORE.test(path),
-    handler: placeholder('explore'),
+    handler: exploreHandler,
   },
   {
     name: 'ideas',
