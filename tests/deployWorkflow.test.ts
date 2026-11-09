@@ -229,6 +229,7 @@ describe("the Worker's production variables (MOTIR-10637)", () => {
     workers_dev?: boolean
     routes?: unknown
     route?: unknown
+    observability?: { enabled?: boolean; head_sampling_rate?: number }
   }
 
   it('deploys app.motir.co as the app origin and motir.co as the site origin', () => {
@@ -236,6 +237,10 @@ describe("the Worker's production variables (MOTIR-10637)", () => {
       MOTIR_APP_ORIGIN: 'https://app.motir.co',
       MOTIR_SITE_ORIGIN: 'https://motir.co',
     })
+  })
+
+  it('keeps Workers Logs on for every invocation, so a deploy never turns them off (MOTIR-10638)', () => {
+    expect(config.observability).toEqual({ enabled: true, head_sampling_rate: 1 })
   })
 
   it('keeps the workers.dev address on and attaches no route before the cut', () => {
