@@ -18,7 +18,12 @@ import {
   PRODUCT_SLUGS,
   productPath,
 } from '@/lib/destinations'
-import { SITE_HOST, siteLinkFor, type PublicHost } from '@/lib/publicHost'
+import {
+  SITE_HOST,
+  UNKNOWN_HOST,
+  siteLinkFor,
+  type PublicHost,
+} from '@/lib/publicHost'
 import { SITE_ORIGIN, siteUrl } from '@/lib/siteOrigin'
 
 /*
@@ -54,26 +59,15 @@ afterEach(() => {
   pathname.value = '/'
 })
 
-const WORKSPACE: PublicHost = {
-  kind: 'workspace',
-  host: 'acme.motir.site',
-  origin: 'https://acme.motir.site',
-}
 /*
- * THE FOURTH SHAPE (MOTIR-4430) — a host that is neither this site nor a tenant
- * the contract resolved: the base domain itself, a host nobody has claimed, and
- * a real customer's domain while `app.motir.co` is restarting. It is in the
- * table below rather than in a describe of its own precisely because the chrome
- * must not treat it as a fourth CASE: `siteLinkFor` asks whether the kind is
- * `site`, so everything asserted for the two tenant kinds holds here unchanged,
- * and a predicate written as `workspace || project` would have failed exactly
- * these rows.
+ * THE ONE HOST KIND THAT IS NOT THE SITE (MOTIR-4430 · MOTIR-10811) — the 404
+ * room's `UNKNOWN_HOST`, built once and served at every unknown address, so it
+ * cannot know which host serves it. The tenant `workspace` kind this table also
+ * carried left with the Next `proxy.ts` that produced it. `siteLinkFor` asks
+ * whether the kind is `site`, so a predicate written as a list of non-site
+ * kinds would fail exactly these rows.
  */
-const UNRESOLVED: PublicHost = {
-  kind: 'unresolved',
-  host: 'roadmap.acme.com',
-  origin: 'https://roadmap.acme.com',
-}
+const UNRESOLVED = UNKNOWN_HOST
 
 /** Every href the chrome emits, in document order, with the menu panel OPEN. */
 async function chromeHrefs(
@@ -110,10 +104,7 @@ describe('on the site, the chrome is EXACTLY what it has always been', () => {
   })
 })
 
-describe.each([
-  ['a workspace subdomain', WORKSPACE],
-  ['an UNRESOLVED host', UNRESOLVED],
-])('on %s', (_label, host) => {
+describe.each([['an UNRESOLVED host', UNRESOLVED]])('on %s', (_label, host) => {
   it('emits every site path ABSOLUTELY, on the site origin', async () => {
     const hrefs = await chromeHrefs(host)
     for (const path of SITE_PATHS) {
@@ -185,11 +176,9 @@ describe('siteLinkFor', () => {
   it('is a no-op on the site and absolute everywhere else', () => {
     for (const path of [SITE_ROOT, EXPLORE, DOCS, DESIGN, '/legal/terms']) {
       expect(siteLinkFor(SITE_HOST, path, 'en')).toBe(path)
-      for (const host of [WORKSPACE, UNRESOLVED]) {
-        expect(siteLinkFor(host, path, 'en')).toBe(
-          new URL(path, `${SITE_ORIGIN}/`).toString(),
-        )
-      }
+      expect(siteLinkFor(UNRESOLVED, path, 'en')).toBe(
+        new URL(path, `${SITE_ORIGIN}/`).toString(),
+      )
     }
   })
 
@@ -203,7 +192,7 @@ describe('siteLinkFor', () => {
      * send every visitor to production. Comparing the two functions is what
      * says the override is honoured.
      */
-    expect(siteLinkFor(WORKSPACE, EXPLORE, 'en')).toBe(siteUrl(EXPLORE))
+    expect(siteLinkFor(UNRESOLVED, EXPLORE, 'en')).toBe(siteUrl(EXPLORE))
     expect(siteLinkFor(UNRESOLVED, SITE_ROOT, 'en')).toBe(siteUrl(SITE_ROOT))
   })
 })
@@ -216,7 +205,6 @@ describe('siteLinkFor', () => {
  */
 describe.each([
   ['the site', SITE_HOST],
-  ['a workspace subdomain', WORKSPACE],
   ['an UNRESOLVED host', UNRESOLVED],
 ])('under fr, on %s', (_label, host) => {
   it('emits every site path and product link in French', async () => {
@@ -256,8 +244,8 @@ describe('siteLinkFor carries the locale', () => {
   })
 
   it('off the site, absolute AND prefixed', () => {
-    expect(siteLinkFor(WORKSPACE, DOCS, 'fr')).toBe(`${SITE_ORIGIN}/fr/docs`)
-    expect(siteLinkFor(WORKSPACE, DOCS, 'ja')).toBe(`${SITE_ORIGIN}/ja/docs`)
+    expect(siteLinkFor(UNRESOLVED, DOCS, 'fr')).toBe(`${SITE_ORIGIN}/fr/docs`)
+    expect(siteLinkFor(UNRESOLVED, DOCS, 'ja')).toBe(`${SITE_ORIGIN}/ja/docs`)
     expect(siteLinkFor(UNRESOLVED, DOCS, 'en')).toBe(`${SITE_ORIGIN}/docs`)
     expect(siteLinkFor(UNRESOLVED, SITE_ROOT, 'fr')).toBe(`${SITE_ORIGIN}/fr`)
   })
@@ -271,27 +259,27 @@ describe('siteLinkFor carries the locale', () => {
  * changes the language. The sweep above asserts the chrome with the list
  * CLOSED; this asserts it open, and that the switcher adds nothing else.
  */
-describe.each([
-  ['a workspace subdomain', WORKSPACE, '/ACME/changelog'],
-  ['an UNRESOLVED host', UNRESOLVED, '/somewhere'],
-])('on %s, the open language list', (_label, host, path) => {
-  it('points every entry at this same address and nowhere else', async () => {
-    pathname.value = path
-    const user = userEvent.setup()
-    const { container } = await renderHydrated(
-      <SiteShell host={host}>content</SiteShell>,
-      { pathname: path },
-    )
-    const closed = [...container.querySelectorAll('a[href]')].length
-    await user.click(screen.getByRole('button', { name: /^Language: / }))
-    const group = screen.getByRole('group', {
-      name: copy.nav.language.menuLabel,
+describe.each([['an UNRESOLVED host', UNRESOLVED, '/somewhere']])(
+  'on %s, the open language list',
+  (_label, host, path) => {
+    it('points every entry at this same address and nowhere else', async () => {
+      pathname.value = path
+      const user = userEvent.setup()
+      const { container } = await renderHydrated(
+        <SiteShell host={host}>content</SiteShell>,
+        { pathname: path },
+      )
+      const closed = [...container.querySelectorAll('a[href]')].length
+      await user.click(screen.getByRole('button', { name: /^Language: / }))
+      const group = screen.getByRole('group', {
+        name: copy.nav.language.menuLabel,
+      })
+      const entries = within(group)
+        .getAllByRole('link')
+        .map((a) => a.getAttribute('href'))
+      expect(entries).toHaveLength(12)
+      expect(new Set(entries)).toEqual(new Set([path]))
+      expect(container.querySelectorAll('a[href]')).toHaveLength(closed + 12)
     })
-    const entries = within(group)
-      .getAllByRole('link')
-      .map((a) => a.getAttribute('href'))
-    expect(entries).toHaveLength(12)
-    expect(new Set(entries)).toEqual(new Set([path]))
-    expect(container.querySelectorAll('a[href]')).toHaveLength(closed + 12)
-  })
-})
+  },
+)

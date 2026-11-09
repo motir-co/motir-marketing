@@ -1,18 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { localeCookie, rememberLocale, switchHref } from '@/lib/languageSwitch'
 import { LOCALE_COOKIE } from '@/lib/localeDetection'
-import { SITE_HOST, type PublicHost } from '@/lib/publicHost'
+import { SITE_HOST, UNKNOWN_HOST } from '@/lib/publicHost'
 
 /*
  * The two pure halves of the header's language switcher (MOTIR-7953): where an
  * entry points on each kind of host, and the cookie a choice writes.
  */
-
-const WORKSPACE: PublicHost = {
-  kind: 'workspace',
-  host: 'acme.motir.site',
-  origin: 'https://acme.motir.site',
-}
 
 describe('switchHref — on motir.co the address is the language', () => {
   it.each([
@@ -26,8 +20,8 @@ describe('switchHref — on motir.co the address is the language', () => {
   })
 })
 
-describe('switchHref — a tenant address never carries a prefix', () => {
-  it.each([['a workspace subdomain', WORKSPACE, '/MOTIR/changelog']])(
+describe('switchHref — off the site the entry carries no prefix', () => {
+  it.each([['the 404 room’s unresolved host', UNKNOWN_HOST, '/somewhere']])(
     'on %s the entry is the same path',
     (_label, host, path) => {
       expect(switchHref(host, path, 'fr')).toBe(path)

@@ -1,11 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  currentHost,
-  currentOrigin,
-  publicUrlFor,
-  SITE_HOST,
-  type PublicHost,
-} from '@/lib/publicHost'
+import { publicUrlFor } from '@/lib/publicHost'
 import { SITE_ORIGIN } from '@/lib/siteOrigin'
 
 /*
@@ -31,12 +25,6 @@ const ON_SUBDOMAIN = {
 const ON_CUSTOM = {
   identifier: 'PROD',
   addresses: { primary: 'https://roadmap.acme.com' },
-}
-
-const WORKSPACE: PublicHost = {
-  kind: 'workspace',
-  host: 'acme.motir.site',
-  origin: 'https://acme.motir.site',
 }
 
 describe('publicUrlFor', () => {
@@ -84,24 +72,6 @@ describe('publicUrlFor', () => {
     )
     expect(publicUrlFor(ON_CUSTOM, 'items')).toBe(
       'https://roadmap.acme.com/items',
-    )
-  })
-})
-
-describe('currentHost / currentOrigin', () => {
-  it('are the SITE’s when the router stepped aside', () => {
-    expect(currentHost(SITE_HOST)).toBe(new URL(SITE_ORIGIN).host)
-    expect(currentOrigin(SITE_HOST)).toBe(SITE_ORIGIN)
-  })
-
-  it('are the tenant’s, over https, when it did not', () => {
-    // https is not an assumption: a tenant address serves only once its
-    // certificate is ISSUED — `motir-core`'s `resolveHost` refuses every other
-    // status — and the host redirects http to https.
-    expect(currentHost(WORKSPACE)).toBe('acme.motir.site')
-    expect(currentOrigin(WORKSPACE)).toBe('https://acme.motir.site')
-    expect(currentOrigin({ ...WORKSPACE, origin: null })).toBe(
-      'https://acme.motir.site',
     )
   })
 })

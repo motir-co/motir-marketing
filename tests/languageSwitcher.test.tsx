@@ -7,7 +7,7 @@ import { SiteHeader } from '@/app/_components/SiteHeader'
 import { SiteShell } from '@/app/_components/SiteShell'
 import { LOCALE_BCP47, LOCALE_ENDONYMS, LOCALES } from '@/i18n/routing'
 import { englishCopy as copy, format } from '@/lib/copy'
-import { SITE_HOST, type PublicHost } from '@/lib/publicHost'
+import { SITE_HOST, UNKNOWN_HOST } from '@/lib/publicHost'
 
 /*
  * THE HEADER'S LANGUAGE SWITCHER (MOTIR-7953), built to MOTIR-7947 revision 2:
@@ -41,12 +41,6 @@ afterEach(() => {
   pathname.value = '/'
   assign.mockReset()
 })
-
-const WORKSPACE: PublicHost = {
-  kind: 'workspace',
-  host: 'acme.motir.site',
-  origin: 'https://acme.motir.site',
-}
 
 const ORDER = [
   'English',
@@ -167,15 +161,15 @@ describe('choosing a language', () => {
   })
 })
 
-describe('on a tenant host', () => {
+describe('off the site (the 404 room’s unresolved host)', () => {
   it('points every entry at the same, unprefixed address', async () => {
-    pathname.value = '/MOTIR/changelog'
-    render(<LanguageSwitcher host={WORKSPACE} />, { locale: 'fr' })
+    pathname.value = '/somewhere'
+    render(<LanguageSwitcher host={UNKNOWN_HOST} />, { locale: 'fr' })
     await userEvent.click(trigger('Français'))
     const hrefs = within(group())
       .getAllByRole('link')
       .map((a) => a.getAttribute('href'))
-    expect(hrefs).toEqual(LOCALES.map(() => '/MOTIR/changelog'))
+    expect(hrefs).toEqual(LOCALES.map(() => '/somewhere'))
   })
 
   it('writes the URL code, zh-tw, when Traditional Chinese is chosen', async () => {
@@ -189,14 +183,14 @@ describe('on a tenant host', () => {
   })
 
   it('reloads the same address after writing the cookie', async () => {
-    pathname.value = '/MOTIR/changelog'
-    render(<LanguageSwitcher host={WORKSPACE} />, { locale: 'fr' })
+    pathname.value = '/somewhere'
+    render(<LanguageSwitcher host={UNKNOWN_HOST} />, { locale: 'fr' })
     await userEvent.click(trigger('Français'))
     await userEvent.click(
       within(group()).getByRole('link', { name: 'Deutsch' }),
     )
     expect(document.cookie).toContain('NEXT_LOCALE=de')
-    expect(assign).toHaveBeenCalledExactlyOnceWith('/MOTIR/changelog')
+    expect(assign).toHaveBeenCalledExactlyOnceWith('/somewhere')
   })
 })
 

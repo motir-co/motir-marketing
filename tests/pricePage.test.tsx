@@ -7,7 +7,7 @@ import { SiteFooter } from '@/app/_components/SiteFooter'
 import { PricePage } from '@/app/_components/PricePage'
 import { englishCopy as copy, getCopy } from '@/lib/copy'
 import { PRICE, SITE_PATHS } from '@/lib/destinations'
-import { SITE_HOST, type PublicHost } from '@/lib/publicHost'
+import { SITE_HOST, UNKNOWN_HOST } from '@/lib/publicHost'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import {
@@ -33,12 +33,6 @@ const render: typeof renderOnPage = (ui, options = {}) =>
 afterEach(() => {
   pathname.value = '/'
 })
-
-const WORKSPACE: PublicHost = {
-  kind: 'workspace',
-  host: 'acme.motir.site',
-  origin: 'https://acme.motir.site',
-}
 
 /** One locale's catalogue file as committed, with no English fallback merged in. */
 const readCatalogue = (locale: Locale) =>
@@ -91,8 +85,8 @@ describe('the Price nav entry', () => {
     ).toHaveAttribute('aria-current', 'page')
   })
 
-  it('is an absolute motir.co link from a tenant host', () => {
-    render(<SiteHeader host={WORKSPACE} />)
+  it('is an absolute motir.co link off the site (the 404 room)', () => {
+    render(<SiteHeader host={UNKNOWN_HOST} />)
     expect(
       within(bar()).getByRole('link', { name: copy.nav.price }),
     ).toHaveAttribute('href', siteUrl('/price'))
@@ -110,7 +104,7 @@ describe('the Price footer entry', () => {
     ).toHaveAttribute('href', '/price')
     unmount()
 
-    render(<SiteFooter host={WORKSPACE} />)
+    render(<SiteFooter host={UNKNOWN_HOST} />)
     expect(
       screen.getByRole('link', { name: copy.footer.price }),
     ).toHaveAttribute('href', siteUrl('/price'))

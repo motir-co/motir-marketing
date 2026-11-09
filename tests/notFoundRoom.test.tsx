@@ -5,7 +5,7 @@ import LocaleNotFound from '@/app/[locale]/not-found'
 import { NotFoundRoom } from '@/app/_components/NotFoundRoom'
 import { englishCopy as copy, resolveCopy } from '@/lib/copy'
 import { EXPLORE, SITE_ROOT } from '@/lib/destinations'
-import { SITE_HOST } from '@/lib/publicHost'
+import { SITE_HOST, UNKNOWN_HOST } from '@/lib/publicHost'
 import { siteUrl } from '@/lib/siteOrigin'
 
 /*
@@ -150,19 +150,11 @@ describe('the room, given a host', () => {
     expect(doors[1]).toHaveAttribute('href', SITE_ROOT)
   })
 
-  it.each([
-    ['a workspace subdomain', 'workspace', 'acme.motir.site'],
-    ['an unresolved host', 'unresolved', 'roadmap.acme.com'],
-  ])('spells every path absolutely on %s', (_label, kind, host) => {
-    const { container } = render(
-      <NotFoundRoom
-        host={{
-          kind: kind as 'workspace' | 'unresolved',
-          host,
-          origin: `https://${host}`,
-        }}
-      />,
-    )
+  it('spells every path absolutely on an unresolved host', () => {
+    // The tenant `workspace` kind this also covered left with the Next
+    // `proxy.ts` that produced it (MOTIR-10811); `unresolved` is the one
+    // non-site kind.
+    const { container } = render(<NotFoundRoom host={UNKNOWN_HOST} />)
 
     const hrefs = [...container.querySelectorAll('a[href]')].map((a) =>
       a.getAttribute('href')!,
