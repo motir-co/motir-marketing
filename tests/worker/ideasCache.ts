@@ -10,7 +10,7 @@ export class MemoryCache implements EdgeCache {
   now = 0
   readonly entries = new Map<
     string,
-    { body: string; headers: [string, string][]; expires: number }
+    { body: ArrayBuffer; headers: [string, string][]; expires: number }
   >()
 
   async match(request: Request): Promise<Response | undefined> {
@@ -24,7 +24,7 @@ export class MemoryCache implements EdgeCache {
     const maxAge = /(?:^|,\s*)max-age=(\d+)/.exec(control)?.[1]
     if (!/\bpublic\b/.test(control) || maxAge === undefined) return
     this.entries.set(request.url, {
-      body: await response.text(),
+      body: await response.arrayBuffer(),
       headers: [...response.headers],
       expires: this.now + Number(maxAge) * 1000,
     })

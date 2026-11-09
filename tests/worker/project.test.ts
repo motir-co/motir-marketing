@@ -489,13 +489,3 @@ describe('the app origin', () => {
     expect(response.headers.get('location')).toBe(`${other}/p/ACME/tree`)
   })
 })
-
-describe('the other slots', () => {
-  it.each(['/p/ACME/opengraph-image'])(
-    'still answer their placeholder (%s)',
-    async (path) => {
-      const { response } = await get(path)
-      expect(response.status).toBe(501)
-    },
-  )
-})

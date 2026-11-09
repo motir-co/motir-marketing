@@ -6,7 +6,6 @@ import { requestLogLine } from '@/worker/requestLog'
 import { notFoundPage } from '@/worker/notFound'
 import { LANGUAGE_VARY, readCookie, route, splitLocale } from '@/worker/router'
 import {
-  placeholder,
   ROUTES,
   slotFor,
   type RouteContext,
@@ -410,16 +409,6 @@ describe('the route table', () => {
   it('keeps the project sitemap a root file', () => {
     expect(slotFor('/sitemap-projects.xml', 'de')).toBeUndefined()
     expect(slotFor('/sitemap-projects.xml', 'en')?.name).toBe('projectSitemap')
-  })
-
-  it('answers an unfilled slot with an uncached 501 and no page', async () => {
-    const response = await placeholder('ideas')(
-      get('/ideas'),
-      {} as RouteContext,
-    )
-    expect(response.status).toBe(501)
-    expect(response.headers.get('cache-control')).toBe('no-store')
-    expect(await response.text()).toBe('')
   })
 })
 

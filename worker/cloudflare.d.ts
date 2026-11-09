@@ -9,3 +9,9 @@
 declare module 'cloudflare:workers' {
   export const env: Record<string, unknown>
 }
+
+/** A `.wasm` import, which wrangler bundles as a compiled module (MOTIR-10757). */
+declare module '*.wasm' {
+  const module: WebAssembly.Module
+  export default module
+}

@@ -5,6 +5,7 @@ import { exploreHandler } from './explore/handler'
 import { ideasHandler } from './ideas/handler'
 import { projectHandler } from './project/handler'
 import { projectSitemapHandler } from './projectSitemap/handler'
+import { projectShareImage } from './share/projectShareImage'
 
 /*
  * THE LIVE SURFACE'S ROUTE TABLE, AND THE LIST THAT BRINGS THE WORKER IN
@@ -63,18 +64,6 @@ export interface RouteSlot {
   handler: RouteHandler
 }
 
-/**
- * A slot no card has filled yet: 501, never cached, and no body that could
- * be mistaken for a page.
- */
-export function placeholder(name: SlotName): RouteHandler {
-  return async () =>
-    new Response(null, {
-      status: 501,
-      headers: { 'Cache-Control': 'no-store', 'X-Motir-Slot': name },
-    })
-}
-
 const PROJECT_IMAGE = /^\/p\/[^/]+\/opengraph-image(-[A-Za-z0-9]+)?$/
 const PROJECT = /^\/p\/[^/]+(\/.*)?$/
 const EXPLORE = /^\/explore(\/topic\/[^/]+)?$/
@@ -87,7 +76,7 @@ export const ROUTES: readonly RouteSlot[] = [
   {
     name: 'projectImage',
     matches: (path) => PROJECT_IMAGE.test(path),
-    handler: placeholder('projectImage'),
+    handler: projectShareImage,
   },
   {
     name: 'project',

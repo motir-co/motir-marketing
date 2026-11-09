@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
+import type { Plugin } from 'vitest/config'
 import { defineConfig } from 'vitest/config'
 import heldOut from './held-out.json' with { type: 'json' }
 
@@ -24,6 +25,23 @@ const isHeld = (pattern: string) =>
 const notHeld = (pattern: string) => !isHeld(pattern)
 
 /*
+ * A `.wasm` import AS WRANGLER BUNDLES IT (MOTIR-10757): a compiled
+ * `WebAssembly.Module`, its default export (wrangler's `CompiledWasm` rule).
+ * The share card's engines import satori's and resvg's wasm that way
+ * (`worker/share/engine.ts`), so the suite compiles the same file from disk
+ * and the Worker's own code runs unchanged under test.
+ */
+const compiledWasm: Plugin = {
+  name: 'motir-compiled-wasm',
+  enforce: 'pre',
+  load(id) {
+    if (!id.endsWith('.wasm')) return null
+    return `import { readFileSync } from 'node:fs'
+export default new WebAssembly.Module(readFileSync(${JSON.stringify(id)}))`
+  },
+}
+
+/*
  * The repository's FIRST test lane (MOTIR-1152). `ci.yml`'s own header says to
  * "add a gate to `needs` as this repository grows one — do not declare a gate
  * before its job exists"; this is that job's other half, and `ci.yml` gains
@@ -41,9 +59,12 @@ const notHeld = (pattern: string) => !isHeld(pattern)
  * this default, which is why the default here does not weaken it.
  */
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), compiledWasm],
   test: {
     environment: 'jsdom',
+    // The `.wasm` files go through `compiledWasm` above rather than Node's own
+    // loader, which would instantiate them with imports nobody supplies.
+    server: { deps: { inline: [/\.wasm$/] } },
     globals: true,
     setupFiles: ['./tests/setup.ts'],
     include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx'],
@@ -241,6 +262,9 @@ export default defineConfig({
         // MOTIR-10756 — /motir-builds-itself and the project sitemap.
         'worker/buildsItself/*.tsx',
         'worker/projectSitemap/*.ts',
+        // MOTIR-10757 — the share card, drawn in the Worker.
+        'worker/share/*.ts',
+        'worker/share/*.tsx',
       ].filter(notHeld),
       /*
        * ⚠️ EVERY EXCLUSION HAS A REASON, and the reasons are different — a list
@@ -422,6 +446,9 @@ export default defineConfig({
             functions: 90,
             branches: 90,
           },
+          // MOTIR-10757 — measured first under `tests/worker/`, then pinned.
+          'worker/share/*.ts': { lines: 90, functions: 90, branches: 90 },
+          'worker/share/*.tsx': { lines: 90, functions: 90, branches: 90 },
           'lib/scriptJson.ts': { lines: 90, functions: 90, branches: 90 },
           'lib/island.tsx': { lines: 90, functions: 90, branches: 90 },
           'lib/islands.ts': { lines: 90, functions: 90, branches: 90 },

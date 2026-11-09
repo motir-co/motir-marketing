@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'astro/config'
 import { DEFAULT_LOCALE, LOCALES } from './i18n/routing.ts'
 import { redirectsFile } from './lib/redirects.ts'
+import { copyShareFonts } from './scripts/og/copyShareFonts.ts'
 import { SITE_ORIGIN } from './lib/siteOrigin.ts'
 
 /*
@@ -66,6 +67,19 @@ const redirects = {
   },
 }
 
+/**
+ * Copies the share card's three Inter faces into `dist/_og/fonts/` once the
+ * pages are built, where the Worker reads them through `ASSETS` (MOTIR-10757).
+ */
+const shareFonts = {
+  name: 'motir-share-fonts',
+  hooks: {
+    'astro:build:done': ({ dir }) => {
+      copyShareFonts(fileURLToPath(dir))
+    },
+  },
+}
+
 const define = Object.fromEntries(
   PUBLIC_ENV.map((name) => [
     `process.env.${name}`,
@@ -78,7 +92,7 @@ export default defineConfig({
   output: 'static',
   trailingSlash: 'never',
   build: { format: 'file' },
-  integrations: [react(), redirects],
+  integrations: [react(), redirects, shareFonts],
   i18n: {
     locales: [...LOCALES],
     defaultLocale: DEFAULT_LOCALE,
