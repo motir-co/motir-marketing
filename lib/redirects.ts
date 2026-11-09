@@ -15,7 +15,7 @@ import { PRODUCT_DOCS, PRODUCT_SLUGS } from './productAddresses'
  *
  *  • `/en` and `/en/…` → the unprefixed English address. English is
  *    unprefixed (`i18n/routing.ts`, `as-needed`), and the prefixed spelling is
- *    the permanent redirect next-intl's middleware answered under Next.
+ *    the permanent redirect the locale middleware answered under Next.
  *  • `/<locale>/products/<slug>` → `/<locale>/docs/<slug>` for each product
  *    whose page is its documentation (`PRODUCT_DOCS`), in every locale — the
  *    `permanentRedirect` the Next product route answered (MOTIR-7971). A

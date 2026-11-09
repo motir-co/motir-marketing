@@ -9,16 +9,22 @@ the marketing site only; it holds no application code and reaches no database.
 
 ## Where it runs
 
-A Vercel project, `motir-marketing`, functions in `iad1` — beside `motir-core`
-and `motir-ai` on Fly. It moved off Fly on 2026-10-27: shared-CPU steal and
-crawler bursts made two small machines slow, and the site needs no long-running
-process. The decision is recorded in `motir-core`'s
-[`docs/decisions/marketing-site-hosting.md`](https://github.com/motir-co/motir-core/blob/main/docs/decisions/marketing-site-hosting.md).
+Cloudflare Workers, as the Worker `motir-marketing` (`wrangler.jsonc`). `astro
+build` writes the static half of the site into `dist/`, which the Worker serves
+as its static assets; the live public surface (`/p/**`, `/explore`, `/ideas`,
+`/motir-builds-itself` and the project sitemap) is rendered per request by the
+Worker itself (`worker/`). motir.co and www.motir.co are attached to that
+Worker, and the motir.co zone is on Cloudflare. The decision, and why the site
+moved here, is recorded in `motir-core`'s
+[`docs/decisions/marketing-site-hosting.md`](https://github.com/motir-co/motir-core/blob/main/docs/decisions/marketing-site-hosting.md)
+(AMENDMENT 4).
 
-A push to `main` that passes lint, typecheck, build and test is deployed by
-`.github/workflows/ci.yml` (`vercel build` on the runner, `vercel deploy
---prebuilt`). Vercel's Git integration is off (`vercel.json`), so there are no
-preview deployments, deliberately.
+A push to `main` that passes every gate is released by the `deploy` job
+(`Deploy to Cloudflare`) in `.github/workflows/ci.yml`: it runs `pnpm build` on
+the runner and ships the output with `wrangler deploy`, authenticated by the
+`CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets, then smokes the
+release on its own `*.workers.dev` address. Nothing else deploys the site, so
+there are no preview deployments, deliberately.
 
 ## Local development
 

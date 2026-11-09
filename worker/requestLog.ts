@@ -1,5 +1,6 @@
 /*
- * ONE LINE PER WORKER REQUEST (MOTIR-10752), ported from `lib/requestLog.ts`.
+ * ONE LINE PER WORKER REQUEST (MOTIR-10752), ported from the Next site's
+ * `lib/requestLog.ts` (removed with `proxy.ts`, MOTIR-10639).
  *
  * The same fields the Next site logged, so a reading of the logs means the
  * same thing before and after the move: the method, the path, the query and
@@ -7,8 +8,8 @@
  * whether the request was refused. Two changes, both forced by the runtime:
  *
  *  • THE EDGE IS THE CLOUDFLARE DATA CENTRE, read from the request's own
- *    `cf.colo` (`AMS`, `SJC`, lower-cased) rather than a Fly request id or a
- *    Vercel id header. A request with no Cloudflare data — a unit test, or a
+ *    `cf.colo` (`AMS`, `SJC`, lower-cased) rather than a previous host's
+ *    request-id header. A request with no Cloudflare data — a unit test, or a
  *    local run that gives none — logs `null`.
  *  • THERE IS NO HOST FIELD AND NO HOST GATE. The Worker answers motir.co
  *    alone (the tenant-host branch is gone, MOTIR-10113), and it runs only on

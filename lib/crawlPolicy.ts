@@ -19,7 +19,7 @@
  *  - the filter links carry `rel="nofollow"` ({@link filterLinkRel}), so a
  *    crawler that reads the page is not invited down them either;
  *  - the canonical of an `/explore` filter state is the unfiltered page;
- *  - `proxy.ts` answers a CRAWLER 403 on a filter URL ({@link isCrawler},
+ *  - the Worker's router (`worker/router.ts`) answers a CRAWLER 403 on a filter URL ({@link isCrawler},
  *    {@link isFilterUrl}), for the ones that read neither of the first two;
  *  - `/ideas` honours at most {@link IDEAS_TAGS_MAX} tags, so a crawler
  *    posing as a browser still walks a small space.
@@ -74,8 +74,8 @@ export function isFilterUrl(pathAndQuery: string): boolean {
  * narrow by ALL-must-match over ~40 ideas, so a fourth tag almost always
  * empties the list: a visitor loses nothing, and the address space a crawler
  * can compose stops growing with every tag it appends. `lib/ideas.ts` drops
- * the rest when it parses, and `proxy.ts` redirects a longer address to the
- * trimmed one before anything renders.
+ * the rest when it parses, and the Worker's router redirects a longer address
+ * to the trimmed one before anything renders.
  */
 export const IDEAS_TAGS_MAX = 3
 
@@ -109,7 +109,7 @@ export function filterLinkRel(href: string): 'nofollow' | undefined {
  * ⚠️ CRAWLERS WITH NOTHING TO GIVE THE SITE, TURNED AWAY. SEO-tool and bulk
  * scrapers: they do not send visitors, they sell this site's link graph to
  * third parties, and they crawl hardest. They are named in `robots.txt` with
- * `Disallow: /`, and `proxy.ts` ALSO answers them 403 — the same list —
+ * `Disallow: /`, and the Worker's router ALSO answers them 403 — the same list —
  * because the costliest of them (Bytespider) is documented as ignoring
  * `robots.txt`, and an answer that depends on the crawler's manners is no
  * answer.

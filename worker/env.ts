@@ -5,7 +5,8 @@
  * origins under `vars`, so a Worker built once is pointed at the e2e stub in
  * the browser lane and at app.motir.co in production, with no rebuild. Every
  * handler receives this object through its context; nothing in the Worker
- * reads a Fly or Vercel variable, a tenant host or a forwarded-host header.
+ * reads a previous host's platform variable, a tenant host or a forwarded-host
+ * header.
  */
 
 /** The static-assets binding: the built site, served as Cloudflare serves it. */

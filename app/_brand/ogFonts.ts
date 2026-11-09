@@ -151,7 +151,7 @@ export function ogFontFamily(locale = 'en'): string {
  *
  * ⚠️ ONE ARRAY PER LOCALE FOR THE LIFE OF THE PROCESS, AND THE IDENTITY IS THE
  * POINT. satori keeps the fonts it has parsed in a `WeakMap` keyed by the
- * `fonts` ARRAY it is handed (`next/dist/compiled/@vercel/og`), so a fresh
+ * `fonts` ARRAY it is handed (satori's own font cache), so a fresh
  * array per request — what this used to return, on the reasoning that the
  * route is "rendered rarely" — re-reads and re-parses every face on every
  * draw. The per-project card is drawn at request time, and on 2026-10-18 a

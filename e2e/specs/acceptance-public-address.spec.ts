@@ -39,7 +39,7 @@ import { SITE_ORIGIN } from '../stub/origin'
  * Chromium resolves every label under `.localhost` to loopback, so
  * `acme.localhost`, `roadmap.localhost`, `old.localhost` and `broken.localhost`
  * all reach the same standalone server with a DIFFERENT
- * `Host` header — which is the only thing `proxy.ts` reads. What each host IS is
+ * `Host` header — which is the only thing the site's router reads. What each host IS is
  * decided by `e2e/stub/publicApiStub.ts`, so the whole address matrix is one
  * fixture table. `e2e/stub/origin.ts` owns the constants.
  *

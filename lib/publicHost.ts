@@ -46,8 +46,8 @@ import type { Locale } from '@/i18n/routing'
  * ── ⚠️ `unresolved` IS THE FOURTH SHAPE, AND IT IS NOT A TENANT (MOTIR-4430) ─
  *
  * A request can arrive on a host that is neither this site nor an address the
- * contract could resolve. There are exactly three of them and `proxy.ts` names
- * each one:
+ * contract could resolve. There were exactly three of them and the Next
+ * `proxy.ts` (deleted with its tenant branch, MOTIR-10639) named each one:
  *
  *   • the tenant BASE DOMAIN itself (`motir.site`), which has no row by
  *     construction and is answered without a hop;

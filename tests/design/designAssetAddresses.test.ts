@@ -131,10 +131,6 @@ const APP_ROUTES = appRoutePatterns()
  * a list of its own: a rule this
  * guard forgot would make it call a live address dead. A `*` segment is a
  * catch-all (`/en/*` → every address under `/en`).
- *
- * ⚠️ `proxy.ts` IS NOT READ. It is held out of every gate until its
- * decommission (MOTIR-10639); the Worker answers what it answered, and on
- * motir.co itself every rewrite it made was keyed on a tenant host.
  */
 const REDIRECT_SOURCES: string[][] = redirectRules().map(({ from }) =>
   from

@@ -32,10 +32,11 @@ import { ROUTES, slotFor, type RouteSlot } from './routes'
  *   8. anything else: the static assets; a path they have no file for is
  *      answered with the locale's built 404 page and status 404.
  *
- * ⚠️ TWO NARROWINGS AGAINST `proxy.ts`, BOTH THE STORY'S. Language detection
+ * ⚠️ TWO NARROWINGS AGAINST THE NEXT `proxy.ts` (deleted, MOTIR-10639), BOTH
+ * THE STORY'S. Language detection
  * runs on the bare `/` only — every other unprefixed address is a built
  * English page and is never moved — and nothing here reads a tenant host, a
- * forwarded host or a Fly or Vercel variable.
+ * forwarded host or a previous host's platform variable.
  *
  * A pure function of the request, `env` and the route table, so the unit
  * test drives it with a stub assets binding and stub handlers.

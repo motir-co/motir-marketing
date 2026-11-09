@@ -14,8 +14,8 @@ import { ROUTES, type RouteSlot } from '@/worker/routes'
  * row; this file walks the whole table, so a thirteenth locale or a regional
  * tag the matcher stops folding fails here by name.
  *
- * The proxy-era matrix (tenant hosts, every unprefixed address) is held in
- * `detectionMatrixProxy.test.tsx` until MOTIR-10639 deletes `proxy.ts`.
+ * The Next-router matrix (tenant hosts, every unprefixed address) went with
+ * that router (MOTIR-10639).
  */
 
 const ORIGIN = 'https://motir.co'

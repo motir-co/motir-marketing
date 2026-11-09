@@ -13,7 +13,7 @@ import {
  * resolved at build, and not a constant somebody must remember to move.
  *
  * The build hands the resolved tag over as `SKILLS_RELEASE_TAG`
- * (`scripts/skills/resolve-release.ts` → `next.config.ts`). These tests play the
+ * (`scripts/skills/resolve-release.ts` → `astro build`). These tests play the
  * build: they set that variable to a release NEWER than the committed floor and
  * assert that the setup prompt and both guides change with it — every install,
  * update and "check it worked" line — and that nothing old is left behind.
