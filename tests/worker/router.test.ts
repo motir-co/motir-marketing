@@ -3,13 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { LOCALES } from '@/i18n/routing'
 import type { Env } from '@/worker/env'
 import { requestLogLine } from '@/worker/requestLog'
-import {
-  LANGUAGE_VARY,
-  notFoundPage,
-  readCookie,
-  route,
-  splitLocale,
-} from '@/worker/router'
+import { notFoundPage } from '@/worker/notFound'
+import { LANGUAGE_VARY, readCookie, route, splitLocale } from '@/worker/router'
 import {
   placeholder,
   ROUTES,

@@ -58,6 +58,12 @@ export const ISLANDS = {
     import('@/app/[locale]/docs/(guides)/sandbox/SetupSteps').then(
       (m) => m.SetupSteps,
     ),
+  // MOTIR-10753 — the project pages' one client piece; the Worker renders
+  // those pages, and the build bundles the island the browser hydrates.
+  SubscribeForm: () =>
+    import('@/app/[locale]/p/[identifier]/_components/SubscribeForm').then(
+      (m) => m.SubscribeForm,
+    ),
 } satisfies Record<string, () => Promise<ComponentType<never>>>
 
 export type IslandName = keyof typeof ISLANDS

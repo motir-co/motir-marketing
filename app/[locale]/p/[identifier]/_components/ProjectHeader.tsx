@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import {
   PROJECT_TABS,
   projectTabHref,
@@ -7,6 +6,7 @@ import {
   type VisitorView,
 } from '@/lib/publicProject'
 import { SITE_HOST, type PublicHost } from '@/lib/publicHost'
+import { useAppOrigin } from '@/lib/appOriginContext'
 import { useCopy, usePageLocale } from '@/lib/copy'
 import { ActRail } from './ActRail'
 import { WatchLive } from './WatchLive'
@@ -65,6 +65,7 @@ export function ProjectHeader({
   const { identifier, name, workspaceName, publicTagline, publicTags, stats } =
     project
   const copy = useCopy().publicProject
+  const appOrigin = useAppOrigin()
 
   return (
     <header>
@@ -121,13 +122,11 @@ export function ProjectHeader({
           content down by a line on every project whose window is narrow, which
           the design's narrow panel (16) settles. */}
       {/* ⚠️ SPLIT BY WHO SERVES THE TAB (MOTIR-6745; design MOTIR-6742 panel A).
-          Overview and Changelog are pages on this host — `next/link`, host-
-          relative. Board, Items, Tree and Roadmap live in the app now
+          Overview and Changelog are pages on this host — host-
+          relative plain links. Board, Items, Tree and Roadmap live in the app now
           (MOTIR-6743 redirects the old paths): they follow a divider under
           "In the app", carry the ↗ the act rail's hand-offs use, and are PLAIN
-          `<a>`s on `APP_ORIGIN`, never `next/link` — a cross-origin `next/link`
-          is RSC-prefetched on render (MOTIR-4372), and a relative one would be
-          prefetched into a redirect off this host. SCROLLS, never wraps. */}
+          `<a>`s on the app origin (`useAppOrigin`). SCROLLS, never wraps. */}
       <nav
         aria-label={copy.header.navAria}
         className="mt-8 flex items-center gap-0.5 overflow-x-auto border-b border-(--el-border)"
@@ -135,7 +134,7 @@ export function ProjectHeader({
         {PROJECT_TABS.filter((tab) => tab.served === 'site').map((tab) => {
           const isCurrent = tab.segment === current
           return (
-            <Link
+            <a
               key={tab.segment || 'overview'}
               href={projectTabHref(host, identifier, tab.segment, locale)}
               aria-current={isCurrent ? 'page' : undefined}
@@ -146,7 +145,7 @@ export function ProjectHeader({
               }
             >
               {copy.tabs[tab.labelKey]}
-            </Link>
+            </a>
           )
         })}
         <span
@@ -162,7 +161,11 @@ export function ProjectHeader({
         {PROJECT_TABS.filter((tab) => tab.served === 'app').map((tab) => (
           <a
             key={tab.segment}
-            href={visitorViewUrl(identifier, tab.segment as VisitorView)}
+            href={visitorViewUrl(
+              appOrigin,
+              identifier,
+              tab.segment as VisitorView,
+            )}
             className="border-b-2 border-transparent px-3 py-3 text-[15px] font-medium whitespace-nowrap text-(--el-text-secondary) hover:text-(--el-text)"
           >
             {copy.tabs[tab.labelKey]}&nbsp;<span aria-hidden>↗</span>

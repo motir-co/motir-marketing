@@ -225,6 +225,14 @@ export default defineConfig({
         'worker/router.ts',
         'worker/routes.ts',
         'worker/requestLog.ts',
+        'worker/notFound.ts',
+        // MOTIR-10753 — the project slot and the document every live page
+        // renders through, added WITH their tests.
+        'worker/project/*.ts',
+        'worker/project/*.tsx',
+        'worker/render/*.ts',
+        'worker/render/*.tsx',
+        'lib/appOriginContext.tsx',
       ].filter(notHeld),
       /*
        * ⚠️ EVERY EXCLUSION HAS A REASON, and the reasons are different — a list
@@ -385,6 +393,12 @@ export default defineConfig({
           'worker/router.ts': { lines: 90, functions: 90, branches: 90 },
           'worker/routes.ts': { lines: 90, functions: 90, branches: 90 },
           'worker/requestLog.ts': { lines: 90, functions: 90, branches: 90 },
+          'worker/notFound.ts': { lines: 90, functions: 90, branches: 90 },
+          // MOTIR-10753 — measured first under `tests/worker/`, then pinned.
+          'worker/project/*.ts': { lines: 90, functions: 90, branches: 90 },
+          'worker/project/*.tsx': { lines: 90, functions: 90, branches: 90 },
+          'worker/render/*.ts': { lines: 90, functions: 90, branches: 90 },
+          'worker/render/*.tsx': { lines: 90, functions: 90, branches: 90 },
           'lib/scriptJson.ts': { lines: 90, functions: 90, branches: 90 },
           'lib/island.tsx': { lines: 90, functions: 90, branches: 90 },
           'lib/islands.ts': { lines: 90, functions: 90, branches: 90 },

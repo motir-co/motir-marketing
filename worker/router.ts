@@ -7,6 +7,7 @@ import {
 } from '@/lib/crawlPolicy'
 import { chooseLocale, LOCALE_COOKIE } from '@/lib/localeDetection'
 import type { Env } from './env'
+import { notFoundPage } from './notFound'
 import { logRequest } from './requestLog'
 import { ROUTES, slotFor, type RouteSlot } from './routes'
 
@@ -143,25 +144,6 @@ function redirectFor(url: URL, routes: readonly RouteSlot[]): Response | null {
   const destination = new URL(url)
   destination.pathname = path
   return redirect(destination, 308)
-}
-
-/**
- * The built not-found room for `locale`, with status 404 — the nearest
- * `404.html` above an unmatched path, as `not_found_handling: "404-page"`
- * served it before the site had a Worker (`wrangler.jsonc`). A live route
- * that reads a project the API does not know answers with it too.
- */
-export async function notFoundPage(
-  url: URL,
-  locale: Locale,
-  env: Env,
-): Promise<Response> {
-  const room = new URL(
-    locale === DEFAULT_LOCALE ? '/404' : `/${locale}/404`,
-    url,
-  )
-  const page = await env.ASSETS.fetch(room)
-  return new Response(page.body, { status: 404, headers: page.headers })
 }
 
 /**

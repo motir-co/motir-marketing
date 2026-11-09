@@ -1,5 +1,4 @@
 import type { Locale } from '@/i18n/routing'
-import { APP_ORIGIN } from '@/lib/appOrigin'
 import { SITE_ORIGIN as SITE_ORIGIN_FOR_RETURN } from '@/lib/siteOrigin'
 import {
   publicPathFor,
@@ -133,8 +132,17 @@ export interface PublicChangelogPageDto {
 
 /* ── the read ─────────────────────────────────────────────────────────────── */
 
-/** The public API origin — `app.motir.co`, from `lib/appOrigin.ts`. */
-export const PUBLIC_API_BASE = `${APP_ORIGIN}/api/public`
+/**
+ * The public API under an app origin — `https://app.motir.co/api/public`.
+ *
+ * ⚠️ THE ORIGIN IS A PARAMETER, NOT A CONSTANT (MOTIR-10753). These pages
+ * render in the Worker, which reads the app origin per request from its
+ * `MOTIR_APP_ORIGIN` variable, so re-pointing the surface is a variable change
+ * and never a rebuild. Every read and every app link below takes it.
+ */
+export function publicApiBase(appOrigin: string): string {
+  return `${appOrigin}/api/public`
+}
 
 /** One read's outcome. See the three-outcomes note above. */
 export type PublicRead<T> =
@@ -143,21 +151,18 @@ export type PublicRead<T> =
 /**
  * GET one path under the public API, mapping the three outcomes.
  *
- * `next: { revalidate: 0 }` keeps the read at request time: a public project
- * page shows a live board and a live changelog, and a copy frozen into the build
- * would serve a project's state as it was when the site last deployed.
- *
- * `revalidate` is for the one caller that must NOT read per request: the
- * project's social card (`app/[locale]/p/[identifier]/opengraph-image.tsx`),
- * whose route is ISR — an uncached fetch would make it dynamic again.
+ * `cache: 'no-store'` keeps the read at request time: a public project page
+ * shows a live changelog and live counts, and a stored copy would serve a
+ * project's state as it was when it was stored. A route that may serve a
+ * stored answer (the share card) caches its own RESPONSE at the edge instead.
  */
 export async function readPublic<T>(
+  appOrigin: string,
   path: string,
-  revalidate = 0,
 ): Promise<PublicRead<T>> {
   try {
-    const res = await fetch(`${PUBLIC_API_BASE}${path}`, {
-      next: { revalidate },
+    const res = await fetch(`${publicApiBase(appOrigin)}${path}`, {
+      cache: 'no-store',
       headers: { accept: 'application/json' },
     })
     // 404 is the API SAYING something — the project is not public, or the key is
@@ -173,12 +178,12 @@ export async function readPublic<T>(
 
 /** The project SUBJECT — the hero, the authored overview, the stats. */
 export function loadProject(
+  appOrigin: string,
   identifier: string,
-  revalidate = 0,
 ): Promise<PublicRead<PublicProjectOverviewDto>> {
   return readPublic<PublicProjectOverviewDto>(
+    appOrigin,
     `/p/${encodeURIComponent(identifier)}`,
-    revalidate,
   )
 }
 
@@ -234,22 +239,23 @@ export type VisitorView = 'board' | 'items' | 'tree' | 'roadmap'
 
 /**
  * The ONE builder of an app read-view URL (MOTIR-6743): the same path on
- * `app.motir.co`, `${APP_ORIGIN}/p/<identifier>/<view>[/<sub>]`. The app's
+ * `app.motir.co`, `<appOrigin>/p/<identifier>/<view>[/<sub>]`. The app's
  * Visitor route tree mirrors this host's read paths on purpose, so moving a
  * reader is a HOST SWAP (motir-core `docs/decisions/public-surface-hosts.md`
  * AMENDMENT 7). `sub` is a work item's FULL identifier (`MOTIR-42`) under
  * `items`. Both segments are encoded exactly once.
  *
- * ⚠️ ALWAYS ABSOLUTE ON `APP_ORIGIN`, never on the host the reader is on: the
+ * ⚠️ ALWAYS ABSOLUTE ON THE APP ORIGIN, never on the host the reader is on: the
  * views exist in the app and nowhere else, and a customer domain has no
  * `/board` to keep.
  */
 export function visitorViewUrl(
+  appOrigin: string,
   identifier: string,
   view: VisitorView,
   sub?: string,
 ): string {
-  const base = `${APP_ORIGIN}/p/${encodeURIComponent(identifier)}/${view}`
+  const base = `${appOrigin}/p/${encodeURIComponent(identifier)}/${view}`
   return sub ? `${base}/${encodeURIComponent(sub)}` : base
 }
 
@@ -269,13 +275,14 @@ export function visitorViewUrl(
  * what Next's own `permanentRedirect` sends.
  */
 export function visitorViewRedirect(
+  appOrigin: string,
   identifier: string,
   view: VisitorView,
   sub?: string,
 ): Response {
   return new Response(null, {
     status: 308,
-    headers: { Location: visitorViewUrl(identifier, view, sub) },
+    headers: { Location: visitorViewUrl(appOrigin, identifier, view, sub) },
   })
 }
 
@@ -331,11 +338,15 @@ const seg = (identifier: string) => `/p/${encodeURIComponent(identifier)}`
 
 /** The CHANGELOG — cursor-paged. */
 export function loadChangelog(
+  appOrigin: string,
   identifier: string,
   cursor?: string,
 ): Promise<PublicRead<PublicChangelogPageDto>> {
   const qs = cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''
-  return readPublic<PublicChangelogPageDto>(`${seg(identifier)}/changelog${qs}`)
+  return readPublic<PublicChangelogPageDto>(
+    appOrigin,
+    `${seg(identifier)}/changelog${qs}`,
+  )
 }
 
 /**
@@ -389,10 +400,12 @@ export interface PublicRequestDetailDto {
 
 /** ONE feature request, with its public thread and its vote count. */
 export function loadRequest(
+  appOrigin: string,
   identifier: string,
   requestKey: string,
 ): Promise<PublicRead<PublicRequestDetailDto>> {
   return readPublic<PublicRequestDetailDto>(
+    appOrigin,
     `${seg(identifier)}/requests/${encodeURIComponent(requestKey)}`,
   )
 }
@@ -429,6 +442,7 @@ export type ActIntent = 'follow' | 'vote' | 'upvote' | 'comment' | 'request'
  * public addresses before redirecting to it (MOTIR-4218).
  */
 export function actHref(
+  appOrigin: string,
   intent: ActIntent,
   identifier: string,
   returnPath: string,
@@ -438,7 +452,7 @@ export function actHref(
     subject: identifier,
     return: `${SITE_ORIGIN_FOR_RETURN}${returnPath}`,
   })
-  return `${APP_ORIGIN}/act?${params.toString()}`
+  return `${appOrigin}/act?${params.toString()}`
 }
 
 /* ── the crawl index (MOTIR-4118) ─────────────────────────────────────────── */
@@ -482,7 +496,7 @@ const INDEX_PAGE_LIMIT = 20
  * project pages is recoverable; one that 500s is not, and search engines back
  * off a sitemap that errors.
  */
-export async function loadAllPublicProjects(): Promise<{
+export async function loadAllPublicProjects(appOrigin: string): Promise<{
   projects: PublicProjectIndexEntryDto[]
   complete: boolean
 }> {
@@ -491,7 +505,10 @@ export async function loadAllPublicProjects(): Promise<{
 
   for (let page = 0; page < INDEX_PAGE_LIMIT; page += 1) {
     const qs = cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''
-    const read = await readPublic<PublicProjectIndexPageDto>(`/projects${qs}`)
+    const read = await readPublic<PublicProjectIndexPageDto>(
+      appOrigin,
+      `/projects${qs}`,
+    )
     if (read.status !== 'ok') return { projects, complete: false }
 
     projects.push(...read.data.projects)

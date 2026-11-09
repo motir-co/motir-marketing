@@ -2,6 +2,7 @@ import { island } from '@/lib/island'
 import { CopyControls } from '../[locale]/docs/_components/CopyControls'
 import { DocsRail } from '../[locale]/docs/_components/DocsRail'
 import { SetupSteps } from '../[locale]/docs/(guides)/sandbox/SetupSteps'
+import { SubscribeForm } from '../[locale]/p/[identifier]/_components/SubscribeForm'
 import { RackStage } from '../[locale]/how-it-works/_components/RackStage'
 import { StackArt } from '../[locale]/how-to-use/_components/StackArt'
 import { DesignShowcase } from '../_components/DesignShowcase'
@@ -80,3 +81,5 @@ export const CopyControlsIsland = island('CopyControls', CopyControls)
  * are the document's rendered parts, which travel as markup.
  */
 export const SetupStepsIsland = island('SetupSteps', SetupSteps)
+
+export const SubscribeFormIsland = island('SubscribeForm', SubscribeForm)

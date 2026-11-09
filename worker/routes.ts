@@ -1,5 +1,6 @@
 import { DEFAULT_LOCALE, LOCALES, type Locale } from '@/i18n/routing'
 import type { Env } from './env'
+import { projectHandler } from './project/handler'
 
 /*
  * THE LIVE SURFACE'S ROUTE TABLE, AND THE LIST THAT BRINGS THE WORKER IN
@@ -85,7 +86,7 @@ export const ROUTES: readonly RouteSlot[] = [
   {
     name: 'project',
     matches: (path) => PROJECT.test(path),
-    handler: placeholder('project'),
+    handler: projectHandler,
   },
   {
     name: 'explore',
