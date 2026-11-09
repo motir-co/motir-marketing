@@ -20,15 +20,15 @@
  * no configuration at all. The override exists for a preview deployment that
  * wants its own canonicals; getting it wrong costs a canonical, not a door.
  *
- * ⚠️ `NEXT_PUBLIC_` BECAUSE IT IS READ AT BUILD TIME. Every consumer here is
+ * ⚠️ `PUBLIC_` BECAUSE IT IS READ AT BUILD TIME. Every consumer here is
  * statically rendered (root metadata, `sitemap.ts`, `robots.ts`), so the value
- * is baked into the output by `next build` exactly as `NEXT_PUBLIC_*` is —
+ * is baked into the output by `astro build` exactly as `PUBLIC_*` is —
  * setting it as a Fly SECRET would do nothing, for the same reason
  * `.env.example` already gives for the app origin. It travels in `fly.toml`'s
  * `[build.args]` if it is ever overridden.
  */
 
-export const SITE_ORIGIN_ENV_VAR = 'NEXT_PUBLIC_MOTIR_SITE_ORIGIN'
+export const SITE_ORIGIN_ENV_VAR = 'PUBLIC_MOTIR_SITE_ORIGIN'
 
 /** The production origin, and the value every unconfigured build gets. */
 export const DEFAULT_SITE_ORIGIN = 'https://motir.co'
@@ -82,11 +82,11 @@ export function parseSiteOrigin(raw: string | undefined): string {
 
 /**
  * ⚠️ READ THE VARIABLE BY ITS FULL LITERAL NAME — the same rule
- * `lib/appOrigin.ts` records. Next inlines `process.env.X` only where `X` is
+ * `lib/appOrigin.ts` records. The build's `define` inlines `process.env.X` only where `X` is
  * written out; `process.env[name]` with a variable is left as a runtime lookup.
  */
 export const SITE_ORIGIN: string = parseSiteOrigin(
-  process.env.NEXT_PUBLIC_MOTIR_SITE_ORIGIN,
+  process.env.PUBLIC_MOTIR_SITE_ORIGIN,
 )
 
 /** Absolute URL for a root-relative path on THIS site. */

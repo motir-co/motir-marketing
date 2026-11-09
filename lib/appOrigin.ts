@@ -8,17 +8,17 @@
  * environment that matters: a hardcoded `app.motir.co` works perfectly in
  * production and silently points a preview build at production data.
  *
- * ⚠️ THIS MODULE THROWS AT IMPORT TIME, DELIBERATELY. `NEXT_PUBLIC_*` is
+ * ⚠️ THIS MODULE THROWS AT IMPORT TIME, DELIBERATELY. `PUBLIC_*` is
  * inlined at BUILD time, so an unset variable cannot be detected at runtime —
  * by then the literal `undefined` is already baked into the bundle and the
- * doors are dead links a visitor discovers. Throwing here fails `next build`
+ * doors are dead links a visitor discovers. Throwing here fails `astro build`
  * with the name of the variable, which is the only moment the mistake is
  * cheap. `MotirAppOriginError` is asserted by `tests/appOrigin.test.ts`; the
  * criterion asks for a test rather than an inspection precisely because a
  * guard nobody exercises is a comment.
  */
 
-export const APP_ORIGIN_ENV_VAR = 'NEXT_PUBLIC_MOTIR_APP_ORIGIN'
+export const APP_ORIGIN_ENV_VAR = 'PUBLIC_MOTIR_APP_ORIGIN'
 
 /** Thrown when the origin is missing or is not an absolute http(s) origin. */
 export class MotirAppOriginError extends Error {
@@ -65,10 +65,10 @@ export function parseAppOrigin(raw: string | undefined): string {
 }
 
 /**
- * ⚠️ READ THE VARIABLE BY ITS FULL LITERAL NAME. Next inlines `process.env.X`
- * only where `X` is written out; `process.env[name]` with a variable is left
+ * ⚠️ READ THE VARIABLE BY ITS FULL LITERAL NAME. The build's `define`
+ * (`astro.config.mjs`) inlines `process.env.X` only where `X` is written out; `process.env[name]` with a variable is left
  * as a runtime lookup, which in the browser bundle is `undefined`.
  */
 export const APP_ORIGIN: string = parseAppOrigin(
-  process.env.NEXT_PUBLIC_MOTIR_APP_ORIGIN,
+  process.env.PUBLIC_MOTIR_APP_ORIGIN,
 )

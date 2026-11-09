@@ -2,7 +2,7 @@
  * CAPTURE THE NEXT BASELINE, ONCE (MOTIR-10648).
  *
  *     # in a separate checkout of b9ff37a, after `pnpm install` and
- *     # `next build` with ci.yml's NEXT_PUBLIC_* values:
+ *     # `next build` with the public build-time values ci.yml set at b9ff37a:
  *     cp -r .next/static .next/standalone/.next/static
  *     cp -r public .next/standalone/public
  *     (cd .next/standalone && PORT=3999 HOSTNAME=127.0.0.1 node server.js) &

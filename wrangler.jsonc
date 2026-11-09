@@ -41,11 +41,18 @@
  * `MOTIR_APP_ORIGIN` (the public API the live pages read, and the app's
  * doors) and `MOTIR_SITE_ORIGIN` (canonicals and the sitemap) are read at
  * request time, so one built Worker is pointed at the e2e stub with
- * `wrangler dev --var` and at production by these defaults. The CI story
- * (MOTIR-10637) owns the production values from here on.
+ * `wrangler dev --var` and at production by the values below, which are what
+ * `ci.yml`'s `deploy` job ships (MOTIR-10637): app.motir.co and motir.co.
  *
- * The deploy job stays held until the CI story points it here; `pnpm start`
- * serves the build and the Worker locally through `wrangler dev`.
+ * ── HOW IT IS RELEASED ─────────────────────────────────────────────────────
+ *
+ * `ci.yml`'s `Deploy to Cloudflare` job runs `wrangler deploy` with this file
+ * on `main`, behind every gate (MOTIR-10637). There are no `routes` here yet:
+ * attaching motir.co and www is the cut's (MOTIR-10638). `workers_dev` keeps
+ * the Worker's own `*.workers.dev` address on, which is where the deploy
+ * job's smoke step reads the release before the cut, and after it; every page
+ * names motir.co as its canonical, so that copy is never indexed as the site.
+ * `pnpm start` serves the build and the Worker locally through `wrangler dev`.
  */
 {
   "$schema": "node_modules/wrangler/config-schema.json",
@@ -53,6 +60,7 @@
   "main": "worker/index.ts",
   "compatibility_date": "2026-11-01",
   "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",

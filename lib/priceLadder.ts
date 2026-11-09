@@ -60,7 +60,7 @@ export class PlanLadderUnavailableError extends Error {
   constructor(origin: string | null) {
     super(
       origin === null
-        ? `The plan ladder has no origin: set NEXT_PUBLIC_MOTIR_AI_ORIGIN.`
+        ? `The plan ladder has no origin: set PUBLIC_MOTIR_AI_ORIGIN.`
         : `The plan ladder at ${origin}${PLAN_LADDER_PATH} could not be read, ` +
             `so the pages built from it would show no figure. The build stops ` +
             `and the deployed site keeps its last good copy.`,

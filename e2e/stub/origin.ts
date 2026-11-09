@@ -2,7 +2,7 @@
  * The lane's two ports, in ONE place — imported by `playwright.config.ts`, by
  * the stub server and by any spec that needs to address the stub directly.
  *
- * ⚠️ IT EXISTS BECAUSE A SPEC MUST NEVER READ `NEXT_PUBLIC_MOTIR_APP_ORIGIN`.
+ * ⚠️ IT EXISTS BECAUSE A SPEC MUST NEVER READ `PUBLIC_MOTIR_APP_ORIGIN`.
  * `ci.yml` sets that variable at WORKFLOW level, to production, because the
  * `build` and `deploy` jobs need it there. A spec that read it with a local
  * fallback — `process.env[...] ?? 'http://127.0.0.1:4319'` — therefore behaved
@@ -17,7 +17,7 @@
  * avoid.
  *
  * The app under test is unaffected either way: `playwright.config.ts` passes
- * `NEXT_PUBLIC_MOTIR_APP_ORIGIN: STUB_ORIGIN` explicitly into the webServer's
+ * `PUBLIC_MOTIR_APP_ORIGIN: STUB_ORIGIN` explicitly into the webServer's
  * build, which overrides the ambient value. Only the RUNNER's environment was
  * ever wrong, which is why 43 of 44 specs passed.
  */
@@ -40,11 +40,10 @@ export const SITE_ORIGIN = `http://127.0.0.1:${SITE_PORT}`
  * DIFFERENT `Host` header, which is the only thing the router reads. That is
  * what makes a tenant host testable in a lane that has no DNS of its own.
  *
- * `playwright.config.ts` sets `NEXT_PUBLIC_MOTIR_TENANT_DOMAIN=localhost` for
- * the build, so this really is a subdomain of the configured base domain rather
- * than an arbitrary host that happens to route — and the base domain itself,
- * `localhost`, is one of the addresses the router steps aside for, so the site's
- * own specs are untouched.
+ * The Astro site does not port the tenant branch (MOTIR-10634), so the build
+ * no longer receives a tenant base domain (MOTIR-10637 dropped
+ * `PUBLIC_MOTIR_TENANT_DOMAIN` from `playwright.config.ts` and `ci.yml`); these
+ * addresses stay for the specs that show the site serves motir.co alone.
  *
  * The stub answers `/api/public/hosts/acme.localhost` from
  * `e2e/fixtures/host-workspace.json`: a live workspace host with no application

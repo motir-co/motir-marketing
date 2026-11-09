@@ -11,7 +11,7 @@ import { STUB_ORIGIN } from '../stub/origin'
  * public feature-request board, which is retired. The Changelog stays a page on
  * this host, anonymous, as does the project page itself.
  *
- * In this lane the app's origin IS the stub (`NEXT_PUBLIC_MOTIR_APP_ORIGIN`),
+ * In this lane the app's origin IS the stub (`PUBLIC_MOTIR_APP_ORIGIN`),
  * so a redirect names `STUB_ORIGIN`.
  */
 

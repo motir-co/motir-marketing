@@ -26,7 +26,7 @@ import {
  * first visit's language on (MOTIR-7951).
  *
  * ⚠️ ABSOLUTE, FROM `siteUrl`. The origin is the build-time
- * `NEXT_PUBLIC_MOTIR_SITE_ORIGIN`, never the request host: these pages are
+ * `PUBLIC_MOTIR_SITE_ORIGIN`, never the request host: these pages are
  * prerendered, and nothing here may read the request.
  */
 

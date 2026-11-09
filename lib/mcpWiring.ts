@@ -19,7 +19,7 @@ import { APP_ORIGIN } from '@/lib/appOrigin'
  * built from them. That is what makes the negative test meaningful: build the
  * blocks with a SENTINEL origin and assert every one carries it, and a block
  * that typed `https://app.motir.co` fails rather than passing by coincidence.
- * The origin comes from `NEXT_PUBLIC_MOTIR_APP_ORIGIN` (`lib/appOrigin.ts`), so
+ * The origin comes from `PUBLIC_MOTIR_APP_ORIGIN` (`lib/appOrigin.ts`), so
  * a preview build documents the preview it is part of.
  *
  * ── WHY THE PATH IS A LITERAL HERE, and what checks it ──────────────────────

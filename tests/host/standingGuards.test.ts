@@ -42,17 +42,17 @@ const SOURCES = [
 describe('ONE READER PER BUILD-TIME VARIABLE', () => {
   /*
    * ⚠️ THE RULE `lib/appOrigin.ts` AND `lib/siteOrigin.ts` BOTH RECORD, now
-   * with a third variable to hold. It is not tidiness: `NEXT_PUBLIC_*` is
-   * INLINED by `next build`, and Next inlines `process.env.X` only where `X` is
+   * with a third variable to hold. It is not tidiness: `PUBLIC_*` is
+   * INLINED by `astro build`, whose `define` inlines `process.env.X` only where `X` is
    * written out literally — so a second reader is a second place to write the
    * name, and getting it wrong there produces `undefined` in the bundle with
    * nothing red anywhere. One reader means one place that can be wrong, and it
    * is the place that throws.
    */
   it.each([
-    ['NEXT_PUBLIC_MOTIR_APP_ORIGIN', 'lib/appOrigin.ts'],
-    ['NEXT_PUBLIC_MOTIR_SITE_ORIGIN', 'lib/siteOrigin.ts'],
-    ['NEXT_PUBLIC_MOTIR_TENANT_DOMAIN', 'lib/tenantDomain.ts'],
+    ['PUBLIC_MOTIR_APP_ORIGIN', 'lib/appOrigin.ts'],
+    ['PUBLIC_MOTIR_SITE_ORIGIN', 'lib/siteOrigin.ts'],
+    ['PUBLIC_MOTIR_TENANT_DOMAIN', 'lib/tenantDomain.ts'],
   ])('%s is read only by %s', (variable, owner) => {
     const readers = SOURCES.filter(
       (file) =>

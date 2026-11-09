@@ -23,10 +23,10 @@ import type { Locale } from '@/i18n/routing'
  *
  * ⚠️ EVALUATED AT BUILD TIME, because this is a static export on a statically
  * rendered route. That is correct for every value here — `SITE_ORIGIN` is a
- * `NEXT_PUBLIC_*` constant and the catalogue is a compiled-in import — but it
+ * `PUBLIC_*` constant and the catalogue is a compiled-in import — but it
  * is also why the verification variable below must be a BUILD arg if it is ever
  * set, never a Fly secret. Same rule, and same reason, as
- * `NEXT_PUBLIC_MOTIR_APP_ORIGIN`.
+ * `PUBLIC_MOTIR_APP_ORIGIN`.
  */
 /*
  * ⚠️ THE CARD IS NAMED EXPLICITLY NOW, AND THAT IS A MEASUREMENT (MOTIR-7948).

@@ -68,7 +68,7 @@ test('the room gives a lost visitor a way out — two doors, Explore first', asy
    * defaults to `https://motir.co` and this lane does not override it, so
    * clicking the door would navigate to PRODUCTION from CI — the exact coupling
    * `e2e/stub/origin.ts` records having paid for once already. Overriding
-   * `NEXT_PUBLIC_MOTIR_SITE_ORIGIN` for the lane was tried and reverted: ten
+   * `PUBLIC_MOTIR_SITE_ORIGIN` for the lane was tried and reverted: ten
    * specs assert `https://motir.co` in a canonical, a sitemap or a JSON-LD
    * graph, and moving the site's origin under them would have been a far larger
    * change than this card. So the assertion above pins WHERE the door points

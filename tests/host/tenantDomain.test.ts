@@ -61,7 +61,7 @@ describe('assertTenantDomainConfigured — the build-time guard', () => {
     // ⚠️ THE GUARD `next.config.ts` CALLS. Its whole reason for existing is that
     // nothing else evaluates this module during a build — `lib/tenantDomain.ts`
     // carries the measurement. A guard nobody exercises is a comment.
-    vi.stubEnv('NEXT_PUBLIC_MOTIR_TENANT_DOMAIN', '')
+    vi.stubEnv('PUBLIC_MOTIR_TENANT_DOMAIN', '')
     try {
       expect(() => assertTenantDomainConfigured(true)).toThrow(
         MotirTenantDomainError,
@@ -73,7 +73,7 @@ describe('assertTenantDomainConfigured — the build-time guard', () => {
   })
 
   it('passes in production when it is set', () => {
-    vi.stubEnv('NEXT_PUBLIC_MOTIR_TENANT_DOMAIN', 'motir.site')
+    vi.stubEnv('PUBLIC_MOTIR_TENANT_DOMAIN', 'motir.site')
     try {
       expect(() => assertTenantDomainConfigured(true)).not.toThrow()
     } finally {

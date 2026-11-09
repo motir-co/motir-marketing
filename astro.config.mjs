@@ -34,23 +34,23 @@ import { SITE_ORIGIN } from './lib/siteOrigin.ts'
  * an optional `[...locale]` segment (`lib/staticPaths.ts`). `/en` and `/en/…`
  * are a 308 to the unprefixed address, from the `_redirects` file below.
  *
- * ── BUILD-TIME ENV KEEPS ITS NAMES ─────────────────────────────────────────
+ * ── BUILD-TIME ENV ─────────────────────────────────────────────────────────
  *
- * The modules read `process.env.NEXT_PUBLIC_*`, the names `ci.yml` already
- * sets (the CI story renames them). Prerendering runs in Node, where those
- * reads work as written; `define` inlines the same values into the islands'
- * browser bundle, exactly as `next build` inlined `NEXT_PUBLIC_*`, so a door
- * an island renders points where the server-rendered one does. `site` takes
+ * The modules read `process.env.PUBLIC_*` — Astro's prefix for a value that
+ * is public by design, and the names `ci.yml` sets (MOTIR-10637 renamed them
+ * from the Next site's `NEXT_`-prefixed spelling). Prerendering runs in Node,
+ * where those reads work as written; `define` inlines the same values into
+ * the islands' browser bundle, so a door an island renders points where the
+ * server-rendered one does. `site` takes
  * `lib/siteOrigin.ts`'s answer, so that module stays the variable's one reader
  * (`tests/host/standingGuards.test.ts`).
  */
 
 /** Every build-time variable an island's module can read. */
 const PUBLIC_ENV = [
-  'NEXT_PUBLIC_MOTIR_APP_ORIGIN',
-  'NEXT_PUBLIC_MOTIR_SITE_ORIGIN',
-  'NEXT_PUBLIC_MOTIR_AI_ORIGIN',
-  'NEXT_PUBLIC_MOTIR_TENANT_DOMAIN',
+  'PUBLIC_MOTIR_APP_ORIGIN',
+  'PUBLIC_MOTIR_SITE_ORIGIN',
+  'PUBLIC_MOTIR_AI_ORIGIN',
 ]
 
 /**

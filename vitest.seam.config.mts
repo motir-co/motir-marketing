@@ -21,7 +21,7 @@ import { defineConfig } from 'vitest/config'
  * config includes exactly it. AMENDMENT 3 §B records where it is wired: the
  * DEPLOY job, before the release, and a SCHEDULE — never `pull_request`.
  *
- * ⚠️ AND `NEXT_PUBLIC_MOTIR_APP_ORIGIN` IS DELIBERATELY NOT STUBBED HERE.
+ * ⚠️ AND `PUBLIC_MOTIR_APP_ORIGIN` IS DELIBERATELY NOT STUBBED HERE.
  * `vitest.config.mts` sets it to a non-production test value so the offline
  * suite can import `lib/appOrigin.ts` at all. Doing that here would point the
  * whole check at a host that does not exist and the lane would report

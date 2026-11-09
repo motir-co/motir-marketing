@@ -7,7 +7,7 @@
  * on its side of the seam (`lib/publicAddresses/tenantDomain.ts`) reading
  * `MOTIR_PUBLIC_TENANT_DOMAIN`; this one is the RENDERER's half, and the names
  * differ on purpose — the value is inlined into a client bundle here, so it
- * carries the `NEXT_PUBLIC_` prefix that says so.
+ * carries the `PUBLIC_` prefix that says so.
  *
  * ── ⚠️ WHY THE ROUTER NEEDS IT AT ALL ────────────────────────────────────
  *
@@ -37,13 +37,13 @@
  * (Chromium resolves every label under it to loopback), so `acme.localhost` is a
  * working tenant host with no configuration and no `/etc/hosts` edit.
  *
- * ⚠️ `NEXT_PUBLIC_` BECAUSE IT IS READ AT BUILD TIME, exactly as the two
+ * ⚠️ `PUBLIC_` BECAUSE IT IS READ AT BUILD TIME, exactly as the two
  * origins are: it travels in `fly.toml`'s `[build.args]` and the `Dockerfile`'s
  * `ARG`, and a Fly SECRET would arrive after the image that needed it already
  * existed.
  */
 
-export const TENANT_DOMAIN_ENV_VAR = 'NEXT_PUBLIC_MOTIR_TENANT_DOMAIN'
+export const TENANT_DOMAIN_ENV_VAR = 'PUBLIC_MOTIR_TENANT_DOMAIN'
 
 /** What an unconfigured local run and the browser lane get. See the note above. */
 export const DEFAULT_TENANT_DOMAIN = 'localhost'
@@ -107,7 +107,7 @@ export function parseTenantDomain(
  * comment.
  */
 export function assertTenantDomainConfigured(isProduction: boolean): void {
-  parseTenantDomain(process.env.NEXT_PUBLIC_MOTIR_TENANT_DOMAIN, isProduction)
+  parseTenantDomain(process.env.PUBLIC_MOTIR_TENANT_DOMAIN, isProduction)
 }
 
 /**
@@ -116,6 +116,6 @@ export function assertTenantDomainConfigured(isProduction: boolean): void {
  * `process.env[name]` with a variable is left as a runtime lookup.
  */
 export const TENANT_DOMAIN: string = parseTenantDomain(
-  process.env.NEXT_PUBLIC_MOTIR_TENANT_DOMAIN,
+  process.env.PUBLIC_MOTIR_TENANT_DOMAIN,
   process.env.NODE_ENV === 'production',
 )
