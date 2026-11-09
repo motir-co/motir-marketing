@@ -153,14 +153,27 @@ describe('the build-time env (MOTIR-10637)', () => {
     }
   })
 
-  it('leaves no Next public name in the tree outside proxy.ts', () => {
+  it('leaves no Next public name in the tree outside proxy.ts and the verification records', () => {
     // `git grep` over the tracked tree, the search the card's criterion names.
     // `proxy.ts` is reference-only until the decommission (MOTIR-10639).
+    // `e2e/verification/` holds dated reports of what was measured, and the
+    // comparison against the Next site (MOTIR-10759) records the Next build's
+    // env by name: a record of the old build, not a reader of it (MOTIR-10802).
     let hits = ''
     try {
       hits = execFileSync(
         'git',
-        ['grep', '-l', '-e', nextPublic, '-e', nextTelemetry, '--', '.'],
+        [
+          'grep',
+          '-l',
+          '-e',
+          nextPublic,
+          '-e',
+          nextTelemetry,
+          '--',
+          '.',
+          ':(exclude)e2e/verification/',
+        ],
         { encoding: 'utf8' },
       )
     } catch (error) {
