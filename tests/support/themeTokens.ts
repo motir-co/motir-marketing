@@ -5,8 +5,8 @@ import { createRequire } from 'node:module'
  * A token resolver for `@motir/design-system`'s `theme.css` — the harness the
  * AA matrix is measured with (MOTIR-1043).
  *
- * ⚠️ WHY A RESOLVER AND NOT A BROWSER. The matrix is 11 styles × 10 palettes ×
- * 6 pairings × 2 themes = 1,320 cells; a reader cannot check that and this
+ * ⚠️ WHY A RESOLVER AND NOT A BROWSER. The matrix is 19 styles × 14 palettes ×
+ * 10 pairings × 2 themes = 5,320 cells (at 0.22.0); a reader cannot check that and this
  * repository has no browser lane (`ci.yml` runs lint · typecheck · build ·
  * test, and its own header says not to declare a gate before its job exists).
  * jsdom computes no `var()` and no `color-mix()`, so the values have to be
