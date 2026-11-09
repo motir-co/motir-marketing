@@ -562,6 +562,38 @@
       "retrofuturism": {
         "name": "Retrofuturyzm",
         "tagline": "Chrom, gradientowe smugi i horyzont synthwave — science fiction lat 70. i 80."
+      },
+      "dense-pro": {
+        "name": "Gęsty / Pro",
+        "tagline": "Zwarty i gęsty informacyjnie: więcej wierszy, mniej ozdobników, szybszy rytm."
+      },
+      "high-contrast-accessible": {
+        "name": "Wysoki kontrast / Dostępny",
+        "tagline": "Maksymalna czytelność: grubsze kreski, duże cele i fokus, którego nie da się przeoczyć."
+      },
+      "tonal-elevated": {
+        "name": "Tonalny / Wyniesiony",
+        "tagline": "Głębia przez ton: powierzchnie wspinają się po spokojnej drabinie, osadzone na miękkich cieniach."
+      },
+      "claymorphism": {
+        "name": "Claymorfizm",
+        "tagline": "Miękkie, napompowane kafelki, jakby wyciśnięte z gliny: przyjazne, dotykowe i spokojne."
+      },
+      "bento": {
+        "name": "Bento",
+        "tagline": "Równe, przestronne kafelki: jeden promień, cieniutkie odstępy i niemal płaskie tło, by praca leżała w spokojnych przegródkach."
+      },
+      "editorial-print": {
+        "name": "Druk redakcyjny / Gazeta",
+        "tagline": "Proste narożniki, linie tuszu i brak cienia: spokojny autorytet drukowanej kolumny."
+      },
+      "art-deco": {
+        "name": "Art déco",
+        "tagline": "Oprawiony i geometryczny: podwójne linie, schodkowe narożniki i metaliczna krawędź z Twojej palety."
+      },
+      "memphis": {
+        "name": "Memphis",
+        "tagline": "Zabawny, krzykliwy postmodernistyczny kolaż: niedopasowane narożniki, grube kontury i twarde dwublokowe cienie na tle z kropek i kreskowania."
       }
     },
     "palettes": {
@@ -604,6 +636,22 @@
       "candy": {
         "name": "Cukierek",
         "tagline": "Słodka i zabawna — jasny gumowo-różowy kolor główny na cukierkowych różach, z pełną pastelową tęczą."
+      },
+      "lagoon": {
+        "name": "Laguna",
+        "tagline": "Chłodna i świeża: głęboki cyjan laguny jako kolor główny na powierzchniach płytkiej wody i łupkowym tuszu, z koralowym akcentem."
+      },
+      "olive": {
+        "name": "Oliwka",
+        "tagline": "Stonowana i ziemista: mchowy kolor główny na ciepłych oliwkowych szarościach, z akcentem terakoty."
+      },
+      "contrast": {
+        "name": "Kontrast",
+        "tagline": "Wyraźna i mocna: papierowobiałe tła, niemal czarny tusz, tekst drugorzędny na poziomie AAA i widoczne krawędzie."
+      },
+      "midnight": {
+        "name": "Północ",
+        "tagline": "Ciemna z założenia i spokojna: nocne łupkowe tło z głównym kolorem gwiaździstego nieba i fioletowym akcentem."
       }
     },
     "types": {
@@ -630,6 +678,22 @@
       "mono-technical": {
         "name": "Mono-techniczne",
         "tagline": "Wszędzie IBM Plex Mono — precyzyjny interfejs na poziomie programisty."
+      },
+      "marker": {
+        "name": "Marker",
+        "tagline": "Odręczne nagłówki pisane markerem nad czystym bezszeryfowym tekstem: szkicowe, przyjazne, ludzkie."
+      },
+      "rounded": {
+        "name": "Zaokrąglony",
+        "tagline": "Miękki, zaokrąglony krój bezszeryfowy w całym interfejsie: przyjazny i przystępny."
+      },
+      "slab": {
+        "name": "Slab",
+        "tagline": "Solidne nagłówki z szeryfami belkowymi nad czystym bezszeryfowym tekstem: pewne siebie, jak z drukarni."
+      },
+      "humanist": {
+        "name": "Humanistyczny",
+        "tagline": "Ciepły humanistyczny krój bezszeryfowy w całym interfejsie: otwarty i czytelny."
       }
     }
   },

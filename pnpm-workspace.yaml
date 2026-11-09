@@ -84,6 +84,13 @@ allowBuilds:
 # menu's dots read tokens that do not exist.** Both published
 # 2026-10-07T08:36Z, minutes before this install. The 0.2.0 and 0.8.2 lines
 # match nothing once the pins move, so they were deleted.
+#
+# ⚠️ RE-POINTED design-system 0.17.0 → 0.22.0 by MOTIR-10774 (2026-11-09), NOT
+# APPENDED TO, for the same reason. **0.22.0 carries the eight new styles, the
+# marker, rounded, slab and humanist pairings and the four new palettes: until
+# it is pinned, `/design` offers none of them.** Published
+# 2026-11-09T15:51:00Z, about six hours before this install. The 0.17.0 line
+# matches nothing once the pin moves, so it was deleted.
 minimumReleaseAgeExclude:
   - '@motir/brand@0.4.4'
-  - '@motir/design-system@0.17.0'
+  - '@motir/design-system@0.22.0'

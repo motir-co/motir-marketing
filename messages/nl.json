@@ -557,6 +557,38 @@
       "retrofuturism": {
         "name": "Retrofuturisme",
         "tagline": "Chroom, verloopbanen en een synthwave-horizon — sciencefiction uit de jaren 70/80."
+      },
+      "dense-pro": {
+        "name": "Compact / Pro",
+        "tagline": "Compact en informatierijk: meer rijen, minder omlijsting, een sneller ritme."
+      },
+      "high-contrast-accessible": {
+        "name": "Hoog contrast / Toegankelijk",
+        "tagline": "Maximale leesbaarheid: dikkere lijnen, grote klikvlakken en een focus die je niet mist."
+      },
+      "tonal-elevated": {
+        "name": "Tonaal / Verhoogd",
+        "tagline": "Diepte door toon: vlakken stijgen een rustige trap op, gedragen door zachte schaduwen."
+      },
+      "claymorphism": {
+        "name": "Claymorfisme",
+        "tagline": "Zachte, opgeblazen tegels die uit klei lijken gedrukt: vriendelijk, tastbaar en rustig."
+      },
+      "bento": {
+        "name": "Bento",
+        "tagline": "Gelijkmatige, ruime tegels: één radius, haarfijne tussenruimtes en een bijna vlakke ondergrond, zodat het werk in rustige vakken ligt."
+      },
+      "editorial-print": {
+        "name": "Redactioneel drukwerk / Krant",
+        "tagline": "Rechte hoeken, inktlijnen en geen schaduw: het rustige gezag van een gedrukte kolom."
+      },
+      "art-deco": {
+        "name": "Art deco",
+        "tagline": "Omlijst en geometrisch: dubbele lijnen, getrapte hoeken en een metalen rand uit je palet."
+      },
+      "memphis": {
+        "name": "Memphis",
+        "tagline": "Speelse, luide postmoderne collage: ongelijke hoeken, dikke contouren en harde schaduwen van twee blokken op een achtergrond van stippen en arcering."
       }
     },
     "palettes": {
@@ -599,6 +631,22 @@
       "candy": {
         "name": "Snoep",
         "tagline": "Zoet en speels — lichtroze kauwgom als primaire kleur over snoeppapierroze, met een complete pastelregenboog."
+      },
+      "lagoon": {
+        "name": "Lagune",
+        "tagline": "Koel en fris: een diep lagunecyaan als primaire kleur op ondiepwatervlakken en leisteeninkt, met een koraalaccent."
+      },
+      "olive": {
+        "name": "Olijf",
+        "tagline": "Gedempt en aards: een mosgroene primaire kleur op warme olijfgrijstinten, met een terracotta-accent."
+      },
+      "contrast": {
+        "name": "Contrast",
+        "tagline": "Helder en krachtig: papierwitte vlakken, bijna zwarte inkt, secundaire tekst op AAA-niveau en randen die je ziet."
+      },
+      "midnight": {
+        "name": "Middernacht",
+        "tagline": "Donker als uitgangspunt en rustig: een nachtelijke leisteengrond met een sterrenhemelblauwe primaire kleur en een violet accent."
       }
     },
     "types": {
@@ -625,6 +673,22 @@
       "mono-technical": {
         "name": "Mono-technisch",
         "tagline": "Overal IBM Plex Mono — een precieze UI op ontwikkelaarsniveau."
+      },
+      "marker": {
+        "name": "Marker",
+        "tagline": "Met de hand geschreven markerkoppen boven een strakke sans als broodtekst: schetsmatig, vriendelijk, menselijk."
+      },
+      "rounded": {
+        "name": "Afgerond",
+        "tagline": "Een zachte, afgeronde sans door de hele UI: vriendelijk en toegankelijk."
+      },
+      "slab": {
+        "name": "Slab",
+        "tagline": "Stevige slab-serifkoppen boven een strakke sans als broodtekst: zelfverzekerd, als drukwerk."
+      },
+      "humanist": {
+        "name": "Humanistisch",
+        "tagline": "Een warme humanistische sans door de hele UI: open en goed leesbaar."
       }
     }
   },

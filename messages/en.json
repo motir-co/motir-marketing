@@ -557,6 +557,38 @@
       "retrofuturism": {
         "name": "Retrofuturism",
         "tagline": "Chrome, gradient sweeps and a synthwave horizon — 70s/80s sci-fi."
+      },
+      "dense-pro": {
+        "name": "Dense / Pro",
+        "tagline": "Compact and information-dense — more rows, less chrome, a faster rhythm."
+      },
+      "high-contrast-accessible": {
+        "name": "High-Contrast / Accessible",
+        "tagline": "Maximum legibility — heavier strokes, big targets, and focus you cannot miss."
+      },
+      "tonal-elevated": {
+        "name": "Tonal / Elevated",
+        "tagline": "Depth by tone — surfaces step up a quiet ladder, seated by soft shadows."
+      },
+      "claymorphism": {
+        "name": "Claymorphism",
+        "tagline": "Soft, inflated tiles that look pressed from clay — friendly, tactile and calm."
+      },
+      "bento": {
+        "name": "Bento",
+        "tagline": "Even, generous tiles — one radius, hairline gutters and a near-flat plate, so the work sits in calm compartments."
+      },
+      "editorial-print": {
+        "name": "Editorial Print / Newspaper",
+        "tagline": "Square corners, ink rules and no shadow — the calm authority of a printed column."
+      },
+      "art-deco": {
+        "name": "Art Deco",
+        "tagline": "Framed and geometric — double rules, stepped corners, and a metal edge drawn from your palette."
+      },
+      "memphis": {
+        "name": "Memphis",
+        "tagline": "Playful, loud post-modern collage: mismatched corners, thick outlines and hard two-block shadows over a dot-and-hatch canvas."
       }
     },
     "palettes": {
@@ -599,6 +631,22 @@
       "candy": {
         "name": "Candy",
         "tagline": "Sweet and playful — a light bubblegum-pink primary over candy-paper pinks, with a full pastel-candy rainbow."
+      },
+      "lagoon": {
+        "name": "Lagoon",
+        "tagline": "Cool and fresh — a deep lagoon-cyan primary over shallow-water surfaces and slate ink, with a coral highlight."
+      },
+      "olive": {
+        "name": "Olive",
+        "tagline": "Muted and earthy — a moss primary over warm olive greys, with a terracotta highlight."
+      },
+      "contrast": {
+        "name": "Contrast",
+        "tagline": "Clear and strong — paper-white grounds, near-black ink, AAA secondary text and edges you can see."
+      },
+      "midnight": {
+        "name": "Midnight",
+        "tagline": "Dark-first and calm — a night-slate ground with a starlight-sky primary and a violet highlight."
       }
     },
     "types": {
@@ -625,6 +673,22 @@
       "mono-technical": {
         "name": "Mono-Technical",
         "tagline": "IBM Plex Mono throughout — a precise, developer-grade UI."
+      },
+      "marker": {
+        "name": "Marker",
+        "tagline": "Hand-lettered marker headlines over a clean sans body — sketchy, friendly, human."
+      },
+      "rounded": {
+        "name": "Rounded",
+        "tagline": "A soft rounded sans across the whole UI — friendly and approachable."
+      },
+      "slab": {
+        "name": "Slab",
+        "tagline": "Sturdy slab-serif headlines over a clean sans body — confident, print-like."
+      },
+      "humanist": {
+        "name": "Humanist",
+        "tagline": "A warm humanist sans across the whole UI — open and readable."
       }
     }
   },

@@ -200,15 +200,15 @@ test('twelve languages on motir.co, as Stories MOTIR-7737 and MOTIR-8937 ask to 
   const pairings = page
     .getByRole('radiogroup', { name: t('fr', 'designShowcase.type.name') })
     .getByRole('radio')
-  await expect(pairings).toHaveCount(6)
+  await expect(pairings).toHaveCount(10)
   const faces = new Set<string>()
-  for (let index = 0; index < 6; index += 1) {
+  for (let index = 0; index < 10; index += 1) {
     await pairings.nth(index).click()
     await expect(pairings.nth(index)).toHaveAttribute('aria-checked', 'true')
     faces.add(await drawnInALoadedFace())
     await beat(page, 700)
   }
-  // The pairings are not one face under six names.
+  // The pairings are not one face under ten names.
   expect(faces.size).toBeGreaterThan(1)
 
   const palettes = page

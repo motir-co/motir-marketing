@@ -571,6 +571,38 @@
       "retrofuturism": {
         "name": "Rétrofuturisme",
         "tagline": "Chrome, balayages de dégradés et un horizon synthwave — la science-fiction des années 70/80."
+      },
+      "dense-pro": {
+        "name": "Dense / Pro",
+        "tagline": "Compact et riche en informations : plus de lignes, moins d’habillage, un rythme plus rapide."
+      },
+      "high-contrast-accessible": {
+        "name": "Contraste élevé / Accessible",
+        "tagline": "Lisibilité maximale : traits plus épais, grandes cibles et un focus impossible à manquer."
+      },
+      "tonal-elevated": {
+        "name": "Tonal / Surélevé",
+        "tagline": "La profondeur par le ton : les surfaces gravissent une échelle discrète, posées sur des ombres douces."
+      },
+      "claymorphism": {
+        "name": "Claymorphisme",
+        "tagline": "Des tuiles douces et gonflées, comme modelées dans l’argile : amicales, tactiles et apaisées."
+      },
+      "bento": {
+        "name": "Bento",
+        "tagline": "Des tuiles régulières et généreuses : un seul rayon, des gouttières fines comme un cheveu et un plateau presque plat, pour que le travail repose dans des compartiments calmes."
+      },
+      "editorial-print": {
+        "name": "Presse éditoriale / Journal",
+        "tagline": "Angles droits, filets d’encre et aucune ombre : l’autorité tranquille d’une colonne imprimée."
+      },
+      "art-deco": {
+        "name": "Art déco",
+        "tagline": "Encadré et géométrique : doubles filets, angles à redans et un liseré métallique tiré de votre palette."
+      },
+      "memphis": {
+        "name": "Memphis",
+        "tagline": "Un collage postmoderne ludique et tapageur : angles dépareillés, contours épais et ombres franches à deux blocs sur un fond de points et de hachures."
       }
     },
     "palettes": {
@@ -613,6 +645,22 @@
       "candy": {
         "name": "Bonbon",
         "tagline": "Doux et ludique — un primaire rose chewing-gum clair sur des roses papier bonbon, avec un arc-en-ciel pastel complet."
+      },
+      "lagoon": {
+        "name": "Lagon",
+        "tagline": "Frais et vif : un cyan de lagon profond en couleur principale, sur des surfaces d’eau peu profonde et une encre ardoise, avec un accent corail."
+      },
+      "olive": {
+        "name": "Olive",
+        "tagline": "Sourd et terreux : une couleur principale mousse sur des gris olive chauds, avec un accent terre cuite."
+      },
+      "contrast": {
+        "name": "Contraste",
+        "tagline": "Net et affirmé : fonds blanc papier, encre presque noire, texte secondaire AAA et bords bien visibles."
+      },
+      "midnight": {
+        "name": "Minuit",
+        "tagline": "Sombre par défaut et apaisé : un fond ardoise nocturne, une couleur principale bleu ciel étoilé et un accent violet."
       }
     },
     "types": {
@@ -639,6 +687,22 @@
       "mono-technical": {
         "name": "Mono-technique",
         "tagline": "IBM Plex Mono de bout en bout — une interface précise, de niveau développeur."
+      },
+      "marker": {
+        "name": "Marqueur",
+        "tagline": "Des titres tracés au marqueur sur un corps sans empattement net : esquissé, amical, humain."
+      },
+      "rounded": {
+        "name": "Arrondi",
+        "tagline": "Une linéale douce et arrondie dans toute l’interface : amicale et accessible."
+      },
+      "slab": {
+        "name": "Slab",
+        "tagline": "Des titres en mécane robuste sur un corps sans empattement net : assurés, comme imprimés."
+      },
+      "humanist": {
+        "name": "Humaniste",
+        "tagline": "Une linéale humaniste chaleureuse dans toute l’interface : ouverte et lisible."
       }
     }
   },

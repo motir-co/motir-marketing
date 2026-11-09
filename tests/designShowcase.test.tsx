@@ -95,14 +95,14 @@ describe('the axis rail', () => {
     }
   })
 
-  it('offers the WHOLE registry on each axis — 11 styles, 10 palettes, 6 pairings', () => {
+  it('offers the WHOLE registry on each axis — 19 styles, 14 palettes, 10 pairings', () => {
     render(<DesignShowcase />)
     const count = (name: string) =>
       within(screen.getByRole('radiogroup', { name })).getAllByRole('radio')
         .length
-    expect(count(copy.designShowcase.style.name)).toBe(11)
-    expect(count(copy.designShowcase.palette.name)).toBe(10)
-    expect(count(copy.designShowcase.type.name)).toBe(6)
+    expect(count(copy.designShowcase.style.name)).toBe(19)
+    expect(count(copy.designShowcase.palette.name)).toBe(14)
+    expect(count(copy.designShowcase.type.name)).toBe(10)
     expect(count(copy.designShowcase.theme.name)).toBe(3)
   })
 

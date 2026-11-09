@@ -566,6 +566,38 @@
       "retrofuturism": {
         "name": "Retrofuturismo",
         "tagline": "Cromado, faixas em gradiente e um horizonte synthwave — ficção científica dos anos 70/80."
+      },
+      "dense-pro": {
+        "name": "Denso / Pro",
+        "tagline": "Compacto e denso em informação: mais linhas, menos moldura, um ritmo mais rápido."
+      },
+      "high-contrast-accessible": {
+        "name": "Alto contraste / Acessível",
+        "tagline": "Máxima legibilidade: traços mais grossos, alvos grandes e um foco impossível de não notar."
+      },
+      "tonal-elevated": {
+        "name": "Tonal / Elevado",
+        "tagline": "Profundidade pelo tom: as superfícies sobem uma escada discreta, assentadas em sombras suaves."
+      },
+      "claymorphism": {
+        "name": "Claymorfismo",
+        "tagline": "Blocos macios e inflados que parecem moldados em argila: amigáveis, táteis e calmos."
+      },
+      "bento": {
+        "name": "Bento",
+        "tagline": "Blocos uniformes e generosos: um só raio, espaçamentos finíssimos e uma base quase plana, para que o trabalho fique em compartimentos tranquilos."
+      },
+      "editorial-print": {
+        "name": "Editorial impresso / Jornal",
+        "tagline": "Cantos retos, fios de tinta e nenhuma sombra: a autoridade serena de uma coluna impressa."
+      },
+      "art-deco": {
+        "name": "Art déco",
+        "tagline": "Emoldurado e geométrico: fios duplos, cantos escalonados e uma borda metálica tirada da sua paleta."
+      },
+      "memphis": {
+        "name": "Memphis",
+        "tagline": "Colagem pós-moderna, divertida e chamativa: cantos desencontrados, contornos grossos e sombras duras de dois blocos sobre um fundo de pontos e hachuras."
       }
     },
     "palettes": {
@@ -608,6 +640,22 @@
       "candy": {
         "name": "Doce",
         "tagline": "Doce e lúdica — rosa-chiclete claro como cor principal sobre rosas de papel de bala, com um arco-íris pastel completo."
+      },
+      "lagoon": {
+        "name": "Laguna",
+        "tagline": "Fresca e leve: um ciano de laguna profunda como primária sobre superfícies de águas rasas e tinta ardósia, com um destaque coral."
+      },
+      "olive": {
+        "name": "Oliva",
+        "tagline": "Suave e terrosa: uma primária musgo sobre cinzas oliva quentes, com um destaque terracota."
+      },
+      "contrast": {
+        "name": "Contraste",
+        "tagline": "Clara e firme: fundos branco-papel, tinta quase preta, texto secundário AAA e bordas visíveis."
+      },
+      "midnight": {
+        "name": "Meia-noite",
+        "tagline": "Escura por padrão e calma: um fundo ardósia noturno com uma primária azul-céu estrelado e um destaque violeta."
       }
     },
     "types": {
@@ -634,6 +682,22 @@
       "mono-technical": {
         "name": "Mono-técnica",
         "tagline": "IBM Plex Mono em tudo — uma interface precisa, à altura de desenvolvedores."
+      },
+      "marker": {
+        "name": "Marcador",
+        "tagline": "Títulos escritos à mão com marcador sobre um corpo sans limpo: esboçados, amigáveis, humanos."
+      },
+      "rounded": {
+        "name": "Arredondada",
+        "tagline": "Uma sans suave e arredondada em toda a interface: amigável e acessível."
+      },
+      "slab": {
+        "name": "Slab",
+        "tagline": "Títulos em egípcia robusta sobre um corpo sans limpo: confiantes, com ar de impresso."
+      },
+      "humanist": {
+        "name": "Humanista",
+        "tagline": "Uma sans humanista acolhedora em toda a interface: aberta e legível."
       }
     }
   },
