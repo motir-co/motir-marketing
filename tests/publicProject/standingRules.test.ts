@@ -209,18 +209,13 @@ describe('THE COVERAGE LIST IS NOT A PLACE TO FORGET A FILE', () => {
   })
 
   it('every host-router file is measured — MOTIR-4220', () => {
-    // The router is the one file on this surface a visitor cannot reach any
-    // other way: it runs before every page and after none, so nothing else's
+    // The router (`worker/router.ts` since MOTIR-10752) is the one file on
+    // this surface a visitor cannot reach any other way: it runs before every page and after none, so nothing else's
     // coverage covers it. Naming it here is what keeps that true.
     const coverage = read('vitest.config.mts').slice(
       read('vitest.config.mts').indexOf('coverage: {'),
     )
-    for (const file of [
-      'proxy.ts',
-      'lib/publicHost.ts',
-      'lib/hostResolution.ts',
-      'lib/tenantDomain.ts',
-    ]) {
+    for (const file of ['worker/router.ts', 'lib/publicHost.ts']) {
       expect(coverage, `${file} is not in the coverage include`).toContain(
         `'${file}'`,
       )
@@ -239,12 +234,12 @@ describe('THE COVERAGE LIST IS NOT A PLACE TO FORGET A FILE', () => {
     // COVERAGE section — the file has an earlier `exclude:` for the test glob.
     // Then to the `exclude` array within it — a tree-wide match also picks up
     // the THRESHOLD keys, which are a different thing.
+    // The coverage section carries no `exclude` at all since the held-out list
+    // went with `proxy.ts` (MOTIR-10639); one added back is read whole.
     const coverage = config.slice(config.indexOf('coverage: {'))
-    const block = coverage.slice(
-      coverage.indexOf('exclude: ['),
-      coverage.indexOf(']', coverage.indexOf('exclude: [')),
-    )
-    expect(block).toContain('HELD_SOURCES')
+    const start = coverage.indexOf('exclude: [')
+    const block =
+      start === -1 ? '' : coverage.slice(start, coverage.indexOf(']', start))
     expect([...block.matchAll(/'(app\/\?locale\?\/p\/[^']+)'/g)]).toEqual([])
   })
   it('no e2e spec reconstructs an origin from the environment', () => {

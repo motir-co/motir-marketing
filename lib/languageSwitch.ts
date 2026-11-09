@@ -16,12 +16,14 @@ import type { PublicHost } from '@/lib/publicHost'
  * locale-free path under the chosen prefix, English unprefixed — `/explore` is
  * `/fr/explore` in French and `/` is `/ja` in Japanese. `localizedPath` is the
  * spelling every locale-keeping link on the site already uses (MOTIR-7971), and
- * it agrees with next-intl's `getPathname` for this routing without pulling the
- * navigation runtime into a React-free module.
+ * it agrees with the `as-needed` routing `i18n/routing.ts` declares without
+ * pulling a navigation runtime into a React-free module.
  *
  * On a tenant or customer host the address never carries a prefix, so the
  * entry is the same path: the cookie written on click is what changes the
- * language there, read by `proxy.ts` (MOTIR-7951) on the reload.
+ * language there, read by the Next `proxy.ts` (MOTIR-7951) on the reload. That
+ * router and its tenant branch are gone (MOTIR-10113, MOTIR-10639); the Worker
+ * serves motir.co alone.
  */
 export function switchHref(
   host: PublicHost,

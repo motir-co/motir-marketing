@@ -9,9 +9,11 @@ import { describe, expect, it } from 'vitest'
  *
  * ⚠️ EACH IS TRUE OF THE TREE RATHER THAN OF A FUNCTION, which is why each is
  * asked of the tree — the idiom `tests/publicProject/standingRules.test.ts`
- * already uses. The story added a THIRD build-time variable, a proxy that runs
+ * already uses. The story added a THIRD build-time variable, a router that runs
  * before every request, and two routes that read the request's host; none of
- * those is covered by a unit test of anything.
+ * those is covered by a unit test of anything. The router was the Next
+ * `proxy.ts` then; it is the Worker's `worker/router.ts` now (MOTIR-10752), and
+ * `proxy.ts` is gone (MOTIR-10639), so the sources below name the Worker.
  */
 
 const ROOT = process.cwd()
@@ -35,7 +37,7 @@ const SOURCES = [
   ...tracked('e2e'),
   ...tracked('src'),
   ...tracked('i18n'),
-  'proxy.ts',
+  ...tracked('worker'),
   'astro.config.mjs',
 ]
 
@@ -52,12 +54,15 @@ describe('ONE READER PER BUILD-TIME VARIABLE', () => {
   it.each([
     ['PUBLIC_MOTIR_APP_ORIGIN', 'lib/appOrigin.ts'],
     ['PUBLIC_MOTIR_SITE_ORIGIN', 'lib/siteOrigin.ts'],
-    ['PUBLIC_MOTIR_TENANT_DOMAIN', 'lib/tenantDomain.ts'],
   ])('%s is read only by %s', (variable, owner) => {
     const readers = SOURCES.filter(
       (file) =>
         file !== owner &&
-        new RegExp(`process\\.env\\.${variable}\\b`).test(code(file)),
+        // A READ: an assignment is not one. `worker/processEnv.ts` WRITES both
+        // origins from the Worker's own variables before the owners evaluate.
+        new RegExp(`process\\.env\\.${variable}\\b(?!\\s*=[^=])`).test(
+          code(file),
+        ),
     )
     expect(
       readers,
@@ -79,13 +84,16 @@ describe('THE GUARDS THAT FAIL A BUILD', () => {
 })
 
 describe('THE REQUEST PATH', () => {
-  it('has exactly ONE proxy, and it is the file Next 16 looks for', () => {
-    // `middleware.ts` was renamed to `proxy.ts` in Next 16. A file left at the
-    // old name would be silently inert — no route would be host-aware and every
-    // tenant address would render the marketing landing.
-    expect(tracked('.').includes('middleware.ts')).toBe(false)
-    expect(read('proxy.ts')).toContain('export async function proxy(')
-    expect(read('proxy.ts')).toContain('export const config')
+  it('has exactly ONE request router, and it is the entry wrangler deploys', () => {
+    // The Worker is the one thing that runs per request (MOTIR-10752). A Next
+    // `proxy.ts` or `middleware.ts` left beside it would be silently inert —
+    // nothing builds Next any more — and would read as a second router.
+    for (const retired of ['proxy.ts', 'middleware.ts'])
+      expect(tracked('.').includes(retired), retired).toBe(false)
+    expect(read('wrangler.jsonc')).toMatch(/^\s*"main": "worker\/index\.ts",$/m)
+    expect(code('worker/index.ts')).toContain('export default worker')
+    expect(code('worker/index.ts')).toMatch(/\bfetch\(request: Request/)
+    expect(code('worker/router.ts')).toMatch(/export async function route\(/)
   })
 
   it('never reaches a database, however the story rearranged it', () => {
@@ -110,22 +118,17 @@ describe('THE REQUEST PATH', () => {
     // page-level redirect carries a visitor from there to the primary. Making
     // the square host-aware would mean an addresses read per card on a page
     // whose whole job is to be a fast list.
-    // ⚠️ THREE FILES IN `lib` SPELL `/p/` LEGITIMATELY, and each is a different
+    // ⚠️ TWO FILES IN `lib` SPELL `/p/` LEGITIMATELY, and each is a different
     // thing wearing the same characters — which is exactly why they are named
     // rather than globbed away:
     //
     //   • `lib/publicHost.ts`     — the helper itself; this is its one home.
     //   • `lib/publicProject.ts`  — the API path (`/api/public/p/<id>`), which
     //     is motir-core's endpoint and has nothing to do with a page's address.
-    //   • `lib/hostResolution.ts` — the router's REWRITE target, i.e. the
-    //     internal route-tree path `app/[locale]/p/[identifier]` lives at. It is the one
-    //     place `/p/` must survive a tenant host, because that is where the
-    //     visitor's address is translated INTO it.
-    const OWNERS = [
-      'lib/publicHost.ts',
-      'lib/publicProject.ts',
-      'lib/hostResolution.ts',
-    ]
+    //
+    // (`lib/hostResolution.ts`, the Next router's tenant rewrite target, was the
+    // third; it went with `proxy.ts`, MOTIR-10639.)
+    const OWNERS = ['lib/publicHost.ts', 'lib/publicProject.ts']
     const offenders = [...tracked('app/[locale]/p'), ...tracked('lib')]
       .filter((f) => !OWNERS.includes(f))
       .filter((f) => /['"`]\/p\/\$\{/.test(code(f)))

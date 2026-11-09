@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest'
  *
  * MOTIR-10643 removed the blocks whose modules left with Next — `app/fonts.ts`,
  * `i18n/request.ts`, `i18n/navigation.ts`, the claim in `i18n/locale.ts`,
- * next-intl's halves of `lib/copy.ts` and `scripts/i18n/check-prerender.ts`.
+ * the i18n library's halves of `lib/copy.ts` and `scripts/i18n/check-prerender.ts`.
  * Their replacements carry their own tests (`tests/copy.test.ts`,
  * `tests/i18n/checkStaticPages.test.ts`, `tests/typeFaces.test.ts`).
  */

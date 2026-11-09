@@ -10,8 +10,8 @@ import {
 
 // The SHAPE of an ICU message (Story MOTIR-7730 · MOTIR-7745): the placeholders,
 // the plural/select structure and the rich-text tags a translation must keep,
-// whatever it does with the words. Parsed with the parser family next-intl
-// renders with — never a regex: a placeholder can hide inside a plural branch,
+// whatever it does with the words. Parsed with the FormatJS ICU parser —
+// the family ICU message renderers use — never a regex: a placeholder can hide inside a plural branch,
 // `#` means something only inside a plural, and `'{'` escapes text.
 
 export type ShapeViolationKind =

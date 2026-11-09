@@ -6,7 +6,7 @@ import {
 
 // Prints the `motir-skills` release tag this build installs, and nothing else on
 // stdout — `pnpm build` and the CI deploy job capture it into SKILLS_RELEASE_TAG,
-// which `next.config.ts` inlines (MOTIR-8802).
+// which `astro build` then reads (MOTIR-8802).
 //
 // Never fails the build: no network, a rate limit or a malformed answer falls
 // back to the committed pin, and says so on stderr.

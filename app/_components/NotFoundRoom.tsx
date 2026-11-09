@@ -12,7 +12,8 @@ import { SiteShell } from './SiteShell'
  *
  * ── ⚠️ WHY IT TAKES A HOST AT ALL ────────────────────────────────────────
  *
- * The room is worn by every host `proxy.ts` serves, not only by `motir.co`: a
+ * The room was worn by every host the Next `proxy.ts` served (deleted,
+ * MOTIR-10639), not only by `motir.co`: a
  * tenant address that 404s a path, the tenant base domain, and any host the
  * public contract does not know are all rewritten to `ROUTER_PATHS.notFound`
  * and land here. On those hosts `/explore`, `/docs`, `/design` and the three

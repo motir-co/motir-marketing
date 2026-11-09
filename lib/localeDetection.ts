@@ -9,8 +9,8 @@ import { DEFAULT_LOCALE, LOCALES, type Locale } from '@/i18n/routing'
  * `lib/i18n/acceptLanguage.ts` (MOTIR-7743) rather than importing it — the two
  * live in separate repositories — so a browser that reads app.motir.co in
  * German reads motir.co in German too. A change to the rule is made in both.
- * next-intl's own detection stays off: its middleware never runs on a tenant
- * host, and its matcher is not this one.
+ * The Worker's router runs this matcher on the bare `/` (`worker/router.ts`);
+ * no library's own detection is involved.
  */
 
 /**

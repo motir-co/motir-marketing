@@ -23,7 +23,7 @@ test('the room gives a lost visitor a way out — two doors, Explore first', asy
    * ── ⚠️ THE DOORS ARE ABSOLUTE NOW, ON EVERY HOST (MOTIR-4430) ───────────
    *
    * They used to be `/explore` and `/`. This room is worn by every host
-   * `proxy.ts` serves — a tenant address that 404s a path, the tenant base
+   * the Next `proxy.ts` served (deleted, MOTIR-10639) — a tenant address that 404s a path, the tenant base
    * domain, any host the public contract does not know — and on those hosts
    * both of those paths belong to somebody else, so the two doors led back into
    * the room the visitor was already standing in. `app/not-found.tsx` is the
