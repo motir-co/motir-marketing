@@ -5,7 +5,7 @@ import { env } from 'cloudflare:workers'
  * THEM ITS RUNTIME VARIABLES (MOTIR-10752).
  *
  * `lib/appOrigin.ts` and `lib/siteOrigin.ts` read
- * `process.env.NEXT_PUBLIC_MOTIR_{APP,SITE}_ORIGIN` once, at module scope —
+ * `process.env.PUBLIC_MOTIR_{APP,SITE}_ORIGIN` once, at module scope —
  * the names the build inlines into the static pages. The live pages render
  * the same chrome in the Worker, so the same modules run here, and this
  * module sets those two names from `wrangler.jsonc`'s `MOTIR_APP_ORIGIN` and
@@ -19,5 +19,5 @@ import { env } from 'cloudflare:workers'
  */
 const vars = env as { MOTIR_APP_ORIGIN?: string; MOTIR_SITE_ORIGIN?: string }
 
-process.env.NEXT_PUBLIC_MOTIR_APP_ORIGIN = vars.MOTIR_APP_ORIGIN
-process.env.NEXT_PUBLIC_MOTIR_SITE_ORIGIN = vars.MOTIR_SITE_ORIGIN
+process.env.PUBLIC_MOTIR_APP_ORIGIN = vars.MOTIR_APP_ORIGIN
+process.env.PUBLIC_MOTIR_SITE_ORIGIN = vars.MOTIR_SITE_ORIGIN

@@ -146,14 +146,11 @@ export default defineConfig({
       reuseExistingServer: !process.env['CI'],
       timeout: 300_000,
       env: {
-        NEXT_PUBLIC_MOTIR_APP_ORIGIN: STUB_ORIGIN,
+        PUBLIC_MOTIR_APP_ORIGIN: STUB_ORIGIN,
         // /price and /how-the-calculation-works read motir-ai's plan ladder at
         // build, and the calculator reads the categories and the estimate from
         // the browser: both from the stub, never the live engine.
-        NEXT_PUBLIC_MOTIR_AI_ORIGIN: STUB_ORIGIN,
-        // ⚠️ SET EXPLICITLY RATHER THAN INHERITED (MOTIR-4220): `ci.yml` sets it
-        // at workflow level, to the production base domain.
-        NEXT_PUBLIC_MOTIR_TENANT_DOMAIN: 'localhost',
+        PUBLIC_MOTIR_AI_ORIGIN: STUB_ORIGIN,
         // The docs install commands name the committed floor in this lane
         // (MOTIR-8802): `scripts/skills/resolve-release.ts` honours a value
         // already set, so the build never reaches GitHub and the spec's

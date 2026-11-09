@@ -8,6 +8,10 @@
 # OWN non-cancelling concurrency group. Add a gate to `needs` below as this
 # repository grows one — do not declare a gate before its job exists.
 #
+# The release is Cloudflare Workers (MOTIR-10637, under the hosting decision's
+# AMENDMENT 4): the `deploy` job at the bottom builds the Astro site on the
+# runner and ships it with `wrangler deploy`.
+#
 # MOTIR-1152 grew the first one: `test` (vitest, `vitest.config.mts`), added
 # BELOW and to `deploy`'s `needs` in the same change, exactly as that sentence
 # asks. MOTIR-4001 grew the second, `design-guards`, the same way. MOTIR-4112
@@ -57,26 +61,17 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NEXT_TELEMETRY_DISABLED: '1'
   # ⚠️ THE BUILD FAILS WITHOUT THIS, BY DESIGN (MOTIR-1152). `lib/appOrigin.ts`
   # throws `MotirAppOriginError` at module scope when the variable is unset,
   # which is what stops a release shipping a landing page whose three doors
   # point at `undefined`. It is set HERE, once, for the `Build` check.
   #
-  # It is ALSO what the release uses: `NEXT_PUBLIC_*` is inlined by
-  # `next build`, and the `deploy` job below runs `vercel build` on the runner,
-  # where this env reaches it. One site, one meaning.
-  NEXT_PUBLIC_MOTIR_APP_ORIGIN: 'https://app.motir.co'
-
-  # The tenant namespace's base domain (MOTIR-4220), for the `Build` check —
-  # `lib/tenantDomain.ts` fails a PRODUCTION build without it, and `next build`
-  # is a production build. The release builds with it too, as above.
-  #
-  # ⚠️ THE BROWSER LANE DOES NOT INHERIT THIS. `playwright.config.ts` sets it to
-  # `localhost` explicitly, because the lane's tenant host is `acme.localhost`
-  # and a lane pointed at the production namespace would be testing a base
-  # domain none of its hosts belong to.
-  NEXT_PUBLIC_MOTIR_TENANT_DOMAIN: 'motir.site'
+  # It is ALSO what the release uses: `astro build` inlines `PUBLIC_*` into
+  # the pages and the islands (`astro.config.mjs`'s `define`), and the
+  # `deploy` job below builds on the runner, where this env reaches it. One
+  # site, one meaning. The Worker reads its OWN copy of the origin at request
+  # time, from `wrangler.jsonc`'s `vars` (MOTIR-10637).
+  PUBLIC_MOTIR_APP_ORIGIN: 'https://app.motir.co'
 
   # motir-ai's public origin (MOTIR-8382), for /price — the release builds
   # with it too. The browser lane points it at the stub instead.
@@ -88,7 +83,7 @@ env:
   # `MOTIR_AI_ORIGIN=https://ai.motir.co` on this repository and runs a release
   # (a push to main, or a re-run of this workflow on main). The decommission
   # removes the Fly default.
-  NEXT_PUBLIC_MOTIR_AI_ORIGIN: ${{ vars.MOTIR_AI_ORIGIN || 'https://motir-ai.fly.dev' }}
+  PUBLIC_MOTIR_AI_ORIGIN: ${{ vars.MOTIR_AI_ORIGIN || 'https://motir-ai.fly.dev' }}
 
 jobs:
   lint:
@@ -208,10 +203,11 @@ jobs:
   # This repository's first, and a `needs` gate on `deploy` from the moment it
   # exists, per the header: a red browser run must not reach motir.co.
   #
-  # ⚠️ IT BUILDS THE APP, and that is not incidental. The site reads the public
-  # API from SERVER components, so the stub cannot be a `page.route()`
-  # interception — it is a real HTTP server, and pointing the app at it means
-  # setting `NEXT_PUBLIC_MOTIR_APP_ORIGIN`, which Next inlines at BUILD time.
+  # ⚠️ IT BUILDS THE SITE, and that is not incidental. The site reads the public
+  # API at build and in the Worker, never from the browser, so the stub cannot
+  # be a `page.route()` interception — it is a real HTTP server, and pointing
+  # the site at it means setting `PUBLIC_MOTIR_APP_ORIGIN`, which `astro build`
+  # inlines, and the Worker's `MOTIR_APP_ORIGIN` (`wrangler dev --var`).
   # `playwright.config.ts`'s `webServer` therefore runs `pnpm build` itself, and
   # this job's cost and timeout follow from that. It is a separate job rather
   # than a step inside `test` for the same reason: `test` is seconds, this is
@@ -292,42 +288,51 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # Reads the workflow-level NEXT_PUBLIC_MOTIR_APP_ORIGIN above — the same
+      # Reads the workflow-level PUBLIC_MOTIR_APP_ORIGIN above — the same
       # origin the release itself is built against, which is what makes this a
       # check of the thing being shipped rather than of some other deployment.
       - run: pnpm test:seam
 
+  # ── The RELEASE: motir.co on Cloudflare Workers (MOTIR-10637) ───────────
+  #
+  # `motir-core/docs/decisions/marketing-site-hosting.md` Q3 fixed the shape —
+  # gate on every check above, release only on `main`, and give the release its
+  # own non-cancelling concurrency group — and AMENDMENT 4 moved the host. Only
+  # the host changed here: the gates are still the only thing that decides what
+  # ships, because the site is built HERE, on the runner, from the commit they
+  # passed, and `wrangler deploy` uploads that output and nothing else.
+  #
+  # ⚠️ WRANGLER IS THE REPOSITORY'S OWN PINNED DEPENDENCY (`package.json`,
+  # `pnpm-lock.yaml`), not a floating `pnpm dlx`: CI releases with exactly the
+  # version `pnpm start` and the browser lane serve the site with.
+  #
+  # ⚠️ THE SMOKE STEP READS THE WORKER'S OWN workers.dev ADDRESS, NOT motir.co.
+  # Until the cut (MOTIR-10638) moves motir.co's DNS, motir.co still answers
+  # from the previous host's last release, so a check against it would prove
+  # nothing about this one. The address is taken from wrangler's own output file
+  # (`WRANGLER_OUTPUT_FILE_PATH`, its `deploy` entry's `targets`) rather than
+  # scraped from the log. Every page names motir.co as its canonical, so the
+  # workers.dev copy is never indexed as the site.
   deploy:
-    name: Deploy to Vercel
+    name: Deploy to Cloudflare
     runs-on: ${{ vars.MOTIR_RUNNER || 'ubuntu-latest' }}
     needs: [lint, typecheck, build, test, design-guards, e2e, subprocessor-seam]
-    # ⚠️ HELD (MOTIR-10643). `main` is an Astro site from this merge on, and the
-    # steps below release a Next build to Vercel: an Astro tree deployed there
-    # would take `/p/**`, `/explore` and `/ideas` off motir.co before the
-    # Workers cut. So the job never runs — not on a push to `main`, the
-    # schedule or `repository_dispatch` — and Vercel keeps serving its last
-    # Next release. The CI story, MOTIR-10637, replaces this job with the
-    # `wrangler` deploy and restores its condition.
-    if: false
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     # A release must NOT be cancelled mid-flight by a newer push — the
     # workflow-level `cancel-in-progress` above is right for a test run and
     # wrong for a deploy, so this group overrides it.
     concurrency:
-      group: vercel-deploy-marketing
+      group: cloudflare-deploy-marketing
       cancel-in-progress: false
     permissions:
       contents: read
     timeout-minutes: 30
     env:
-      # A token for the team that owns the project, and the two ids
-      # `vercel link` writes to `.vercel/project.json` — ids, not secrets, so
-      # they are stated here where a reader can see where a release goes. The build runs HERE,
-      # on the runner (`vercel build`), and only its output is uploaded
-      # (`--prebuilt`): the gates above stay the only thing that decides
-      # what ships, and `vercel.json` turns Vercel's Git integration off.
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: team_cXYVewYY33k9VsAGRVe2Z54s
-      VERCEL_PROJECT_ID: prj_Pl49teksGo6P1edmAhl0vRqjrIb8
+      # An API token scoped to Workers on the account (MOTIR-10636), and the
+      # account it deploys to. `wrangler` reads both from the environment.
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      WRANGLER_SEND_METRICS: 'false'
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
@@ -336,29 +341,52 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm dlx vercel@58.4.4 pull --yes --environment=production --token "$VERCEL_TOKEN"
-      # The workflow-level `NEXT_PUBLIC_*` above are what this build inlines,
-      # and `SKILLS_RELEASE_TAG` is resolved the way `pnpm build` resolves it.
-      - run: |
-          export SKILLS_RELEASE_TAG="$(node scripts/skills/resolve-release.ts)"
-          pnpm dlx vercel@58.4.4 build --prod --token "$VERCEL_TOKEN"
-      - id: release
-        run: |
-          # `--archive=tgz`: the output is ~17k files (every page prerendered in
-          # twelve locales) and a deploy uploads at most 15,000 one by one.
-          url=$(pnpm dlx vercel@58.4.4 deploy --prebuilt --prod --archive=tgz --token "$VERCEL_TOKEN")
-          echo "url=$url" >> "$GITHUB_OUTPUT"
-      # Prove the release itself, not DNS: `vercel curl` reaches the
-      # deployment's own address through its protection, and `proxy.ts`
-      # serves the site on that address (`VERCEL_URL`).
-      - name: Smoke the release on its deployment address
+      # The workflow-level `PUBLIC_*` above are what this build inlines, and
+      # `pnpm build` resolves `SKILLS_RELEASE_TAG` itself
+      # (`scripts/skills/resolve-release.ts`) — the same command the `Build`
+      # check ran.
+      - run: pnpm build
+      # `wrangler.jsonc` carries the Worker's production variables
+      # (`MOTIR_APP_ORIGIN`, `MOTIR_SITE_ORIGIN`) and `dist/` as its assets.
+      - name: Deploy the Worker
+        id: release
+        env:
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.json
         run: |
           set -euo pipefail
-          for path in / /ideas /price; do
-            # No `--token`: `vercel curl` hands options it does not know to
-            # curl, and the CLI reads `VERCEL_TOKEN` from the job env anyway.
-            code=$(pnpm dlx vercel@58.4.4 curl "$path" --deployment "${{ steps.release.outputs.url }}" \
-              -- -sS -o /dev/null -w '%{http_code}' -L)
-            echo "GET ${{ steps.release.outputs.url }}$path -> $code"
-            [ "$code" = "200" ]
-          done
+          pnpm exec wrangler deploy
+          url=$(node -e '
+            const lines = require("node:fs").readFileSync(process.argv[1], "utf8").split("\n").filter(Boolean)
+            const deploy = lines.map((l) => JSON.parse(l)).filter((e) => e.type === "deploy").pop()
+            const target = (deploy?.targets ?? []).find((t) => /\.workers\.dev$/.test(new URL(t).hostname))
+            if (!target) { console.error("wrangler reported no workers.dev address"); process.exit(1) }
+            process.stdout.write(new URL(target).origin)
+          ' "$WRANGLER_OUTPUT_FILE_PATH")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      # Prove the release itself: a built page, a Worker route, an unknown path
+      # (the localized 404) and a mis-cased locale (the Worker's 308). Redirects
+      # are NOT followed, so the 404 and the 308 are seen as answered.
+      - name: Smoke the release on its workers.dev address
+        env:
+          ORIGIN: ${{ steps.release.outputs.url }}
+        run: |
+          set -euo pipefail
+          check() {
+            local path="$1" want="$2"
+            local code
+            code=$(curl -sS -o /dev/null -w '%{http_code}' -H 'accept-language: en' \
+              --retry 10 --retry-delay 10 --retry-all-errors "$ORIGIN$path")
+            echo "GET $ORIGIN$path -> $code (want $want)"
+            [ "$code" = "$want" ]
+          }
+          check / 200
+          check /price 200
+          check /explore 200
+          check /de/does-not-exist 404
+          check /zh-TW/price 308
+          location=$(curl -sS -o /dev/null -w '%{redirect_url}' "$ORIGIN/zh-TW/price")
+          echo "GET $ORIGIN/zh-TW/price -> Location: $location"
+          case "$location" in
+            */zh-tw/price) ;;
+            *) echo "expected a Location ending /zh-tw/price"; exit 1 ;;
+          esac

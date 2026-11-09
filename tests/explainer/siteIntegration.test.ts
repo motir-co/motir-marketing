@@ -80,7 +80,7 @@ describe('the explainer route', () => {
   it('feeds a well-formed catalog answer to the page', async () => {
     // The motir-ai origin is read once, at import, so the route is loaded
     // fresh with one set.
-    vi.stubEnv('NEXT_PUBLIC_MOTIR_AI_ORIGIN', 'https://ai.example')
+    vi.stubEnv('PUBLIC_MOTIR_AI_ORIGIN', 'https://ai.example')
     const fetcher = vi.fn(async (input: string) =>
       Response.json(
         input.endsWith(PLAN_LADDER_PATH)

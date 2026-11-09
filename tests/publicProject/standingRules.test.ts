@@ -251,7 +251,7 @@ describe('THE COVERAGE LIST IS NOT A PLACE TO FORGET A FILE', () => {
     /*
      * ⚠️ THIS RULE COST A RED CI RUN, and the red run was the lucky outcome.
      *
-     * `ci.yml` sets `NEXT_PUBLIC_MOTIR_APP_ORIGIN` at WORKFLOW level, to
+     * `ci.yml` sets `PUBLIC_MOTIR_APP_ORIGIN` at WORKFLOW level, to
      * production, because `build` and `deploy` need it there. A spec that read
      * it with a local fallback therefore addressed the STUB locally and
      * `https://app.motir.co` in CI — this lane made real calls to production on
@@ -277,13 +277,13 @@ describe('THE COVERAGE LIST IS NOT A PLACE TO FORGET A FILE', () => {
     const offenders = tracked('e2e')
       .filter((f) => !f.endsWith('e2e/stub/origin.ts'))
       .filter((f) =>
-        /process\.env\[?['"`]NEXT_PUBLIC_MOTIR_APP_ORIGIN/.test(code(f)),
+        /process\.env\[?['"`]PUBLIC_MOTIR_APP_ORIGIN/.test(code(f)),
       )
 
     expect(
       offenders,
       'import STUB_ORIGIN / SITE_ORIGIN from e2e/stub/origin.ts instead — ' +
-        'ci.yml sets NEXT_PUBLIC_MOTIR_APP_ORIGIN to PRODUCTION at workflow level',
+        'ci.yml sets PUBLIC_MOTIR_APP_ORIGIN to PRODUCTION at workflow level',
     ).toEqual([])
   })
   it("the stub's hand-run port default still equals the lane's port", () => {

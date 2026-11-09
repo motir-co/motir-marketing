@@ -27,10 +27,10 @@ import { fileURLToPath } from 'node:url'
  *
  * ── ⚠️ AND POINTING THE APP AT IT IS A *BUILD*-TIME ACT ───────────────────
  *
- * `NEXT_PUBLIC_MOTIR_APP_ORIGIN` is a `NEXT_PUBLIC_*` variable, which Next
- * INLINES at build time — `lib/appOrigin.ts` says so at length and throws at
+ * `PUBLIC_MOTIR_APP_ORIGIN` is a `PUBLIC_*` variable, which the build
+ * INLINES — `lib/appOrigin.ts` says so at length and throws at
  * import when it is unset, precisely so that the mistake is caught by
- * `next build` rather than by a visitor. The consequence for this lane is easy
+ * `astro build` rather than by a visitor. The consequence for this lane is easy
  * to get wrong: setting the variable when STARTING the server changes nothing,
  * because the literal is already in the bundle. `playwright.config.ts` therefore
  * BUILDS with it set, and its `webServer` command carries the build.

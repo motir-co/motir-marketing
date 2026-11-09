@@ -47,7 +47,7 @@ export default new WebAssembly.Module(readFileSync(${JSON.stringify(id)}))`
  * before its job exists"; this is that job's other half, and `ci.yml` gains
  * both together.
  *
- * ⚠️ `NEXT_PUBLIC_MOTIR_APP_ORIGIN` IS SET HERE, and it is set to a value that
+ * ⚠️ `PUBLIC_MOTIR_APP_ORIGIN` IS SET HERE, and it is set to a value that
  * is NOT production on purpose. Every module that reaches `lib/destinations.ts`
  * imports `lib/appOrigin.ts`, which throws when the variable is missing — so
  * without this the whole suite would fail to import. A non-production value is
@@ -94,7 +94,7 @@ export default defineConfig({
       ...HELD_TESTS,
     ],
     env: {
-      NEXT_PUBLIC_MOTIR_APP_ORIGIN: 'https://app.test.motir.co',
+      PUBLIC_MOTIR_APP_ORIGIN: 'https://app.test.motir.co',
     },
     /*
      * COVERAGE (MOTIR-4121) — this repository's first floor.

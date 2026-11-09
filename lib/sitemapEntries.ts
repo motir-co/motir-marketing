@@ -41,7 +41,7 @@ import { publicPathFor, SITE_HOST } from '@/lib/publicHost'
  * request time." That was true while every entry was a constant. This file now
  * also enumerates PUBLIC PROJECTS from motir-core's public index, which is a
  * network read — so it is `force-dynamic`, for the same reason motir-core's is
- * and not a different one. `SITE_ORIGIN` is still a `NEXT_PUBLIC_*` value baked
+ * and not a different one. `SITE_ORIGIN` is still a `PUBLIC_*` value baked
  * in by `next build`, so the URLs are the real ones either way.
  *
  * ⚠️ IT IS PER-HOST NOW (MOTIR-4222), AND THE RULE HAS ONE SENTENCE:

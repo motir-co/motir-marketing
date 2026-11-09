@@ -198,7 +198,7 @@ describe('requirePlanLadder — the read a built page makes', () => {
 
   it('fails the build, naming the variable, with no origin', async () => {
     await expect(requirePlanLadder(fetch, null)).rejects.toThrow(
-      'NEXT_PUBLIC_MOTIR_AI_ORIGIN',
+      'PUBLIC_MOTIR_AI_ORIGIN',
     )
   })
 })

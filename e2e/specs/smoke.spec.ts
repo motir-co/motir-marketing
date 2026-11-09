@@ -35,7 +35,7 @@ test('a page the stub has NO fixture for fails loudly rather than looking empty'
   // page, because the point is the stub's behaviour.
   //
   // ⚠️ THE ORIGIN IS IMPORTED, NEVER READ FROM THE ENVIRONMENT. This line used
-  // to be `process.env['NEXT_PUBLIC_MOTIR_APP_ORIGIN'] ?? <the stub>`, which
+  // to be `process.env['PUBLIC_MOTIR_APP_ORIGIN'] ?? <the stub>`, which
   // resolved to the stub locally and to PRODUCTION in CI — `ci.yml` sets that
   // variable at workflow level. See `e2e/stub/origin.ts`.
   const res = await page.request.get(`${STUB_ORIGIN}/api/public/p/NOPE`)

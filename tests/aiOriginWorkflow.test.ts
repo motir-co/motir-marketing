@@ -3,7 +3,8 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 /*
- * MOTIR-10276: the build's motir-ai origin is a repository variable with
+ * MOTIR-10276: the build's motir-ai origin (renamed from its Next spelling to
+ * Astro's `PUBLIC_` prefix by MOTIR-10637) is a repository variable with
  * today's value as its default, so the AWS cutover can move /price to
  * ai.motir.co after go with one variable and one release, and merging the
  * change alters no build. Read as text: this repository has no YAML parser,
@@ -31,8 +32,8 @@ function resolve(expression: string, variable: string): string {
   return variable !== '' ? variable : m[1]!
 }
 
-describe('NEXT_PUBLIC_MOTIR_AI_ORIGIN in ci.yml (MOTIR-10276)', () => {
-  const value = workflowEnv('NEXT_PUBLIC_MOTIR_AI_ORIGIN')
+describe('PUBLIC_MOTIR_AI_ORIGIN in ci.yml (MOTIR-10276)', () => {
+  const value = workflowEnv('PUBLIC_MOTIR_AI_ORIGIN')
 
   it('reads the MOTIR_AI_ORIGIN repository variable at workflow level', () => {
     expect(value).toBe(`\${{ vars.MOTIR_AI_ORIGIN || '${TODAY}' }}`)
@@ -47,6 +48,6 @@ describe('NEXT_PUBLIC_MOTIR_AI_ORIGIN in ci.yml (MOTIR-10276)', () => {
   })
 
   it('is set nowhere else in the workflow, so the release reads the same value', () => {
-    expect(ci.match(/NEXT_PUBLIC_MOTIR_AI_ORIGIN:/g)).toHaveLength(1)
+    expect(ci.match(/(?<![A-Z_])PUBLIC_MOTIR_AI_ORIGIN:/g)).toHaveLength(1)
   })
 })

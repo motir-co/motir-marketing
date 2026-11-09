@@ -12,7 +12,7 @@ import {
  * ⚠️ THIS ASSERTS `parseAppOrigin`, WHICH IS WHAT THE MODULE'S TOP-LEVEL
  * BINDING CALLS — and that is the whole guard, because the call is at MODULE
  * SCOPE. `lib/appOrigin.ts` ends with `export const APP_ORIGIN =
- * parseAppOrigin(process.env.NEXT_PUBLIC_MOTIR_APP_ORIGIN)`, so an import of
+ * parseAppOrigin(process.env.PUBLIC_MOTIR_APP_ORIGIN)`, so an import of
  * that module under an unset variable throws before any component renders,
  * which is what fails `next build`. Testing the parser directly keeps the
  * error's identity and its message pinned without needing to fork a build.
@@ -21,7 +21,7 @@ describe('parseAppOrigin', () => {
   it('throws a NAMED error when the variable is unset', () => {
     expect(() => parseAppOrigin(undefined)).toThrowError(MotirAppOriginError)
     expect(() => parseAppOrigin(undefined)).toThrowError(
-      /NEXT_PUBLIC_MOTIR_APP_ORIGIN is not set/,
+      /PUBLIC_MOTIR_APP_ORIGIN is not set/,
     )
   })
 

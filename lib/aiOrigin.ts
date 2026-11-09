@@ -7,7 +7,7 @@
  * Unlike `APP_ORIGIN`, an unset or malformed value does NOT fail the build: the
  * price page is one page of many, and with no origin its two sections show
  * their calm unavailable states, which is what they show when motir-ai is down.
- * the CI workflow's `env` sets it on a release (`vercel build` runs there).
+ * The CI workflow's `env` sets it on a release (`astro build` runs there).
  */
 export function parseAiOrigin(raw: string | undefined): string | null {
   const value = (raw ?? '').trim()
@@ -24,7 +24,7 @@ export function parseAiOrigin(raw: string | undefined): string | null {
   }
 }
 
-/** Read by its full literal name, so Next inlines it into the browser bundle. */
+/** Read by its full literal name, so the build's `define` inlines it into the browser bundle. */
 export const AI_ORIGIN: string | null = parseAiOrigin(
-  process.env.NEXT_PUBLIC_MOTIR_AI_ORIGIN,
+  process.env.PUBLIC_MOTIR_AI_ORIGIN,
 )

@@ -32,22 +32,24 @@ Requires Node 22+ and pnpm 11.
 
 ### The one environment variable
 
-`NEXT_PUBLIC_MOTIR_APP_ORIGIN` — the motir-core origin the landing's three
+`PUBLIC_MOTIR_APP_ORIGIN` — the motir-core origin the landing's three
 cross-origin doors are built from. **The build FAILS with a named error when it
 is unset** (`lib/appOrigin.ts` → `MotirAppOriginError`), which is deliberate:
-`NEXT_PUBLIC_*` is inlined at build time, so an unset value cannot be caught at
+`PUBLIC_*` is inlined at build time, so an unset value cannot be caught at
 runtime — by then a page whose every button leads nowhere has already shipped.
 
 It is supplied in three places, one per context, and they must agree:
 
-| context                        | supplied by                                                |
-| ------------------------------ | ---------------------------------------------------------- |
-| local development              | `.env.local`, from `.env.example`                          |
-| CI's `Build` and `Test` checks | the workflow-level `env:` in `ci.yml`                      |
-| the release                    | the same workflow-level `env:` — `vercel build` runs in CI |
+| context                        | supplied by                                               |
+| ------------------------------ | --------------------------------------------------------- |
+| local development              | `.env.local`, from `.env.example`                         |
+| CI's `Build` and `Test` checks | the workflow-level `env:` in `ci.yml`                     |
+| the release                    | the same workflow-level `env:` — `astro build` runs in CI |
 
-It is **not** a Vercel environment variable and cannot be one: the release is
-built on the runner (`vercel build`) and only its output is uploaded.
+It is **not** a Cloudflare variable and cannot be one: the release is built on
+the runner (`pnpm build`) and `wrangler deploy` uploads only its output. The
+Worker's own copy of the origin, read per request, is `MOTIR_APP_ORIGIN` in
+`wrangler.jsonc`'s `vars`.
 
 ## Checks
 

@@ -56,11 +56,10 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NEXT_TELEMETRY_DISABLED: '1'
   # The production origin, deliberately — this lane exists to check the
   # PUBLISHED pages against the manifest the PRODUCTION deployment serves.
   # `lib/appOrigin.ts` throws with the variable's name when it is unset.
-  NEXT_PUBLIC_MOTIR_APP_ORIGIN: 'https://app.motir.co'
+  PUBLIC_MOTIR_APP_ORIGIN: 'https://app.motir.co'
 
 jobs:
   seam:
