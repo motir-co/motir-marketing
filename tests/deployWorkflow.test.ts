@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { parse } from 'jsonc-parser'
 import { describe, expect, it } from 'vitest'
+import { SMOKE_CHECKS } from '@/lib/deploySmoke'
 
 /*
  * THE RELEASE IS A WRANGLER DEPLOY BEHIND THE SAME GATES (MOTIR-10637).
@@ -115,16 +116,24 @@ describe('the deploy job (MOTIR-10637)', () => {
   })
 
   it('checks a static page, a Worker route, an unknown path and a mis-cased locale', () => {
-    for (const [route, status] of [
-      ['/', 200],
-      ['/price', 200],
-      ['/explore', 200],
-      ['/de/does-not-exist', 404],
-      ['/zh-TW/price', 308],
-    ] as const) {
-      expect(deployCode).toContain(`check ${route} ${status}`)
-    }
-    expect(deployCode).toContain('*/zh-tw/price) ;;')
+    expect(SMOKE_CHECKS).toEqual([
+      { path: '/', status: 200 },
+      { path: '/price', status: 200 },
+      { path: '/explore', status: 200 },
+      { path: '/de/does-not-exist', status: 404 },
+      { path: '/zh-TW/price', status: 308, locationEndsWith: '/zh-tw/price' },
+    ])
+  })
+
+  it('smokes through the tested module, which retries on the answer (MOTIR-10810)', () => {
+    expect(deployCode).toMatch(
+      /- name: Smoke the release on its workers\.dev address\n {8}env:\n {10}ORIGIN: \$\{\{ steps\.release\.outputs\.url \}\}\n {8}run: pnpm smoke:release$/m,
+    )
+    expect(pkg.scripts['smoke:release']).toBe('node scripts/deploy/smoke.ts')
+    // The curl loop that retried only a refused connection is gone.
+    expect(deployCode).not.toMatch(/--retry/)
+    // The module asks without following redirects, so the 308 is an answer.
+    expect(read('lib/deploySmoke.ts')).toContain("redirect: 'manual'")
   })
 })
 

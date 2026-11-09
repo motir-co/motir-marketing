@@ -372,29 +372,17 @@ jobs:
           ' "$WRANGLER_OUTPUT_FILE_PATH")
           echo "url=$url" >> "$GITHUB_OUTPUT"
       # Prove the release itself: a built page, a Worker route, an unknown path
-      # (the localized 404) and a mis-cased locale (the Worker's 308). Redirects
-      # are NOT followed, so the 404 and the 308 are seen as answered.
+      # (the localized 404) and a mis-cased locale (the Worker's 308, and its
+      # Location). Redirects are NOT followed, so the 404 and the 308 are seen
+      # as answered. The checks live in `lib/deploySmoke.ts`, under test.
+      #
+      # ⚠️ EACH CHECK RETRIES ON THE ANSWER, NOT ONLY ON THE CONNECTION
+      # (MOTIR-10810). A new workers.dev address answers 404 for a few seconds
+      # while it propagates; `curl --retry` counts any HTTP answer as success,
+      # so it failed the Worker's first deploy on its first request. Now a wrong
+      # status, a wrong Location or no answer is asked again, 10 x 10 s, and the
+      # step fails with the last answer seen.
       - name: Smoke the release on its workers.dev address
         env:
           ORIGIN: ${{ steps.release.outputs.url }}
-        run: |
-          set -euo pipefail
-          check() {
-            local path="$1" want="$2"
-            local code
-            code=$(curl -sS -o /dev/null -w '%{http_code}' -H 'accept-language: en' \
-              --retry 10 --retry-delay 10 --retry-all-errors "$ORIGIN$path")
-            echo "GET $ORIGIN$path -> $code (want $want)"
-            [ "$code" = "$want" ]
-          }
-          check / 200
-          check /price 200
-          check /explore 200
-          check /de/does-not-exist 404
-          check /zh-TW/price 308
-          location=$(curl -sS -o /dev/null -w '%{redirect_url}' "$ORIGIN/zh-TW/price")
-          echo "GET $ORIGIN/zh-TW/price -> Location: $location"
-          case "$location" in
-            */zh-tw/price) ;;
-            *) echo "expected a Location ending /zh-tw/price"; exit 1 ;;
-          esac
+        run: pnpm smoke:release
