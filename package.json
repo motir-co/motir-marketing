@@ -31,7 +31,8 @@
     "i18n:baseline": "node scripts/i18n/catalogue.ts baseline",
     "i18n:glossary-sync": "node scripts/i18n/catalogue.ts glossary-sync",
     "i18n:check-static-pages": "node scripts/i18n/check-static-pages.ts",
-    "parity:check": "node scripts/parity/check-parity.ts"
+    "parity:check": "node scripts/parity/check-parity.ts",
+    "smoke:release": "node scripts/deploy/smoke.ts"
   },
   "dependencies": {
     "@astrojs/react": "7.1.4",

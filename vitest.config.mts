@@ -262,6 +262,8 @@ export default defineConfig({
         // MOTIR-10757 — the share card, drawn in the Worker.
         'worker/share/*.ts',
         'worker/share/*.tsx',
+        // MOTIR-10810 — the release smoke check, added WITH its tests.
+        'lib/deploySmoke.ts',
       ].filter(notHeld),
       /*
        * The held sources only (`held-out.json`): the `/p/*` exclusions — the
@@ -410,6 +412,8 @@ export default defineConfig({
             functions: 90,
             branches: 90,
           },
+          // MOTIR-10810 — measured first under `tests/deploySmoke.test.ts`.
+          'lib/deploySmoke.ts': { lines: 90, functions: 90, branches: 90 },
           // MOTIR-10757 — measured first under `tests/worker/`, then pinned.
           'worker/share/*.ts': { lines: 90, functions: 90, branches: 90 },
           'worker/share/*.tsx': { lines: 90, functions: 90, branches: 90 },
