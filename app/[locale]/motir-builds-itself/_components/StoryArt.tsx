@@ -1,5 +1,4 @@
 import { localizedPath } from '@/i18n/localizedPath'
-import Link from 'next/link'
 import { ArrowRight, Check, CornerDownRight, RefreshCw } from 'lucide-react'
 import { cn } from '@motir/design-system'
 import { useCopy, usePageLocale } from '@/lib/copy'
@@ -151,7 +150,7 @@ export function NeedList() {
             {item.body}
           </span>
           {'product' in item && item.product ? (
-            <Link
+            <a
               href={localizedPath(
                 locale,
                 productPath(item.product as ProductSlug),
@@ -160,7 +159,7 @@ export function NeedList() {
             >
               {productOf(item.product as ProductSlug, copy).name}
               <ArrowRight aria-hidden="true" className="size-4" />
-            </Link>
+            </a>
           ) : null}
         </li>
       ))}

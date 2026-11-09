@@ -238,6 +238,9 @@ export default defineConfig({
         // MOTIR-10755 — the ideas slot and the idea store's edge cache.
         'worker/ideas/*.tsx',
         'worker/ideasStore.ts',
+        // MOTIR-10756 — /motir-builds-itself and the project sitemap.
+        'worker/buildsItself/*.tsx',
+        'worker/projectSitemap/*.ts',
       ].filter(notHeld),
       /*
        * ⚠️ EVERY EXCLUSION HAS A REASON, and the reasons are different — a list
@@ -408,6 +411,17 @@ export default defineConfig({
           // MOTIR-10755 — measured first under `tests/worker/`, then pinned.
           'worker/ideas/*.tsx': { lines: 90, functions: 90, branches: 90 },
           'worker/ideasStore.ts': { lines: 90, functions: 90, branches: 90 },
+          // MOTIR-10756 — measured first under `tests/worker/`, then pinned.
+          'worker/buildsItself/*.tsx': {
+            lines: 90,
+            functions: 90,
+            branches: 90,
+          },
+          'worker/projectSitemap/*.ts': {
+            lines: 90,
+            functions: 90,
+            branches: 90,
+          },
           'lib/scriptJson.ts': { lines: 90, functions: 90, branches: 90 },
           'lib/island.tsx': { lines: 90, functions: 90, branches: 90 },
           'lib/islands.ts': { lines: 90, functions: 90, branches: 90 },

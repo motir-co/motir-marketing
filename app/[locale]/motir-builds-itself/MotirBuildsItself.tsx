@@ -1,24 +1,24 @@
-import Link from 'next/link'
 import { localizedPath } from '@/i18n/localizedPath'
-import { localePageMetadata } from '@/lib/localeMetadata'
-import type { Metadata } from 'next'
 import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { cn } from '@motir/design-system'
-import { getCopy } from '@/lib/copy'
+import { useCopy, usePageLocale } from '@/lib/copy'
 import {
   FREE_DOOR,
   HOW_IT_WORKS,
   MOTIR_PROJECT,
   MOTIR_PROJECT_RUNS,
 } from '@/lib/destinations'
-import { loadChangelog, loadProject } from '@/lib/publicProject'
+import type {
+  PublicChangelogPageDto,
+  PublicProjectOverviewDto,
+  PublicRead,
+} from '@/lib/publicProject'
 import { SITE_HOST } from '@/lib/publicHost'
 import { SiteShell } from '../../_components/SiteShell'
-import { HeroWaves } from '../../_components/landing/HeroWaves'
+import { HeroWavesIsland } from '../../_islands'
 import { RoadmapUi } from '../products/_components/PmUi'
 import { Eyebrow, GUTTER, H2 } from '../products/_components/ProductPage'
 import { LostTiles, NeedList, Staircase } from './_components/StoryArt'
-import { enterLocale, type LocalePageProps } from '@/i18n/locale'
 
 /*
  * "Motir builds itself" (2026-10 redesign) — the story behind the landing's
@@ -29,21 +29,11 @@ import { enterLocale, type LocalePageProps } from '@/i18n/locale'
  * work, read from the public API like `/p/MOTIR` reads them; an unreachable
  * API degrades to a sentence, never an error page.
  *
+ * Rendered per request by the Worker since MOTIR-10756
+ * (`worker/motirBuildsItself.tsx`), from the two reads it has already made.
  * Kept out of the index (`robots: noindex`) and the sitemap while in review,
- * like the product pages.
+ * like the product pages (`./buildsItselfMetadata.ts`).
  */
-
-export const dynamic = 'force-dynamic'
-
-export function generateMetadata({
-  params,
-}: LocalePageProps): Promise<Metadata> {
-  return localePageMetadata(params, '/motir-builds-itself', (copy) => ({
-    title: copy.builtByMotirPage.metaTitle,
-    description: copy.builtByMotirPage.metaDescription,
-    robots: { index: false, follow: true },
-  }))
-}
 
 const MONO = 'font-(family-name:--font-mono) tracking-[0.1em] uppercase'
 
@@ -106,15 +96,15 @@ function Section({
   )
 }
 
-export default async function MotirBuildsItselfPage({
-  params,
-}: LocalePageProps) {
-  const locale = await enterLocale(params)
-  const b = (await getCopy(locale)).builtByMotirPage
-  const [project, changelog] = await Promise.all([
-    loadProject('MOTIR'),
-    loadChangelog('MOTIR'),
-  ])
+export function MotirBuildsItself({
+  project,
+  changelog,
+}: Readonly<{
+  project: PublicRead<PublicProjectOverviewDto>
+  changelog: PublicRead<PublicChangelogPageDto>
+}>) {
+  const locale = usePageLocale()
+  const b = useCopy().builtByMotirPage
   const stats = project.status === 'ok' ? project.data.stats : null
   const recent =
     changelog.status === 'ok' ? changelog.data.entries.slice(0, 6) : []
@@ -128,7 +118,7 @@ export default async function MotirBuildsItselfPage({
           GUTTER,
         )}
       >
-        <HeroWaves focusId="mbi-actions" />
+        <HeroWavesIsland focusId="mbi-actions" />
         <div className="mx-auto grid max-w-[1400px] gap-6">
           <p
             className={cn(
@@ -218,7 +208,7 @@ export default async function MotirBuildsItselfPage({
           {/* The palette's warm decision fill — the colour of the landing's
               developers' door — so it reads apart from the field-coloured
               close below; the ink button stands out on it. */}
-          <Link
+          <a
             href={localizedPath(locale, HOW_IT_WORKS)}
             className="group inline-flex h-(--height-btn-lg) items-center gap-2 justify-self-start rounded-(--radius-btn) bg-(--el-showcase-ground) px-(--spacing-btn-x) text-[16px] font-semibold text-(--el-showcase-ground-text) no-underline shadow-(--shadow-card) transition hover:-translate-y-0.5 hover:brightness-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--el-showcase-decision-text) motion-reduce:transition-none motion-reduce:hover:translate-y-0"
           >
@@ -227,7 +217,7 @@ export default async function MotirBuildsItselfPage({
               aria-hidden="true"
               className="size-4 transition-transform group-hover:translate-x-1 motion-reduce:transition-none"
             />
-          </Link>
+          </a>
         </section>
       </div>
 

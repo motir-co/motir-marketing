@@ -1,8 +1,10 @@
 import { DEFAULT_LOCALE, LOCALES, type Locale } from '@/i18n/routing'
 import type { Env, WaitUntil } from './env'
+import { buildsItselfHandler } from './buildsItself/handler'
 import { exploreHandler } from './explore/handler'
 import { ideasHandler } from './ideas/handler'
 import { projectHandler } from './project/handler'
+import { projectSitemapHandler } from './projectSitemap/handler'
 
 /*
  * THE LIVE SURFACE'S ROUTE TABLE, AND THE LIST THAT BRINGS THE WORKER IN
@@ -105,7 +107,7 @@ export const ROUTES: readonly RouteSlot[] = [
   {
     name: 'buildsItself',
     matches: (path) => path === '/motir-builds-itself',
-    handler: placeholder('buildsItself'),
+    handler: buildsItselfHandler,
   },
   {
     // The project half of the sitemap index is a root file: English only,
@@ -113,7 +115,7 @@ export const ROUTES: readonly RouteSlot[] = [
     name: 'projectSitemap',
     matches: (path, locale) =>
       locale === DEFAULT_LOCALE && path === '/sitemap-projects.xml',
-    handler: placeholder('projectSitemap'),
+    handler: projectSitemapHandler,
   },
 ]
 
