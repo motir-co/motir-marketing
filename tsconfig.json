@@ -24,15 +24,14 @@
     "dist",
     "proxy.ts",
     "lib/requestLog.ts",
-    "tests/crawlPolicy.test.tsx",
+    "tests/crawlPolicyProxy.test.tsx",
     "tests/host/customerHostRemoval.test.ts",
     "tests/host/hostRouter.test.ts",
     "tests/host/readPagesMoveGate.test.tsx",
     "tests/host/retiredHostGate.test.ts",
     "tests/host/storySeams.test.tsx",
-    "tests/i18n/detectionMatrix.test.tsx",
-    "tests/i18n/routing.test.ts",
-    "tests/i18n/zhTwStoryGate.test.ts",
-    "tests/legal/bindingEnglishNoteGate.test.tsx"
+    "tests/i18n/detectionMatrixProxy.test.tsx",
+    "tests/i18n/routingProxy.test.ts",
+    "tests/legal/bindingEnglishNoteGateProxy.test.tsx"
   ]
 }

@@ -39,6 +39,18 @@ import { projectSitemapEntries } from '@/lib/sitemapEntries'
  * actually reaches the edge. That is DNS and a running machine, which a unit
  * case cannot read.
  *
+ * HELD with `proxy.ts` until MOTIR-10639 deletes both (MOTIR-10758): every
+ * case left here drives `proxy()`. The proxy-free cases moved or were already
+ * measured elsewhere:
+ *   - `routeForHost` without a resolution: `tests/host/hostResolution.test.ts`
+ *     ("a live workspace host with no application", "no customer-domain arm")
+ *   - `lib/publicHost.ts` exporting no redirect helper:
+ *     `tests/host/publicHost.test.ts`; its three kinds and the site path on
+ *     every kind: the same file's `readPublicHost` and `publicPathFor` cases
+ *   - the sitemap listing only site-canonical projects:
+ *     `tests/worker/sitemapProjects.test.ts` ("filters by the host
+ *     MOTIR_SITE_ORIGIN names"); there is no tenant host to list nothing on
+ *
  * The page half — a project whose `addresses.primary` names another host still
  * rendering on motir.co — is `tests/host/readPagesMoveGate.test.tsx`'s, because
  * that file already drives the four kept pages through their real modules.
@@ -307,25 +319,6 @@ describe('a workspace host, end to end', () => {
   })
 })
 
-describe('routeForHost, as the router card leaves it', () => {
-  it('takes no resolution, and serves no project path', () => {
-    expect(routeForHost('/')).toEqual({
-      action: 'no-application',
-      path: `/en${ROUTER_PATHS.noApplication}`,
-    })
-    expect(routeForHost('/motir-mark.svg')).toEqual({ action: 'forward' })
-    for (const path of ['/explore', '/p/ACME', '/en/p/ACME']) {
-      expect(routeForHost(path), path).toEqual({ action: 'not-found' })
-    }
-  })
-
-  it('returns no route that carries a /p/ path', () => {
-    for (const path of ['/', '/motir-mark.svg', '/explore', '/p/ACME']) {
-      expect(JSON.stringify(routeForHost(path)), path).not.toContain('/p/')
-    }
-  })
-})
-
 /* ── 4 · the site, untouched ──────────────────────────────────────────────── */
 
 describe('the site’s own host', () => {
@@ -340,81 +333,4 @@ describe('the site’s own host', () => {
       expect(forwarded(res, PUBLIC_ADDRESS_KIND_HEADER)).toBeNull()
     },
   )
-})
-
-/* ── 5 · the address vocabulary cannot spell a customer host ──────────────── */
-
-describe('lib/publicHost.ts', () => {
-  it('exports neither page-redirect helper', () => {
-    // Read off the module's bindings, not its source, so a re-export under
-    // another file's name still fails here.
-    const exported = Object.keys(publicHostModule)
-    expect(exported).not.toContain('redirectIfNotPrimary')
-    expect(exported).not.toContain('isOnPrimaryHost')
-  })
-
-  it('reads exactly three address kinds, and a `project` header as the site', () => {
-    // `KINDS` is module-private; `readPublicHost` is the one reader of it, so
-    // a fourth member would surface here as a header that no longer reads as
-    // the site.
-    const read = (kind: string) =>
-      readPublicHost(
-        new Headers({
-          [PUBLIC_ADDRESS_KIND_HEADER]: kind,
-          [PUBLIC_HOST_HEADER]: CUSTOMER,
-        }),
-      ).kind
-    expect(read('workspace')).toBe('workspace')
-    expect(read('unresolved')).toBe('unresolved')
-    expect(read('site')).toBe('site')
-    expect(read('project')).toBe('site')
-  })
-
-  it.each<PublicHost>([
-    SITE_HOST,
-    { kind: 'workspace', host: 'acme.motir.site', origin: null },
-    { kind: 'unresolved', host: CUSTOMER, origin: null },
-  ])('spells the site path on a $kind host', (host) => {
-    expect(publicPathFor(host, 'A B', 'changelog', 'fr')).toBe(
-      '/fr/p/A%20B/changelog',
-    )
-    expect(publicPathFor(host, 'ACME', '', 'en')).toBe('/p/ACME')
-  })
-})
-
-describe('projectSitemapEntries', () => {
-  const INDEX = {
-    projects: [
-      {
-        identifier: 'MOTIR',
-        updatedAt: '2026-09-02T00:00:00.000Z',
-        primaryHost: 'motir.co',
-      },
-      {
-        identifier: 'ACME',
-        updatedAt: '2026-09-01T00:00:00.000Z',
-        primaryHost: CUSTOMER,
-      },
-    ],
-    nextCursor: null,
-  }
-
-  it.each<PublicHost>([
-    { kind: 'workspace', host: 'acme.motir.site', origin: null },
-    { kind: 'unresolved', host: CUSTOMER, origin: null },
-  ])('is empty on a $kind host, without reading the index', async (host) => {
-    stubContract(() => json(INDEX))
-    expect(await projectSitemapEntries(host)).toEqual([])
-    expect(asked).toEqual([])
-  })
-
-  it('lists on the site only the projects whose canonical is the site', async () => {
-    stubContract(() => json(INDEX))
-    const urls = (await projectSitemapEntries(SITE_HOST)).map((e) => e.url)
-
-    expect(asked).toHaveLength(1)
-    expect(urls).toContain('https://motir.co/p/MOTIR')
-    expect(urls).toContain('https://motir.co/p/MOTIR/changelog')
-    expect(urls.some((u) => u.includes('ACME'))).toBe(false)
-  })
 })

@@ -19,6 +19,12 @@ import { resetHostResolutionCache, resolveHost } from '@/lib/hostResolution'
  * payload, drives it through the real router code, and ends at a rendered DOM
  * or a real sitemap.
  *
+ * HELD with `proxy.ts` until MOTIR-10639 deletes both (MOTIR-10758). Its two
+ * proxy-free seams are measured on the Worker: the crawl index's primaryHost
+ * into the sitemap by `tests/worker/sitemapProjects.test.ts` ("filters by the
+ * host MOTIR_SITE_ORIGIN names"), and a subject DTO with no `addresses` by
+ * `tests/host/primaryAddress.test.ts` ("falls back to motir.co/p/<identifier>").
+ *
  * ⚠️ THE FIXTURES ARE `e2e/fixtures/`'s SHAPES, RESTATED FOR NODE. The browser
  * lane's stub is an HTTP server started by Playwright; this lane is jsdom and
  * stubs `fetch` in-process, so it cannot reach that server. What it CAN share is
@@ -87,61 +93,6 @@ describe('a recorded customer-domain resolution, driven through the router', () 
   })
 })
 
-/* ── seam (b): the index's primaryHost → the sitemap ──────────────────────── */
-
-describe('the crawl index’s primaryHost, driven into the sitemap', () => {
-  const INDEX = {
-    projects: [
-      {
-        identifier: 'MOTIR',
-        updatedAt: '2026-09-02T00:00:00.000Z',
-        primaryHost: 'motir.co',
-      },
-      {
-        identifier: 'ACME',
-        updatedAt: '2026-09-01T00:00:00.000Z',
-        primaryHost: 'roadmap.acme.com',
-      },
-    ],
-    nextCursor: null,
-  }
-
-  async function sitemapAs(headers: Record<string, string>) {
-    vi.resetModules()
-    vi.doMock('next/headers', () => ({
-      headers: async () => new Headers(headers),
-    }))
-    vi.stubGlobal('fetch', async () => Response.json(INDEX))
-    const sitemap = (await import('@/tests/helpers/sitemap')).default
-    const entries = await sitemap()
-    vi.doUnmock('next/headers')
-    return entries.map((e) => e.url)
-  }
-
-  it('lists on motir.co only the projects whose canonical is motir.co', async () => {
-    // A row whose primary is a customer's own domain is not listed anywhere
-    // Motir serves (MOTIR-9528): that domain is the certificate edge's, and
-    // motir.co is not its canonical.
-    const onSite = await sitemapAs({})
-
-    expect(onSite).toContain('https://motir.co/p/MOTIR')
-    expect(onSite.some((u) => u.includes('ACME'))).toBe(false)
-  })
-
-  it('and a workspace host lists nothing at all', async () => {
-    // Empty is the answer — NOT this site's static pages, which would
-    // attribute motir.co's content to another host, and not a project, which
-    // a workspace host does not serve (MOTIR-9512).
-    expect(
-      await sitemapAs({
-        [PUBLIC_ADDRESS_KIND_HEADER]: 'workspace',
-        [PUBLIC_HOST_HEADER]: 'acme.motir.site',
-        [PUBLIC_ORIGIN_HEADER]: 'https://acme.motir.site',
-      }),
-    ).toEqual([])
-  })
-})
-
 /* ── seam (c): a retired alias outcome → the 404 room, never a redirect ───── */
 
 describe('a recorded alias resolution, driven through the router', () => {
@@ -164,21 +115,5 @@ describe('a recorded alias resolution, driven through the router', () => {
     expect(new URL(res.headers.get('x-middleware-rewrite')!).pathname).toBe(
       '/_host-unknown',
     )
-  })
-})
-
-/* ── the branch the cards' own units left ─────────────────────────────────── */
-
-describe('a subject DTO from a motir-core that predates `addresses`', () => {
-  it('renders with today’s canonical', async () => {
-    // ⚠️ A ROLLING DEPLOY IS A REAL STATE, not a hypothetical: the two
-    // repositories deploy separately by decision (AMENDMENT 2 §E), so for the
-    // length of one release this renderer talks to a motir-core that does not
-    // send the field. `project.addresses.primary` on `undefined` is a TypeError
-    // inside `generateMetadata`, which 500s the page instead of degrading it.
-    const legacy = { identifier: 'ACME' }
-
-    expect(publicUrlFor(legacy)).toBe('https://motir.co/p/ACME')
-    expect(publicUrlFor(legacy, 'board')).toBe('https://motir.co/p/ACME/board')
   })
 })

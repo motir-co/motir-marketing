@@ -10,33 +10,29 @@ import { join } from 'node:path'
  * (MOTIR-8087), the rendered note and its `lang` marks (MOTIR-8088), and the
  * English-only crawl data (MOTIR-8086). This file proves the pieces AGREE once
  * assembled, for EVERY document the directory holds in EVERY locale: the note
- * is the catalogue's, its link really serves English at the proxy, the English
+ * is the catalogue's, its link names the English address, the English
  * text is identical to English, the page head and the sitemap name the same
  * address, and an unknown slug is a 404.
  *
  * Everything is the real thing: the loader, the catalogues, the pages awaited
- * and rendered, `sitemap()`, `proxy()`. Nothing is a fixture list.
+ * and rendered, `sitemap()`. Nothing is a fixture list.
+ *
+ * What the link LANDS on is the Worker's now (MOTIR-10758): `/en/legal/…` is a
+ * `_redirects` 308 onto `/legal/…`, and the remembered language never moves a
+ * page but the bare `/` — `e2e/specs/acceptance-legal-binding-english-live.spec.ts`
+ * follows the link through `wrangler dev`, and `tests/worker/router.test.ts`
+ * ("never moves …") pins the rule. The proxy-era cases are held in
+ * `bindingEnglishNoteGateProxy.test.tsx` until MOTIR-10639 deletes `proxy.ts`.
  */
 
 // Empty headers read as the SITE host for `sitemap()` and the pages.
 vi.mock('next/headers', () => ({ headers: async () => new Headers() }))
-// The site branch of the proxy never resolves a host; a call would be the defect.
-const resolveHost = vi.fn()
-vi.mock('@/lib/hostResolution', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@/lib/hostResolution')>()),
-  resolveHost,
-}))
 
-const {
-  default: LegalDocumentPage,
-  generateMetadata,
-  generateStaticParams,
-} = await import('@/app/[locale]/legal/[slug]/LegalDocumentRoute')
+const { default: LegalDocumentPage, generateMetadata } =
+  await import('@/app/[locale]/legal/[slug]/LegalDocumentRoute')
 const { default: LegalIndexPage, generateMetadata: indexMetadata } =
   await import('@/app/[locale]/legal/LegalIndexRoute')
 const { default: sitemap } = await import('@/tests/helpers/sitemap')
-const { proxy } = await import('@/proxy')
-const { NextRequest } = await import('next/server')
 const { render } = await import('@/tests/helpers/withCopy')
 const { resolveAsync } = await import('@/tests/helpers/resolveAsync')
 const { LOCALES, DEFAULT_LOCALE } = await import('@/i18n/routing')
@@ -47,7 +43,6 @@ const { getLegalDocument, legalDocumentSlugs, listLegalDocuments } =
 const { englishLegalPath } = await import('@/lib/legal/englishAddress')
 const { englishOnlyCanonical } = await import('@/lib/localeMetadata')
 const { siteUrl } = await import('@/lib/siteOrigin')
-const { LOCALE_COOKIE } = await import('@/lib/localeDetection')
 
 type Locale = (typeof LOCALES)[number]
 
@@ -107,11 +102,6 @@ const plain = (template: string) => template.replace(/<\/?link>/g, '')
 
 const precedes = (a: Element, b: Element) =>
   Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
-
-const request = (path: string, headers: Record<string, string>) =>
-  new NextRequest(`https://motir.co${path}`, {
-    headers: { host: 'motir.co', ...headers },
-  })
 
 /** The body wrapper the document page marks English. */
 const bodyOf = (page: HTMLElement) =>
@@ -182,39 +172,6 @@ describe('the link serves English', () => {
       expect(links).toHaveLength(1)
       expect(links[0]!.getAttribute('href')).toBe(englishLegalPath(slug))
       expect(englishLegalPath(slug)).toBe(`/en/legal/${slug}`)
-    },
-  )
-
-  it.each(OTHER_MATRIX)(
-    '[%s] the proxy serves /en/legal/%s as it is, and leaves the remembered language alone',
-    async (locale, slug) => {
-      const res = await proxy(
-        request(englishLegalPath(slug), {
-          cookie: `${LOCALE_COOKIE}=${locale}`,
-          'accept-language': locale,
-        }),
-      )
-      expect(res.status).toBeLessThan(300)
-      expect(res.headers.get('location')).toBeNull()
-      expect(res.headers.get('set-cookie') ?? '').not.toContain(LOCALE_COOKIE)
-      expect(resolveHost).not.toHaveBeenCalled()
-    },
-  )
-
-  it.each(OTHER)(
-    '[%s] the counterfactual: an unprefixed link would be sent back to the reader’s language',
-    async (locale) => {
-      const slug = SLUGS[0]!
-      const res = await proxy(
-        request(`/legal/${slug}`, {
-          cookie: `${LOCALE_COOKIE}=${locale}`,
-          'accept-language': locale,
-        }),
-      )
-      expect(res.status).toBe(307)
-      expect(new URL(res.headers.get('location')!).pathname).toBe(
-        `/${locale}/legal/${slug}`,
-      )
     },
   )
 
@@ -357,21 +314,16 @@ describe('the page head and the sitemap agree', () => {
   })
 })
 
-describe('an unknown slug is a 404 in every locale', () => {
+describe('an unknown slug is never built', () => {
   it.each(LOCALES)('[%s] /legal/does-not-exist', async (locale) => {
-    let thrown: unknown
-    let rendered: unknown
-    try {
-      rendered = await LegalDocumentPage({
+    // Only the documents on disk are built; the address answers the static
+    // 404 room (`worker/notFound.ts`), so a slug that names none is a BUILD
+    // error, never a page.
+    await expect(
+      LegalDocumentPage({
         params: Promise.resolve({ locale, slug: 'does-not-exist' }),
-      })
-    } catch (error) {
-      thrown = error
-    }
-    expect(rendered).toBeUndefined()
-    expect((thrown as { digest?: string })?.digest).toBe(
-      'NEXT_HTTP_ERROR_FALLBACK;404',
-    )
+      }),
+    ).rejects.toThrow('does-not-exist')
     expect(
       await generateMetadata({
         params: Promise.resolve({ locale, slug: 'does-not-exist' }),
@@ -379,8 +331,20 @@ describe('an unknown slug is a 404 in every locale', () => {
     ).toEqual({})
   })
 
-  it('generateStaticParams lists exactly the documents on disk', async () => {
-    expect((await generateStaticParams()).map((p) => p.slug)).toEqual(SLUGS)
+  it('the Astro page builds exactly the documents on disk', () => {
+    const page = readFileSync(
+      join('src', 'pages', '[...locale]', 'legal', '[slug].astro'),
+      'utf8',
+    )
+    expect(page).toMatch(
+      /localeSlugStaticPaths\('slug', legalDocumentSlugs\(\)\)/,
+    )
+    expect([...SLUGS].sort()).toEqual(
+      readdirSync(join('content', 'legal'))
+        .filter((f) => f.endsWith('.md'))
+        .map((f) => f.replace(/\.md$/, ''))
+        .sort(),
+    )
   })
 })
 

@@ -16,6 +16,12 @@ import {
  * real `resolveHost`, its cache, `routeForHost` and `proxy.ts` together, over a
  * scripted producer and a fake clock. No unit test reaches that seam.
  *
+ * HELD with `proxy.ts` until MOTIR-10639 deletes both (MOTIR-10758): each
+ * case drives `proxy()`, and the source guard at the end reads `proxy.ts`.
+ * `lib/hostResolution.ts`'s own refusal of an alias is measured gated by
+ * `tests/host/hostResolution.test.ts` ("reads a kind it does not know as
+ * not-found — a retired alias never redirects").
+ *
  * The producer is a stub. This asserts what the router does GIVEN the contract;
  * that a retired row is deleted, and the contract's own cache header, are
  * motir-core's gate.

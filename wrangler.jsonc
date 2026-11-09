@@ -10,10 +10,10 @@
  *    serves `price.html` at `/price` and `de.html` at `/de`, the unslashed
  *    addresses every canonical names (`astro.config.mjs`, `build.format`).
  *  • `not_found_handling: "none"`, and the WORKER answers a path with no file
- *    with the nearest built `404.html` above it and a 404 status —
- *    `de/404.html` for a mistyped `/de/…`, `404.html` for the rest
- *    (`notFound` in `worker/router.ts`), which is what `"404-page"` did
- *    while the site had no Worker.
+ *    with the locale's built 404 room and a 404 status — `de/404.html` for a
+ *    mistyped `/de/…`, `404.html` for the rest (`notFoundPage` in
+ *    `worker/notFound.ts`), which is what `"404-page"` did while the site
+ *    had no Worker.
  *    ⚠️ WHY NOT `"404-page"` ANY MORE: with it set, Cloudflare serves the
  *    404 page for an unmatched path WITHOUT invoking the Worker (measured
  *    under `wrangler dev`, for a navigation and for a plain request alike),

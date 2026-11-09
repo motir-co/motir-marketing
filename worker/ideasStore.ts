@@ -11,7 +11,9 @@ import type { Env, WaitUntil } from './env'
  * therefore held where every request on a data centre sees it: the Cache API
  * (`caches.default`), keyed by the full store URL. That URL already carries
  * `locale=` and every filter (`lib/ideas.ts`), so each locale and each view is
- * its own entry.
+ * its own entry. The key is spelled on the SITE's origin, like the share
+ * card's (`shareCardKey`): Cloudflare's Cache API keeps only keys on the
+ * zone the Worker runs on, and the store is on the app's.
  *
  *  • A HIT is answered from the cache, and the store is not read.
  *  • A MISS reads the store. A 200 is answered and a copy is stored, through
@@ -43,6 +45,16 @@ export function defaultEdgeCache(): EdgeCache | null {
   return storage?.default ?? null
 }
 
+/**
+ * The cache key for one store read: the full store URL, carried on a path no
+ * page has, under the site's own origin.
+ */
+export function ideasCacheKey(siteOrigin: string, url: string): Request {
+  return new Request(`${siteOrigin}/__ideas?u=${encodeURIComponent(url)}`, {
+    method: 'GET',
+  })
+}
+
 export interface IdeasSourceDeps {
   cache?: EdgeCache | null
   fetch?: (request: Request) => Promise<Response>
@@ -67,7 +79,7 @@ export function ideasSource(
   return {
     origin: env.MOTIR_APP_ORIGIN,
     async fetch(url) {
-      const key = new Request(url, { method: 'GET' })
+      const key = ideasCacheKey(env.MOTIR_SITE_ORIGIN, url)
       if (cache) {
         const hit = await cache.match(key).catch(() => undefined)
         if (hit) return hit

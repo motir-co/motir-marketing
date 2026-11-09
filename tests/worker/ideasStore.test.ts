@@ -10,6 +10,7 @@ import type { Env } from '@/worker/env'
 import {
   defaultEdgeCache,
   IDEAS_CACHE_CONTROL,
+  ideasCacheKey,
   ideasSource,
   type EdgeCache,
 } from '@/worker/ideasStore'
@@ -24,7 +25,8 @@ import { MemoryCache, waitUntilRecorder } from './ideasCache'
  */
 
 const APP = 'https://app.worker.test'
-const env = { MOTIR_APP_ORIGIN: APP } as Env
+const SITE = 'https://site.worker.test'
+const env = { MOTIR_APP_ORIGIN: APP, MOTIR_SITE_ORIGIN: SITE } as Env
 const LIST = `${APP}/api/public/ideas?locale=en`
 
 afterEach(() => {
@@ -88,7 +90,7 @@ describe('ideasSource', () => {
     )
     await fetchIdeas({ tags: [] }, 'en', source)
     await recorder.settle()
-    const stored = cache.entries.get(LIST)
+    const stored = cache.entries.get(ideasCacheKey(SITE, LIST).url)
     expect(stored?.headers).toEqual(
       expect.arrayContaining([['cache-control', IDEAS_CACHE_CONTROL]]),
     )
@@ -111,6 +113,16 @@ describe('ideasSource', () => {
       `${APP}/api/public/ideas?locale=de`,
       `${APP}/api/public/ideas?category=ecommerce&tag=smb&locale=en`,
     ])
+  })
+
+  it('keys every entry on the site origin, carrying the full store URL', async () => {
+    const { cache, recorder, source } = setup()
+    await fetchIdeas({ tags: [] }, 'en', source)
+    await recorder.settle()
+    const key = ideasCacheKey(SITE, LIST).url
+    expect([...cache.entries.keys()]).toEqual([key])
+    expect(new URL(key).origin).toBe(SITE)
+    expect(new URL(key).searchParams.get('u')).toBe(LIST)
   })
 
   it('caches the tag and single-idea reads under their own keys', async () => {
@@ -221,7 +233,7 @@ describe('ideasSource', () => {
     await recorder.settle()
     await fetchIdeas({ tags: [] }, 'en', source)
     expect(fetch).toHaveBeenCalledTimes(1)
-    expect(cache.entries.has(LIST)).toBe(true)
+    expect(cache.entries.has(ideasCacheKey(SITE, LIST).url)).toBe(true)
   })
 })
 

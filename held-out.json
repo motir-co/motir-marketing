@@ -3,20 +3,19 @@
   "groups": [
     {
       "owner": "MOTIR-10639",
-      "why": "proxy.ts is the Next host router the Worker replaced (worker/router.ts, MOTIR-10752); its site-branch cases are measured by tests/worker/router.test.ts and e2e/specs/worker-edge-rules.spec.ts. It and every test importing @/proxy stay in the tree, out of every gate, lint included, until the decommission card deletes them.",
+      "why": "proxy.ts is the Next host router the Worker replaced (worker/router.ts, MOTIR-10752). It and the tests whose every case drives proxy() or reads proxy.ts stay in the tree, out of every gate, lint included, until the decommission card deletes them. The proxy-free cases of the files that mixed both were moved to gated files (MOTIR-10758 review): crawlPolicy.test.tsx, i18n/detectionMatrix.test.ts (ported to route() at the bare-/ rule), i18n/routing.test.ts, i18n/zhTwStoryGate.test.ts (its /zh-TW 308 ported to route()), legal/bindingEnglishNoteGate.test.tsx and host/publicHost.test.ts. Each held file's header names where its site-branch cases are measured now: tests/worker/router.test.ts, tests/worker/project.test.ts, tests/worker/sitemapProjects.test.ts, tests/host/hostResolution.test.ts and e2e/specs/worker-edge-rules.spec.ts.",
       "lint": false,
       "sources": ["proxy.ts", "lib/requestLog.ts"],
       "tests": [
-        "tests/crawlPolicy.test.tsx",
+        "tests/crawlPolicyProxy.test.tsx",
         "tests/host/customerHostRemoval.test.ts",
         "tests/host/hostRouter.test.ts",
         "tests/host/readPagesMoveGate.test.tsx",
         "tests/host/retiredHostGate.test.ts",
         "tests/host/storySeams.test.tsx",
-        "tests/i18n/detectionMatrix.test.tsx",
-        "tests/i18n/routing.test.ts",
-        "tests/i18n/zhTwStoryGate.test.ts",
-        "tests/legal/bindingEnglishNoteGate.test.tsx"
+        "tests/i18n/detectionMatrixProxy.test.tsx",
+        "tests/i18n/routingProxy.test.ts",
+        "tests/legal/bindingEnglishNoteGateProxy.test.tsx"
       ]
     }
   ]

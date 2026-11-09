@@ -9,6 +9,10 @@ import { render } from '@/tests/helpers/withCopy'
  * THE DETECTION MATRIX (MOTIR-7967, case 4) — the visitor's language through
  * the REAL `proxy`, on every kind of host, for every one of the twelve.
  *
+ * HELD with `proxy.ts` until MOTIR-10639 deletes both (MOTIR-10758): every
+ * case drives `proxy()`. The Worker's matrix, at the story's bare-`/` rule, is
+ * `detectionMatrix.test.ts`.
+ *
  * `tests/host/hostRouter.test.ts` proves each branch with a representative
  * row; this file walks the whole table, so a thirteenth locale, a regional tag the
  * matcher stops folding, or a branch that starts redirecting where it rewrote
