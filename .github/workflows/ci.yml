@@ -51,8 +51,16 @@ on:
   # send `repository_dispatch` with type `motir-skills-release` for an immediate
   # rebuild; the daily schedule is the backstop that needs nothing from that
   # repository, so the site is never more than a day behind a release.
+  #
+  # A plan-ladder change re-prices the site the same way (MOTIR-10651): `/price`
+  # and `/how-the-calculation-works` read motir-ai's `GET /v1/public/plans` at
+  # BUILD (`lib/priceLadder.ts`), so a re-price reaches motir.co only on the next
+  # build. motir-ai sends `repository_dispatch` with type
+  # `motir-plan-ladder-changed` when that ladder changes, and the run takes the
+  # same gates and the same deploy as a push to `main`. Its `client_payload` is
+  # not read. The daily schedule stays the backstop for a dispatch that is lost.
   repository_dispatch:
-    types: [motir-skills-release]
+    types: [motir-skills-release, motir-plan-ladder-changed]
   schedule:
     - cron: '17 5 * * *'
 
