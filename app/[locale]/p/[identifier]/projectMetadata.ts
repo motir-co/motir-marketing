@@ -2,7 +2,7 @@ import type { Locale } from '@/i18n/routing'
 import { format, type Copy } from '@/lib/copy'
 import { openGraphLocales, projectAlternates } from '@/lib/localeMetadata'
 import type { Metadata, MetadataImage } from '@/lib/metadata'
-import { publicUrlFor } from '@/lib/publicHost'
+import { publicPathFor, publicUrlFor, SITE_HOST } from '@/lib/publicHost'
 import {
   deriveDescription,
   type PublicProjectOverviewDto,
@@ -37,7 +37,8 @@ type ProjectCopy = Copy['publicProject']
  */
 export function projectCardImage(identifier: string): MetadataImage {
   return {
-    url: `/p/${encodeURIComponent(identifier)}/opengraph-image`,
+    // One card for every language, at the unprefixed address.
+    url: publicPathFor(SITE_HOST, identifier, 'opengraph-image', 'en'),
     width: 1200,
     height: 630,
     type: 'image/png',
