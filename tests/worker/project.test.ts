@@ -491,7 +491,7 @@ describe('the app origin', () => {
 })
 
 describe('the other slots', () => {
-  it.each(['/ideas', '/motir-builds-itself', '/p/ACME/opengraph-image'])(
+  it.each(['/motir-builds-itself', '/p/ACME/opengraph-image'])(
     'still answer their placeholder (%s)',
     async (path) => {
       const { response } = await get(path)

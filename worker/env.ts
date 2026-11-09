@@ -21,3 +21,19 @@ export interface Env {
   /** motir.co's own origin: canonicals, hreflang and the project sitemap. */
   MOTIR_SITE_ORIGIN: string
 }
+
+/**
+ * The part of Cloudflare's `ExecutionContext` a handler uses: work that may
+ * finish after the response is sent (MOTIR-10755, the idea store's cache
+ * write). A caller with no runtime context — a unit test — gets one that
+ * lets the work run and drops its failure.
+ */
+export interface WaitUntil {
+  waitUntil(promise: Promise<unknown>): void
+}
+
+export const DETACHED: WaitUntil = {
+  waitUntil(promise) {
+    promise.catch(() => {})
+  },
+}

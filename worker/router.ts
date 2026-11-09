@@ -6,7 +6,7 @@ import {
   trimmedIdeasUrl,
 } from '@/lib/crawlPolicy'
 import { chooseLocale, LOCALE_COOKIE } from '@/lib/localeDetection'
-import type { Env } from './env'
+import { DETACHED, type Env, type WaitUntil } from './env'
 import { notFoundPage } from './notFound'
 import { logRequest } from './requestLog'
 import { ROUTES, slotFor, type RouteSlot } from './routes'
@@ -166,6 +166,7 @@ export async function route(
   request: Request,
   env: Env,
   routes: readonly RouteSlot[] = ROUTES,
+  ctx: WaitUntil = DETACHED,
 ): Promise<Response> {
   const url = new URL(request.url)
   const refused = isRefused(request, url)
@@ -178,6 +179,6 @@ export async function route(
 
   const { locale, path } = splitLocale(url.pathname)
   const slot = slotFor(path, locale, routes)
-  if (slot) return slot.handler(request, { env, locale, path, url })
+  if (slot) return slot.handler(request, { env, ctx, locale, path, url })
   return fromAssets(request, url, locale, env)
 }

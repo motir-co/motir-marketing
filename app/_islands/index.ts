@@ -2,6 +2,8 @@ import { island } from '@/lib/island'
 import { CopyControls } from '../[locale]/docs/_components/CopyControls'
 import { DocsRail } from '../[locale]/docs/_components/DocsRail'
 import { SetupSteps } from '../[locale]/docs/(guides)/sandbox/SetupSteps'
+import { IdeaSheet } from '../[locale]/ideas/_components/IdeaSheet'
+import { IdeasNavigator } from '../[locale]/ideas/_components/IdeasNavigator'
 import { SubscribeForm } from '../[locale]/p/[identifier]/_components/SubscribeForm'
 import { RackStage } from '../[locale]/how-it-works/_components/RackStage'
 import { StackArt } from '../[locale]/how-to-use/_components/StackArt'
@@ -83,3 +85,12 @@ export const CopyControlsIsland = island('CopyControls', CopyControls)
 export const SetupStepsIsland = island('SetupSteps', SetupSteps)
 
 export const SubscribeFormIsland = island('SubscribeForm', SubscribeForm)
+
+/** `/ideas`' filters: the pending state, the search address, focus return (MOTIR-10755). */
+export const IdeasNavigatorIsland = island('IdeasNavigator', IdeasNavigator)
+
+/**
+ * The sheet an idea opens in (MOTIR-7688). Its record is its children, and its
+ * eyebrow a node, so both stay server-rendered markup in its slots.
+ */
+export const IdeaSheetIsland = island('IdeaSheet', IdeaSheet)

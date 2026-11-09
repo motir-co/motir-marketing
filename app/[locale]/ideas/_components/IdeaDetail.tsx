@@ -1,5 +1,4 @@
 import { localizedPath } from '@/i18n/localizedPath'
-import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { ArrowUpRight, Tag } from 'lucide-react'
 import { cn } from '@motir/design-system'
@@ -15,7 +14,7 @@ import {
   type PublicIdeaDto,
 } from '@/lib/ideas'
 import { CategoryMark, MONO } from './IdeaCards'
-import { IdeaSheet } from './IdeaSheet'
+import { IdeaSheetIsland as IdeaSheet } from '@/app/_islands'
 
 /*
  * An idea's full record, open in place over the list (MOTIR-7688). Every field
@@ -106,7 +105,7 @@ export function IdeaDetail({
         >
           {idea.tags.map((t) => (
             <li key={t.slug}>
-              <Link
+              <a
                 // Always a filtered address: a tag added to the list.
                 rel="nofollow"
                 href={localizedPath(
@@ -124,7 +123,7 @@ export function IdeaDetail({
                 <span lang={ideaTextLang(locale, idea.locale, t.labelFallback)}>
                   {t.label}
                 </span>
-              </Link>
+              </a>
             </li>
           ))}
         </ul>

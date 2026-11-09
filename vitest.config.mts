@@ -235,6 +235,9 @@ export default defineConfig({
         'lib/appOriginContext.tsx',
         // MOTIR-10754 — the explore slot, added WITH its tests.
         'worker/explore/*.tsx',
+        // MOTIR-10755 — the ideas slot and the idea store's edge cache.
+        'worker/ideas/*.tsx',
+        'worker/ideasStore.ts',
       ].filter(notHeld),
       /*
        * ⚠️ EVERY EXCLUSION HAS A REASON, and the reasons are different — a list
@@ -402,6 +405,9 @@ export default defineConfig({
           'worker/render/*.ts': { lines: 90, functions: 90, branches: 90 },
           'worker/render/*.tsx': { lines: 90, functions: 90, branches: 90 },
           'worker/explore/*.tsx': { lines: 90, functions: 90, branches: 90 },
+          // MOTIR-10755 — measured first under `tests/worker/`, then pinned.
+          'worker/ideas/*.tsx': { lines: 90, functions: 90, branches: 90 },
+          'worker/ideasStore.ts': { lines: 90, functions: 90, branches: 90 },
           'lib/scriptJson.ts': { lines: 90, functions: 90, branches: 90 },
           'lib/island.tsx': { lines: 90, functions: 90, branches: 90 },
           'lib/islands.ts': { lines: 90, functions: 90, branches: 90 },

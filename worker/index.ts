@@ -1,6 +1,6 @@
 // ⚠️ FIRST, so the origins are in `process.env` before any site module reads them.
 import './processEnv'
-import type { Env } from './env'
+import type { Env, WaitUntil } from './env'
 import { route } from './router'
 
 /*
@@ -12,8 +12,8 @@ import { route } from './router'
  * the rest (`worker/router.ts`).
  */
 const worker = {
-  fetch(request: Request, env: Env): Promise<Response> {
-    return route(request, env)
+  fetch(request: Request, env: Env, ctx: WaitUntil): Promise<Response> {
+    return route(request, env, undefined, ctx)
   },
 }
 

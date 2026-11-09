@@ -1,6 +1,7 @@
 import { DEFAULT_LOCALE, LOCALES, type Locale } from '@/i18n/routing'
-import type { Env } from './env'
+import type { Env, WaitUntil } from './env'
 import { exploreHandler } from './explore/handler'
+import { ideasHandler } from './ideas/handler'
 import { projectHandler } from './project/handler'
 
 /*
@@ -31,6 +32,8 @@ import { projectHandler } from './project/handler'
 /** What a handler is told about the request beyond the request itself. */
 export interface RouteContext {
   env: Env
+  /** Work that may outlive the response (`ctx.waitUntil`). */
+  ctx: WaitUntil
   /** The locale the address is under; English when it carries no prefix. */
   locale: Locale
   /** The path with the locale prefix removed — `/p/ACME/changelog`. */
@@ -97,7 +100,7 @@ export const ROUTES: readonly RouteSlot[] = [
   {
     name: 'ideas',
     matches: (path) => path === '/ideas',
-    handler: placeholder('ideas'),
+    handler: ideasHandler,
   },
   {
     name: 'buildsItself',

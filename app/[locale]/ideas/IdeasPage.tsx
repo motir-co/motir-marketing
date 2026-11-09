@@ -1,25 +1,17 @@
-import type { Metadata } from 'next'
 import { ArrowDown } from 'lucide-react'
 import { cn } from '@motir/design-system'
-import { format, getCopy } from '@/lib/copy'
-import { localePageMetadata, localizedPath } from '@/lib/localeMetadata'
-import { enterLocale, type LocaleParams } from '@/i18n/locale'
+import { HeroBriefIsland, HeroWavesIsland } from '@/app/_islands'
+import { SiteShell } from '@/app/_components/SiteShell'
+import { format, useCopy, usePageLocale } from '@/lib/copy'
+import { localizedPath } from '@/lib/localeMetadata'
 import { SITE_HOST } from '@/lib/publicHost'
 import {
-  fetchIdea,
-  fetchIdeas,
-  fetchIdeaTags,
   ideasHref,
-  IdeasUnavailableError,
-  parseIdeasParams,
-  type IdeaLocale,
   type IdeasParams,
   type PublicIdeaDto,
-  type RawSearchParams,
+  type PublicIdeaListDto,
+  type PublicIdeaTagListDto,
 } from '@/lib/ideas'
-import { SiteShell } from '../../_components/SiteShell'
-import { HeroBrief } from '../../_components/landing/HeroBrief'
-import { HeroWaves } from '../../_components/landing/HeroWaves'
 import {
   Eyebrow,
   GUTTER,
@@ -36,7 +28,9 @@ import { IdeasEmpty, IdeasUnavailable } from './_components/IdeaStates'
 /*
  * Ideas to build — read live from motir-core's idea store (Story MOTIR-7665;
  * the list MOTIR-7687, the idea open in place MOTIR-7688), as
- * `design/ideas/design-notes.md` draws it.
+ * `design/ideas/design-notes.md` draws it. Rendered per request by the Worker
+ * since MOTIR-10755 (`worker/ideas/handler.tsx`), from the reads it has
+ * already made.
  *
  * The products Motir would buy come first, in their own band; then every other
  * direction together in one list. A visitor narrows the page by category, by
@@ -45,81 +39,29 @@ import { IdeasEmpty, IdeasUnavailable } from './_components/IdeaStates'
  * full record in a sheet over the list, server-rendered so a shared link opens
  * straight to it.
  *
- * Read server-side through the public API (`lib/ideas.ts`, revalidated hourly)
- * — no database client, and no copy of an idea in `messages/en.json`: the store
- * is the only place an idea lives. Every read asks for the page's locale
- * (Story MOTIR-7772 · MOTIR-7777), and each field the store served in English
- * is marked `lang="en"` where it is drawn.
- *
- * Kept out of the index (`robots: noindex`) and the sitemap while it is in
- * review, like the product pages.
+ * No copy of an idea lives in `messages/en.json`: the store is the only place
+ * an idea lives. Every read asks for the page's locale (Story MOTIR-7772 ·
+ * MOTIR-7777), and each field the store served in English is marked
+ * `lang="en"` where it is drawn.
  */
 
-/** The whole view, or `null` for the list when motir-core did not answer. */
-async function loadList(params: IdeasParams, locale: IdeaLocale) {
-  try {
-    return await fetchIdeas(params, locale)
-  } catch (error) {
-    if (error instanceof IdeasUnavailableError) return null
-    throw error
-  }
+/** What the page draws, as the handler read it. */
+export interface IdeasView {
+  params: IdeasParams
+  /** `null` when motir-core did not answer the list read. */
+  list: PublicIdeaListDto | null
+  /** `null` when the tag read failed: the tag filters are then not drawn. */
+  tags: PublicIdeaTagListDto | null
+  /** The idea open in place, or `null`. */
+  open: PublicIdeaDto | null
 }
 
-/**
- * The open idea: the list item when it is in the list (the list carries every
- * field), else one read by slug — an idea outside the current filters, opened
- * from a shared link. Unknown, retired or unreadable: no sheet.
- */
-async function loadOpenIdea(
-  slug: string | undefined,
-  items: PublicIdeaDto[] | null,
-  locale: IdeaLocale,
-): Promise<PublicIdeaDto | null> {
-  if (!slug) return null
-  const listed = items?.find((idea) => idea.slug === slug)
-  if (listed) return listed
-  return fetchIdea(slug, locale).catch(() => null)
-}
-
-export async function generateMetadata({
-  params: localeParams,
-  searchParams,
-}: {
-  params: LocaleParams
-  searchParams: Promise<RawSearchParams>
-}): Promise<Metadata> {
-  const params = parseIdeasParams(await searchParams)
-  const locale = await enterLocale(localeParams)
-  const open = await loadOpenIdea(params.idea, null, locale)
-  return localePageMetadata(
-    localeParams,
-    ideasHref(open ? params : { ...params, idea: undefined }),
-    ({ ideas: i }) => ({
-      title: open ? `${open.title} · ${i.metaTitle}` : i.metaTitle,
-      description: open ? open.pitch : i.metaDescription,
-      robots: { index: false, follow: true },
-    }),
-  )
-}
-
-export default async function IdeasPage({
-  params: localeParams,
-  searchParams,
-}: {
-  params: LocaleParams
-  searchParams: Promise<RawSearchParams>
-}) {
-  const locale = await enterLocale(localeParams)
-  const i = (await getCopy(locale)).ideas
-  const params = parseIdeasParams(await searchParams)
-  const [list, tags] = await Promise.all([
-    loadList(params, locale),
-    fetchIdeaTags(locale).catch(() => null),
-  ])
+export function IdeasPage({ params, list, tags, open }: IdeasView) {
+  const locale = usePageLocale()
+  const i = useCopy().ideas
   const items = list?.items ?? []
   const buys = items.filter((idea) => idea.kind === 'motir_buys')
   const directions = items.filter((idea) => idea.kind === 'direction')
-  const open = list ? await loadOpenIdea(params.idea, items, locale) : null
 
   return (
     <SiteShell host={SITE_HOST} overlayHeader>
@@ -131,7 +73,7 @@ export default async function IdeasPage({
             GUTTER,
           )}
         >
-          <HeroWaves />
+          <HeroWavesIsland />
           <div className="mx-auto grid max-w-[1400px] items-center gap-x-[clamp(32px,5vw,80px)] gap-y-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
             <div className="grid gap-6">
               <p
@@ -158,7 +100,7 @@ export default async function IdeasPage({
               >
                 {i.lede}
               </p>
-              <HeroBrief placeholder={i.placeholder} />
+              <HeroBriefIsland placeholder={i.placeholder} />
             </div>
             <div
               data-showcase="ground"

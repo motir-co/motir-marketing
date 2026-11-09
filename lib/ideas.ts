@@ -426,7 +426,17 @@ export function hasIdeaFilters(params: IdeasParams): boolean {
 
 export const IDEAS_REVALIDATE_SECONDS = 3600
 
-const API_BASE = `${APP_ORIGIN}/api/public/ideas`
+/**
+ * Where a read goes and how (MOTIR-10755). The built landing and the unit
+ * tests read with none: the build's `APP_ORIGIN` and the global `fetch`. The
+ * Worker's `/ideas` passes the origin its `MOTIR_APP_ORIGIN` names and a fetch
+ * that goes through Cloudflare's edge cache (`worker/ideasStore.ts`), which is
+ * where the hour is held — a Worker has many isolates and no shared memory.
+ */
+export interface IdeasSource {
+  origin: string
+  fetch: (url: string) => Promise<Response>
+}
 
 /**
  * The public API could not answer — unreachable, a 5xx, a refused filter, or
@@ -449,9 +459,11 @@ export class IdeasUnavailableError extends Error {
   }
 }
 
-async function read(path: string): Promise<Response> {
+async function read(path: string, source?: IdeasSource): Promise<Response> {
   try {
-    return await fetch(`${API_BASE}${path}`)
+    if (source)
+      return await source.fetch(`${source.origin}/api/public/ideas${path}`)
+    return await fetch(`${APP_ORIGIN}/api/public/ideas${path}`)
   } catch (cause) {
     throw new IdeasUnavailableError(path, null, { cause })
   }
@@ -480,20 +492,22 @@ function withLocale(entries: Array<[string, string]>, locale: IdeaLocale) {
 export async function fetchIdeas(
   params: IdeasParams,
   locale: IdeaLocale,
+  source?: IdeasSource,
 ): Promise<PublicIdeaListDto> {
   const path = `?${withLocale(filterEntries(params), locale)}`
   return toPublicIdeaList(
-    await json<PublicIdeaListWire>(path, await read(path)),
+    await json<PublicIdeaListWire>(path, await read(path, source)),
   )
 }
 
 /** Every tag carried by at least one active idea, with its count. */
 export async function fetchIdeaTags(
   locale: IdeaLocale,
+  source?: IdeasSource,
 ): Promise<PublicIdeaTagListDto> {
   const path = `/tags?${withLocale([], locale)}`
   return toPublicIdeaTagList(
-    await json<PublicIdeaTagListWire>(path, await read(path)),
+    await json<PublicIdeaTagListWire>(path, await read(path, source)),
   )
 }
 
@@ -505,9 +519,10 @@ export async function fetchIdeaTags(
 export async function fetchIdea(
   slug: string,
   locale: IdeaLocale,
+  source?: IdeasSource,
 ): Promise<PublicIdeaDto | null> {
   const path = `/${encodeURIComponent(slug)}?${withLocale([], locale)}`
-  const res = await read(path)
+  const res = await read(path, source)
   if (res.status === 404) return null
   return toPublicIdea(await json<PublicIdeaWire>(path, res))
 }
