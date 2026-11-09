@@ -47,12 +47,23 @@
  * ── HOW IT IS RELEASED ─────────────────────────────────────────────────────
  *
  * `ci.yml`'s `Deploy to Cloudflare` job runs `wrangler deploy` with this file
- * on `main`, behind every gate (MOTIR-10637). There are no `routes` here yet:
- * attaching motir.co and www is the cut's (MOTIR-10638). `workers_dev` keeps
+ * on `main`, behind every gate (MOTIR-10637). There are no `routes` here:
+ * motir.co and www.motir.co were attached at the cut (MOTIR-10638) as Workers
+ * Custom Domains through the Cloudflare API, and `wrangler deploy` leaves a
+ * Custom Domain it was not given in place (the 2026-11-09 deploy ran a minute
+ * after they were attached and both kept serving). `workers_dev` keeps
  * the Worker's own `*.workers.dev` address on, which is where the deploy
  * job's smoke step reads the release before the cut, and after it; every page
  * names motir.co as its canonical, so that copy is never indexed as the site.
  * `pnpm start` serves the build and the Worker locally through `wrangler dev`.
+ *
+ * ── LOGS ───────────────────────────────────────────────────────────────────
+ *
+ * `observability` keeps Workers Logs on for every invocation, so which
+ * requests reach the Worker can be read from the dashboard or the telemetry
+ * API (MOTIR-10638 step 16). It was first switched on through the API at the
+ * cut; written here because a deploy applies this file's setting, and a file
+ * without one would let the next release switch the logs back off.
  */
 {
   "$schema": "node_modules/wrangler/config-schema.json",
@@ -135,6 +146,10 @@
       "/en/ideas",
       "/en/motir-builds-itself",
     ],
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
   },
   "vars": {
     "MOTIR_APP_ORIGIN": "https://app.motir.co",
