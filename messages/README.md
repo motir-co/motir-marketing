@@ -18,15 +18,15 @@ shape is what lets copy be swept across both in one pass.
   English values to make them easier to translate.
 - **Keys are stable; values are not.** `MOTIR-1152` renders from these keys, so
   rewording is free and re-keying is a code change.
-- **WIRED by `MOTIR-1152`, as a PLAIN TYPED IMPORT — not `next-intl`.**
+- **WIRED by `MOTIR-1152`, as a PLAIN TYPED IMPORT — not an i18n runtime.**
   `lib/copy.ts` imports `en.json` directly and re-exports it, plus a two-line
   `format()` for the two strings carrying `{placeholders}`. motir-core needs
-  `next-intl` for something this site does not have — a locale segment, a
+  its i18n runtime for something this site does not have — a locale segment, a
   request-scoped locale, and server/client boundaries around
   `getTranslations`. motir.co ships ONE locale and one page, so a static import
   buys full type inference over the key set for free and adds no runtime, while
   leaving the ARRANGEMENT (`messages/<locale>.json`, one namespace per surface)
-  exactly as a second locale would need it. Adding `next-intl` later is then a
+  exactly as a second locale would need it. Adding a runtime later is then a
   wiring change against an unchanged catalogue.
 
 ## Where each namespace lands on the page

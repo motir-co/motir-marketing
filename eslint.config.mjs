@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs'
 import { defineConfig, globalIgnores } from 'eslint/config'
 import astro from 'eslint-plugin-astro'
 import importPlugin from 'eslint-plugin-import'
@@ -24,20 +23,8 @@ import tseslint from 'typescript-eslint'
  *
  * `eslint-plugin-astro` lints the `.astro` pages and layouts.
  */
-/*
- * `proxy.ts` and every test that imports it are out of every gate, this one
- * included, until the Worker-routes story ports them (`held-out.json`). The
- * other held Next source still lints: ESLint reads it as text and resolves no
- * import.
- */
-const heldOut = JSON.parse(readFileSync('held-out.json', 'utf8'))
-const unlinted = heldOut.groups
-  .filter((group) => group.lint === false)
-  .flatMap((group) => [...group.sources, ...group.tests])
-
 export default defineConfig([
   globalIgnores([
-    ...unlinted,
     'dist/**',
     '.astro/**',
     '.wrangler/**',

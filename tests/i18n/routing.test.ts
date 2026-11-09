@@ -15,8 +15,7 @@ import { enterLocale } from '@/i18n/locale'
  * `tests/worker/router.test.ts` measures the case and prefix redirects, the
  * bare-`/` language and the assets fallthrough, and
  * `e2e/specs/worker-edge-rules.spec.ts` drives them through `wrangler dev`.
- * The proxy-era cases are held in `routingProxy.test.ts` until MOTIR-10639
- * deletes `proxy.ts`. The locale layout's cases went with
+ * The Next-router cases went with that router (MOTIR-10639). The locale layout's cases went with
  * `app/[locale]/layout.tsx`: each locale's pages are built by Astro, and
  * `tests/i18n/localeMetadataLive.test.ts` measures their og:locale and cards.
  */

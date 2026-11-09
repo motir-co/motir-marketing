@@ -6,11 +6,12 @@
  * behind. The tag now has two inputs, and the newer one wins:
  *
  *   - `SKILLS_RELEASE_PIN`, a FLOOR committed here. It is what a build uses when
- *     it cannot reach GitHub, and what tests and `next dev` render, so the page
+ *     it cannot reach GitHub, and what tests and `astro dev` render, so the page
  *     is never empty. A build can never name a tag OLDER than this.
  *   - `SKILLS_RELEASE_TAG` in the environment, written by
  *     `scripts/skills/resolve-release.ts` from the repository's latest GitHub
- *     release. `next.config.ts` inlines it, so every module reads it the same.
+ *     release. `astro build` runs with it set (`package.json`'s `build`), so
+ *     every module reads it the same.
  *
  * Dependency-free on purpose: the resolver script imports this file under plain
  * Node, where an `@/` alias or a framework import would not resolve.

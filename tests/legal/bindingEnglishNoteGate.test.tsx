@@ -21,8 +21,8 @@ import { join } from 'node:path'
  * `_redirects` 308 onto `/legal/…`, and the remembered language never moves a
  * page but the bare `/` — `e2e/specs/acceptance-legal-binding-english-live.spec.ts`
  * follows the link through `wrangler dev`, and `tests/worker/router.test.ts`
- * ("never moves …") pins the rule. The proxy-era cases are held in
- * `bindingEnglishNoteGateProxy.test.tsx` until MOTIR-10639 deletes `proxy.ts`.
+ * ("never moves …") pins the rule. The Next-router cases went with that
+ * router (MOTIR-10639).
  */
 
 // Empty headers read as the SITE host for `sitemap()` and the pages.

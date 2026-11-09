@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { readFileSync } from 'node:fs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { LOCALES } from '@/i18n/routing'
 import type { Env } from '@/worker/env'
@@ -123,7 +124,7 @@ describe('the crawler refusals', () => {
     },
   )
 
-  it('still lets a refused crawler read robots.txt, as proxy.ts did', async () => {
+  it('still lets a refused crawler read robots.txt, as the Next router did', async () => {
     const response = await send('/robots.txt', { 'user-agent': REFUSED })
     expect(response.status).not.toBe(403)
     expect(calls.assets).toEqual(['/robots.txt', '/404'])
@@ -436,5 +437,28 @@ describe('the helpers', () => {
     expect(readCookie('NEXT_LOCALE=%E0%A4%A', 'NEXT_LOCALE')).toBe('%E0%A4%A')
     expect(readCookie('a=1', 'NEXT_LOCALE')).toBeNull()
     expect(readCookie(null, 'NEXT_LOCALE')).toBeNull()
+  })
+})
+
+/*
+ * THE REDIRECT ARM CANNOT COME BACK SILENTLY (Story MOTIR-4528 · MOTIR-9517).
+ *
+ * ADR §8 Amendment 3 rule 2: a retired workspace name stops answering and
+ * NOTHING redirects. This source guard read the Next `proxy.ts` and
+ * `lib/hostResolution.ts` in `tests/host/retiredHostGate.test.ts`; all three
+ * went with the decommission (MOTIR-10639), so it reads the router that took
+ * the request path over.
+ */
+describe('the redirect arm cannot come back silently', () => {
+  it('worker/router.ts names no alias outcome and no redirect route', () => {
+    const source = readFileSync('worker/router.ts', 'utf8')
+    // Whole words: a locale hop is the site's own redirect, not this.
+    for (const name of [
+      /\bPublicHostAlias\b/,
+      /\bredirectTo\b/,
+      /action: 'redirect'/,
+    ]) {
+      expect(source, `worker/router.ts contains ${name}`).not.toMatch(name)
+    }
   })
 })

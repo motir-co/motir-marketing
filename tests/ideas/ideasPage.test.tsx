@@ -365,7 +365,7 @@ describe('the guards', () => {
         ),
       ),
     ).toEqual([])
-    const offenders = ['app', 'lib', 'proxy.ts']
+    const offenders = ['app', 'lib', 'worker']
       .map((p) => join(ROOT, p))
       .flatMap((p) => (statSync(p).isDirectory() ? sources(p) : [p]))
       .filter((file) =>

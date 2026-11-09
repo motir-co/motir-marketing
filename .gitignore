@@ -22,7 +22,6 @@ node_modules/
 # them, an agent fills them, `pnpm i18n:merge` reads them back; only the merged
 # catalogue and its source record are committed.
 /.i18n-work/
-.vercel
 parity-report.md
 
 # The Worker's output in the browser lane (MOTIR-10758), read by

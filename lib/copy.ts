@@ -23,7 +23,7 @@ import en from '@/messages/en.json'
  * and keeps reading it that way. The page's locale and catalogue reach the
  * components through ONE React context, {@link PageProvider}, which every
  * React root on a page mounts — the build's server render and each island's
- * hydration alike (MOTIR-10643, replacing next-intl's provider). The English
+ * hydration alike (MOTIR-10643, replacing the Next site's i18n provider). The English
  * fallback lives in ONE place, `resolveCopy`, at build; an island receives the
  * already-merged object, so no component ever handles a missing key.
  *
@@ -181,7 +181,7 @@ export function clientCopy(
  * ⚠️ ONE CONTEXT, READ THE SAME WAY AT BUILD AND IN AN ISLAND (MOTIR-10643).
  *
  * Under Next a server component and a client component read the catalogue
- * through different paths, because next-intl's server config was cached per
+ * through different paths, because the i18n library's server config was cached per
  * request and the global 404 answered first (MOTIR-7955). A built page has no
  * request and no second tree: the Astro page renders ONE React root per page
  * in ONE locale, and that root mounts `PageProvider` with the locale, the

@@ -15,7 +15,8 @@ import config from '../vitest.config.mts'
 
 const coverage = config.test?.coverage as {
   include: string[]
-  exclude: string[]
+  /** None since the held-out list went with `proxy.ts` (MOTIR-10639). */
+  exclude?: string[]
   thresholds: Record<string, unknown>
 }
 const matches = (pattern: string) =>
@@ -44,7 +45,7 @@ describe('the coverage config', () => {
   it('names no path from before the locale move', () => {
     const entries = [
       ...coverage.include,
-      ...coverage.exclude,
+      ...(coverage.exclude ?? []),
       ...Object.keys(coverage.thresholds),
     ]
     for (const entry of entries)

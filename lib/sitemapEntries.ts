@@ -13,9 +13,10 @@ import { publicPathFor, SITE_HOST } from '@/lib/publicHost'
  * from this one) is the marketing
  * site's own pages and reads nothing from the request, so it is built once;
  * `/sitemap-projects.xml` ({@link projectSitemapEntries}) is the per-host half
- * and the only part that renders per request. A TENANT host's `/sitemap.xml` is
- * `proxy.ts` rewriting onto `/sitemap-projects.xml` — its whole sitemap IS its
- * project half. The rest of this note was written for the single file and still
+ * and the only part that renders per request (the Worker's
+ * `worker/projectSitemap/`). A TENANT host's `/sitemap.xml` was the Next
+ * `proxy.ts` rewriting onto `/sitemap-projects.xml`, until the tenant branch
+ * went (MOTIR-10113, MOTIR-10639). The rest of this note was written for the single file and still
  * describes the entries.
  *
  * ⚠️ NEW HERE, AND NOT motir-core's. That repository has an `app/sitemap.ts`

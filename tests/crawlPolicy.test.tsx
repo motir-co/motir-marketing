@@ -21,9 +21,8 @@ import { FilterLink as IdeasFilterLink } from '@/app/[locale]/ideas/_components/
  *
  * The same rules as the Worker applies them per request are
  * `tests/worker/router.test.ts` and `e2e/specs/worker-edge-rules.spec.ts`.
- * The cases that drove the retired Next `proxy.ts` are
- * `crawlPolicyProxy.test.tsx`, held out with it until MOTIR-10639 deletes
- * both (MOTIR-10758 split them, so none of these go with it).
+ * The cases that drove the retired Next router went with it (MOTIR-10639);
+ * MOTIR-10758 had split them out, so none of these went too.
  */
 
 /**
