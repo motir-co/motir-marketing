@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
+import type { Plugin } from 'vitest/config'
 import { defineConfig } from 'vitest/config'
 import heldOut from './held-out.json' with { type: 'json' }
 
@@ -24,6 +25,23 @@ const isHeld = (pattern: string) =>
 const notHeld = (pattern: string) => !isHeld(pattern)
 
 /*
+ * A `.wasm` import AS WRANGLER BUNDLES IT (MOTIR-10757): a compiled
+ * `WebAssembly.Module`, its default export (wrangler's `CompiledWasm` rule).
+ * The share card's engines import satori's and resvg's wasm that way
+ * (`worker/share/engine.ts`), so the suite compiles the same file from disk
+ * and the Worker's own code runs unchanged under test.
+ */
+const compiledWasm: Plugin = {
+  name: 'motir-compiled-wasm',
+  enforce: 'pre',
+  load(id) {
+    if (!id.endsWith('.wasm')) return null
+    return `import { readFileSync } from 'node:fs'
+export default new WebAssembly.Module(readFileSync(${JSON.stringify(id)}))`
+  },
+}
+
+/*
  * The repository's FIRST test lane (MOTIR-1152). `ci.yml`'s own header says to
  * "add a gate to `needs` as this repository grows one — do not declare a gate
  * before its job exists"; this is that job's other half, and `ci.yml` gains
@@ -41,9 +59,12 @@ const notHeld = (pattern: string) => !isHeld(pattern)
  * this default, which is why the default here does not weaken it.
  */
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), compiledWasm],
   test: {
     environment: 'jsdom',
+    // The `.wasm` files go through `compiledWasm` above rather than Node's own
+    // loader, which would instantiate them with imports nobody supplies.
+    server: { deps: { inline: [/\.wasm$/] } },
     globals: true,
     setupFiles: ['./tests/setup.ts'],
     include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx'],
@@ -115,11 +136,9 @@ export default defineConfig({
       include: [
         'lib/publicProject.ts',
         'app/?locale?/p/**/*.tsx',
-        // MOTIR-6743 — the five retired read pages are ROUTE HANDLERS now
-        // (board, items, tree, roadmap and an item), each a permanent redirect
-        // into the app. `.ts`, so the `.tsx` glob above does not reach them;
-        // added WITH the files, per the rule the entry below records.
-        'app/?locale?/p/**/route.ts',
+        // MOTIR-6743's five retired read views are a redirect the Worker's
+        // project slot answers (`worker/project/path.ts`), measured with it.
+        'app/?locale?/p/**/*.ts',
         // MOTIR-4220. Added WITH the files rather than after them, which is the
         // rule the entry above earned: a file outside this list is not
         // measured, and a gate that measures nothing is green.
@@ -132,7 +151,6 @@ export default defineConfig({
         // a built file plus a tenant route. Added WITH the files.
         'lib/sitemapEntries.ts',
         'lib/sitemapXml.ts',
-        'app/sitemap-projects.xml/route.ts',
         // MOTIR-10646 — robots and the two built sitemaps are Astro endpoints
         // now, and the site half is its own module. Added WITH their tests.
         'lib/robots.ts',
@@ -217,35 +235,41 @@ export default defineConfig({
         'lib/explainer/*.ts',
         'app/?locale?/how-the-calculation-works/**/*.ts',
         'app/?locale?/how-the-calculation-works/**/*.tsx',
+        // MOTIR-10752 — the Worker's router, route table and log line, added
+        // WITH their tests (`tests/worker/`). `worker/index.ts` and
+        // `worker/processEnv.ts` are the runtime's entry and its env bridge:
+        // they read `cloudflare:workers`, which only the Workers runtime
+        // provides, and the browser lane is what exercises them.
+        'worker/router.ts',
+        'worker/routes.ts',
+        'worker/requestLog.ts',
+        'worker/notFound.ts',
+        // MOTIR-10753 — the project slot and the document every live page
+        // renders through, added WITH their tests.
+        'worker/project/*.ts',
+        'worker/project/*.tsx',
+        'worker/render/*.ts',
+        'worker/render/*.tsx',
+        'lib/appOriginContext.tsx',
+        // MOTIR-10754 — the explore slot, added WITH its tests.
+        'worker/explore/*.tsx',
+        // MOTIR-10755 — the ideas slot and the idea store's edge cache.
+        'worker/ideas/*.tsx',
+        'worker/ideasStore.ts',
+        // MOTIR-10756 — /motir-builds-itself and the project sitemap.
+        'worker/buildsItself/*.tsx',
+        'worker/projectSitemap/*.ts',
+        // MOTIR-10757 — the share card, drawn in the Worker.
+        'worker/share/*.ts',
+        'worker/share/*.tsx',
       ].filter(notHeld),
       /*
-       * ⚠️ EVERY EXCLUSION HAS A REASON, and the reasons are different — a list
-       * of paths with one blanket justification is how a gate stops measuring
-       * things nobody decided to stop measuring.
-       *
-       *  • `changelog.xml/route.ts` — a pass-through whose whole behaviour is a
-       *    status mapping against a real upstream. Covered end to end in the
-       *    browser lane, which has one; a jsdom test would assert a mock.
-       *  • `opengraph-image.tsx` — renders a raster through satori, which jsdom
-       *    cannot execute at all. The browser lane FETCHES the image and checks
-       *    its bytes, which is the only assertion that means anything.
-       *  • `**\/page.tsx` and `tabPage.tsx` — async Server Components. Covering
-       *    one means awaiting it, and what it does is compose a read with a
-       *    render: both halves are already covered — the read in
-       *    `lib/publicProject.ts` at 100%, the render in the component tests —
-       *    and the composition is what the browser lane walks. MOTIR-4121 says
-       *    in terms not to duplicate the E2E. This is the same gap motir-core's
-       *    own config records for its `page.tsx` files, for the same reason.
-       *  • `layout.tsx` — nine lines of chrome composition with no branch.
+       * The held sources only (`held-out.json`): the `/p/*` exclusions — the
+       * Next pages, layout, tab helper, feed route and share-image route —
+       * went with the files when the Worker took the surface (MOTIR-10753 ·
+       * MOTIR-10757). `tests/publicProject/standingRules.test.ts` keeps it so.
        */
-      exclude: [
-        'app/?locale?/p/**/changelog.xml/route.ts',
-        'app/?locale?/p/**/opengraph-image.tsx',
-        'app/?locale?/p/**/page.tsx',
-        'app/?locale?/p/**/layout.tsx',
-        'app/?locale?/p/**/_components/tabPage.tsx',
-        ...HELD_SOURCES.flatMap((source) => [source, `${source}/**`]),
-      ],
+      exclude: [...HELD_SOURCES.flatMap((source) => [source, `${source}/**`])],
       /*
        * MEASURED FIRST, then pinned at the floor — motir-core's rule for its own
        * list, followed here. On this branch: `lib/publicProject.ts` 100 across;
@@ -311,18 +335,6 @@ export default defineConfig({
           'proxy.ts': { lines: 90, functions: 90, branches: 85 },
           'lib/sitemapEntries.ts': { lines: 90, functions: 90, branches: 85 },
           'lib/sitemapXml.ts': { lines: 90, functions: 90, branches: 85 },
-          'app/sitemap-projects.xml/route.ts': {
-            lines: 90,
-            functions: 90,
-            branches: 85,
-          },
-          // MOTIR-6743 — measured first: the five redirect handlers are 100
-          // across under `tests/publicProject/readPageRedirects.test.ts`.
-          'app/?locale?/p/**/route.ts': {
-            lines: 90,
-            functions: 90,
-            branches: 90,
-          },
           'app/?locale?/p/**/_components/*.tsx': {
             lines: 90,
             functions: 90,
@@ -373,6 +385,34 @@ export default defineConfig({
             branches: 90,
           },
           'lib/metadata.ts': { lines: 90, functions: 90, branches: 90 },
+          // MOTIR-10752 — measured first under `tests/worker/`, then pinned.
+          'worker/router.ts': { lines: 90, functions: 90, branches: 90 },
+          'worker/routes.ts': { lines: 90, functions: 90, branches: 90 },
+          'worker/requestLog.ts': { lines: 90, functions: 90, branches: 90 },
+          'worker/notFound.ts': { lines: 90, functions: 90, branches: 90 },
+          // MOTIR-10753 — measured first under `tests/worker/`, then pinned.
+          'worker/project/*.ts': { lines: 90, functions: 90, branches: 90 },
+          'worker/project/*.tsx': { lines: 90, functions: 90, branches: 90 },
+          'worker/render/*.ts': { lines: 90, functions: 90, branches: 90 },
+          'worker/render/*.tsx': { lines: 90, functions: 90, branches: 90 },
+          'worker/explore/*.tsx': { lines: 90, functions: 90, branches: 90 },
+          // MOTIR-10755 — measured first under `tests/worker/`, then pinned.
+          'worker/ideas/*.tsx': { lines: 90, functions: 90, branches: 90 },
+          'worker/ideasStore.ts': { lines: 90, functions: 90, branches: 90 },
+          // MOTIR-10756 — measured first under `tests/worker/`, then pinned.
+          'worker/buildsItself/*.tsx': {
+            lines: 90,
+            functions: 90,
+            branches: 90,
+          },
+          'worker/projectSitemap/*.ts': {
+            lines: 90,
+            functions: 90,
+            branches: 90,
+          },
+          // MOTIR-10757 — measured first under `tests/worker/`, then pinned.
+          'worker/share/*.ts': { lines: 90, functions: 90, branches: 90 },
+          'worker/share/*.tsx': { lines: 90, functions: 90, branches: 90 },
           'lib/scriptJson.ts': { lines: 90, functions: 90, branches: 90 },
           'lib/island.tsx': { lines: 90, functions: 90, branches: 90 },
           'lib/islands.ts': { lines: 90, functions: 90, branches: 90 },

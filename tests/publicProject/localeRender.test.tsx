@@ -1,8 +1,11 @@
 import { readFileSync } from 'node:fs'
-import { screen, within } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { englishCopy, resolveCopy } from '@/lib/copy'
-import { render } from '@/tests/helpers/withCopy'
+import { within } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { englishCopy } from '@/lib/copy'
+import { SITE_ORIGIN } from '@/lib/siteOrigin'
+import type { Env } from '@/worker/env'
+import { resetShell } from '@/worker/render/shell'
+import { route } from '@/worker/router'
 
 /*
  * A PUBLIC PROJECT PAGE IN ANOTHER LOCALE (MOTIR-7954).
@@ -16,6 +19,9 @@ import { render } from '@/tests/helpers/withCopy'
  * numbers and dates — exactly what a visitor sees until a translation lands.
  * `fr` is a TEST catalogue that translates the changelog's empty state and
  * leaves out the Overview tab's label.
+ *
+ * The page is the document the Worker answers for its address (MOTIR-10758),
+ * parsed back into a DOM.
  */
 
 const FRENCH = {
@@ -32,7 +38,6 @@ vi.mock('@/lib/copy', async (importOriginal) => {
       locale === 'fr' ? actual.resolveCopy(FRENCH) : actual.englishCopy,
   }
 })
-vi.mock('next/headers', () => ({ headers: async () => new Headers() }))
 
 const APP = 'https://app.test.motir.co'
 const fixture = (name: string) =>
@@ -60,43 +65,66 @@ function stubContract(changelog: unknown) {
   )
 }
 
-afterEach(() => vi.unstubAllGlobals())
+const ENV: Env = {
+  ASSETS: {
+    fetch: async () =>
+      new Response(
+        '<html><head><link rel="stylesheet" href="/_astro/s.css"></head><body><script type="module" src="/_astro/s.js"></script></body></html>',
+      ),
+  },
+  MOTIR_APP_ORIGIN: APP,
+  MOTIR_SITE_ORIGIN: SITE_ORIGIN,
+}
 
-const ChangelogPage = (
-  await import('@/app/[locale]/p/[identifier]/changelog/page')
-).default
+beforeEach(() => {
+  resetShell()
+  vi.spyOn(console, 'log').mockImplementation(() => {})
+})
+afterEach(() => {
+  document.body.innerHTML = ''
+  vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+})
 
-const changelogIn = (locale: string) =>
-  ChangelogPage({
-    params: Promise.resolve({ locale, identifier: 'ACME' }),
-    searchParams: Promise.resolve({}),
-  })
+/** `/<locale>/p/ACME/changelog` as the Worker answers it, as a DOM. */
+async function changelogIn(locale: string) {
+  const response = await route(
+    new Request(`${SITE_ORIGIN}/${locale}/p/ACME/changelog`),
+    ENV,
+  )
+  expect(response.status).toBe(200)
+  // Mounted in the test's own document, so role queries have a window.
+  const served = new DOMParser().parseFromString(
+    await response.text(),
+    'text/html',
+  )
+  document.body.innerHTML = served.body.innerHTML
+  return document.body
+}
 
 describe('/de/p/ACME/changelog', () => {
   it('draws its dates and counts in German', async () => {
     stubContract(fixture('changelog.json'))
-    render(await changelogIn('de'), { locale: 'de' })
+    const page = within(await changelogIn('de'))
 
     // The first entry shipped on 2 September 2026.
-    expect(screen.getAllByText('2. Sept. 2026').length).toBeGreaterThan(0)
-    expect(screen.queryByText('2 Sept 2026')).toBeNull()
+    expect(page.getAllByText('2. Sept. 2026').length).toBeGreaterThan(0)
+    expect(page.queryByText('2 Sept 2026')).toBeNull()
     // The upvote stat, with German grouping.
-    expect(screen.getByText('1.234')).toBeInTheDocument()
-    expect(screen.queryByText('1,234')).toBeNull()
+    expect(page.getByText('1.234')).toBeInTheDocument()
+    expect(page.queryByText('1,234')).toBeNull()
   })
 })
 
 describe('/fr/p/ACME/changelog', () => {
   it('reads the French catalogue, with English where it has no key', async () => {
     stubContract({ entries: [], nextCursor: null })
-    const { container } = render(await changelogIn('fr'), {
-      locale: 'fr',
-      messages: resolveCopy(FRENCH),
-    })
+    const container = await changelogIn('fr')
+    const page = within(container)
 
-    expect(screen.getByText('Rien n’a encore été livré')).toBeInTheDocument()
+    expect(page.getByText('Rien n’a encore été livré')).toBeInTheDocument()
     // The tab the catalogue left out is English, not `tabs.overview`.
-    const tabs = screen.getByRole('navigation', {
+    const tabs = page.getByRole('navigation', {
       name: englishCopy.publicProject.header.navAria,
     })
     expect(

@@ -4,6 +4,11 @@ import type { HostRead } from '@/lib/hostResolution'
 /*
  * THE ROUTER ITSELF (MOTIR-4220) — `proxy.ts`, over a stubbed contract.
  *
+ * HELD with `proxy.ts` until MOTIR-10639 deletes both (MOTIR-10758): every
+ * case drives `proxy()`. Its site-host cases are the Worker's now:
+ * `tests/worker/router.test.ts` ("the bare / language", "the case and prefix
+ * redirects", "the assets fallthrough") and `e2e/specs/worker-edge-rules.spec.ts`.
+ *
  * `tests/host/hostResolution.test.ts` covers the DECISION, which is pure. This
  * file covers the three things only the proxy can be asked: which host it reads,
  * what it does before it reads anything at all, and what a `NextResponse`

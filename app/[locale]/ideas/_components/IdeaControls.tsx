@@ -99,7 +99,6 @@ export function IdeaControls({
       </div>
 
       <SearchForm
-        params={params}
         aria-label={f.searchAria}
         className="flex h-(--height-input) items-center gap-2.5 rounded-(--radius-input) border border-(--el-input-border) bg-(--el-page-bg) pr-1.5 pl-(--spacing-input-x) text-(--el-text-secondary) focus-within:border-(--el-border-strong)"
       >

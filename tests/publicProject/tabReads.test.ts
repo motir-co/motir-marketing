@@ -1,3 +1,4 @@
+import { APP_ORIGIN } from '@/lib/appOrigin'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { loadChangelog, pagedTabHref } from '@/lib/publicProject'
 import { SITE_HOST } from '@/lib/publicHost'
@@ -32,7 +33,7 @@ const pathOf = (call = 0) =>
 
 describe('the changelog reads its own endpoint', () => {
   it('changelog — cursor, same shape', async () => {
-    await loadChangelog('ACME', 'c_9')
+    await loadChangelog(APP_ORIGIN, 'ACME', 'c_9')
     expect(pathOf()).toBe('/api/public/p/ACME/changelog?cursor=c_9')
   })
 })

@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { APP_ORIGIN } from '@/lib/appOrigin'
 import {
   PROJECT_TABS,
-  PUBLIC_API_BASE,
+  publicApiBase,
   deriveDescription,
   loadProject,
   projectTabHref,
@@ -46,7 +46,7 @@ describe('readPublic — the three outcomes', () => {
   it('200 is `ok`, and carries the parsed body', async () => {
     fetchMock.mockResolvedValue(json(200, { identifier: 'ACME' }))
 
-    await expect(readPublic('/p/ACME')).resolves.toEqual({
+    await expect(readPublic(APP_ORIGIN, '/p/ACME')).resolves.toEqual({
       status: 'ok',
       data: { identifier: 'ACME' },
     })
@@ -55,7 +55,7 @@ describe('readPublic — the three outcomes', () => {
   it('404 is `not-found` — the API SAYING the project is not public', async () => {
     fetchMock.mockResolvedValue(json(404, { code: 'PROJECT_NOT_FOUND' }))
 
-    await expect(readPublic('/p/NOPE')).resolves.toEqual({
+    await expect(readPublic(APP_ORIGIN, '/p/NOPE')).resolves.toEqual({
       status: 'not-found',
     })
   })
@@ -63,13 +63,17 @@ describe('readPublic — the three outcomes', () => {
   it('500 is `failed`, NOT `not-found` — the project may well exist', async () => {
     fetchMock.mockResolvedValue(json(500, {}))
 
-    await expect(readPublic('/p/ACME')).resolves.toEqual({ status: 'failed' })
+    await expect(readPublic(APP_ORIGIN, '/p/ACME')).resolves.toEqual({
+      status: 'failed',
+    })
   })
 
   it('a thrown fetch is `failed` — DNS, a timeout, a refused connection', async () => {
     fetchMock.mockRejectedValue(new Error('ECONNREFUSED'))
 
-    await expect(readPublic('/p/ACME')).resolves.toEqual({ status: 'failed' })
+    await expect(readPublic(APP_ORIGIN, '/p/ACME')).resolves.toEqual({
+      status: 'failed',
+    })
   })
 
   it('a 200 whose body will not parse is `failed`, not a crash', async () => {
@@ -81,13 +85,15 @@ describe('readPublic — the three outcomes', () => {
       },
     })
 
-    await expect(readPublic('/p/ACME')).resolves.toEqual({ status: 'failed' })
+    await expect(readPublic(APP_ORIGIN, '/p/ACME')).resolves.toEqual({
+      status: 'failed',
+    })
   })
 
   it('reads at REQUEST time, against the app origin', async () => {
     fetchMock.mockResolvedValue(json(200, {}))
 
-    await readPublic('/p/ACME')
+    await readPublic(APP_ORIGIN, '/p/ACME')
 
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
     // The APP origin — never the site origin. Reading motir.co for data would
@@ -95,16 +101,17 @@ describe('readPublic — the three outcomes', () => {
     // literal, because `vitest.config.mts` deliberately sets a non-production
     // origin so that a test cannot pass by hardcoding the real one.
     expect(url.startsWith(`${APP_ORIGIN}/api/public`)).toBe(true)
-    expect(PUBLIC_API_BASE.startsWith(APP_ORIGIN)).toBe(true)
+    expect(publicApiBase(APP_ORIGIN).startsWith(APP_ORIGIN)).toBe(true)
     // A public project shows a live board and live counts; a build-time copy
-    // would serve its state as of the last deploy.
-    expect(init).toMatchObject({ next: { revalidate: 0 } })
+    // would serve its state as of the last deploy. Next's `revalidate: 0` is
+    // `cache: 'no-store'` on the Worker's `fetch` (MOTIR-10753).
+    expect(init).toMatchObject({ cache: 'no-store' })
   })
 
   it('percent-encodes the identifier — a key is a path segment, not a path', async () => {
     fetchMock.mockResolvedValue(json(404, {}))
 
-    await loadProject('a/../b')
+    await loadProject(APP_ORIGIN, 'a/../b')
 
     expect(fetchMock.mock.calls[0]?.[0]).not.toContain('a/../b')
   })

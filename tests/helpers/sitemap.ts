@@ -1,21 +1,23 @@
 import type { SitemapEntry } from '@/lib/sitemapXml'
-import { requestPublicHost } from '@/lib/requestPublicHost'
+import { APP_ORIGIN } from '@/lib/appOrigin'
+import { SITE_ORIGIN } from '@/lib/siteOrigin'
 import { projectSitemapEntries } from '@/lib/sitemapEntries'
 import { siteSitemapEntries } from '@/lib/siteSitemap'
 
 /**
- * What a crawler reads of the sitemap on the host this request is on, as ONE
- * list: the project half, then — on motir.co only — the site half.
+ * What a crawler reads of motir.co's sitemap, as ONE list: the project half,
+ * then the site half.
  *
- * Production serves the two halves as separate routes (`/sitemap-projects.xml`,
- * `/sitemap-site.xml`) under `/sitemap.xml`'s index on motir.co (MOTIR-8842).
- * The tests that assert on "the sitemap" assert on the union, so they read it
- * through here with a request scope supplied the way they always did.
+ * Production serves the two halves separately under `/sitemap.xml`'s index
+ * (MOTIR-8842): `/sitemap-projects.xml` from the Worker (MOTIR-10756) and
+ * `/sitemap-site.xml` as a built file. The tests that assert on "the sitemap"
+ * assert on the union, so they read it through here. Since MOTIR-10113 the
+ * site is motir.co alone, so no request host is asked about (MOTIR-10758).
  */
 export default async function sitemap(): Promise<SitemapEntry[]> {
-  const host = await requestPublicHost()
-  const projects = await projectSitemapEntries(host)
-  return host.kind === 'site'
-    ? [...projects, ...siteSitemapEntries()]
-    : projects
+  const projects = await projectSitemapEntries(
+    APP_ORIGIN,
+    new URL(SITE_ORIGIN).host,
+  )
+  return [...projects, ...siteSitemapEntries()]
 }

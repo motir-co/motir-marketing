@@ -58,6 +58,22 @@ export const ISLANDS = {
     import('@/app/[locale]/docs/(guides)/sandbox/SetupSteps').then(
       (m) => m.SetupSteps,
     ),
+  // MOTIR-10753 — the project pages' one client piece; the Worker renders
+  // those pages, and the build bundles the island the browser hydrates.
+  SubscribeForm: () =>
+    import('@/app/[locale]/p/[identifier]/_components/SubscribeForm').then(
+      (m) => m.SubscribeForm,
+    ),
+  // MOTIR-10755 — `/ideas`' two client pieces: the pending state and search
+  // address of its filters, and the sheet an idea opens in.
+  IdeasNavigator: () =>
+    import('@/app/[locale]/ideas/_components/IdeasNavigator').then(
+      (m) => m.IdeasNavigator,
+    ),
+  IdeaSheet: () =>
+    import('@/app/[locale]/ideas/_components/IdeaSheet').then(
+      (m) => m.IdeaSheet,
+    ),
 } satisfies Record<string, () => Promise<ComponentType<never>>>
 
 export type IslandName = keyof typeof ISLANDS

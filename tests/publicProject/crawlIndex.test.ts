@@ -46,7 +46,7 @@ describe('loadAllPublicProjects — the sitemap walk', () => {
       .mockResolvedValueOnce(page(2, 'c2'))
       .mockResolvedValueOnce(page(3, null))
 
-    const result = await loadAllPublicProjects()
+    const result = await loadAllPublicProjects(APP_ORIGIN)
 
     expect(result.projects.map((p) => p.identifier)).toEqual(['P1', 'P2', 'P3'])
     expect(result.complete).toBe(true)
@@ -58,7 +58,7 @@ describe('loadAllPublicProjects — the sitemap walk', () => {
       .mockResolvedValueOnce(page(1, 'c1'))
       .mockResolvedValueOnce(page(2, null))
 
-    await loadAllPublicProjects()
+    await loadAllPublicProjects(APP_ORIGIN)
 
     expect(fetchMock.mock.calls[0]?.[0]).not.toContain('cursor=')
     expect(fetchMock.mock.calls[1]?.[0]).toContain('cursor=c1')
@@ -69,7 +69,7 @@ describe('loadAllPublicProjects — the sitemap walk', () => {
     // misbehaving response into an unbounded request loop on every crawl.
     fetchMock.mockResolvedValue(page(9, 'always-more'))
 
-    const result = await loadAllPublicProjects()
+    const result = await loadAllPublicProjects(APP_ORIGIN)
 
     expect(fetchMock.mock.calls.length).toBeLessThanOrEqual(20)
     // And it reports that it did NOT finish, rather than claiming a full set.
@@ -84,7 +84,7 @@ describe('loadAllPublicProjects — the sitemap walk', () => {
       .mockResolvedValueOnce(page(1, 'c1'))
       .mockRejectedValueOnce(new Error('ECONNREFUSED'))
 
-    const result = await loadAllPublicProjects()
+    const result = await loadAllPublicProjects(APP_ORIGIN)
 
     expect(result.projects.map((p) => p.identifier)).toEqual(['P1'])
     expect(result.complete).toBe(false)
@@ -97,7 +97,7 @@ describe('loadAllPublicProjects — the sitemap walk', () => {
       json: async () => ({}),
     })
 
-    await expect(loadAllPublicProjects()).resolves.toEqual({
+    await expect(loadAllPublicProjects(APP_ORIGIN)).resolves.toEqual({
       projects: [],
       complete: false,
     })
@@ -112,7 +112,7 @@ describe('the request detail read', () => {
     // detail read left with its page — MOTIR-6743.)
     fetchMock.mockResolvedValue(ok({}))
 
-    await loadRequest('OPEN-CORE', 'OPEN-CORE-3')
+    await loadRequest(APP_ORIGIN, 'OPEN-CORE', 'OPEN-CORE-3')
     expect(fetchMock.mock.calls[0]?.[0]).toContain(
       '/p/OPEN-CORE/requests/OPEN-CORE-3',
     )
@@ -125,7 +125,7 @@ describe('the request detail read', () => {
       json: async () => ({}),
     })
 
-    await expect(loadRequest('ACME', 'ACME-1')).resolves.toEqual({
+    await expect(loadRequest(APP_ORIGIN, 'ACME', 'ACME-1')).resolves.toEqual({
       status: 'not-found',
     })
   })
@@ -135,18 +135,18 @@ describe('loadChangelog — the cursor arm', () => {
   it('omits the cursor on the first page and carries it after', async () => {
     fetchMock.mockResolvedValue(ok({}))
 
-    await loadChangelog('ACME')
+    await loadChangelog(APP_ORIGIN, 'ACME')
     expect(fetchMock.mock.calls[0]?.[0]).not.toContain('cursor=')
 
     fetchMock.mockClear()
-    await loadChangelog('ACME', 'c_9')
+    await loadChangelog(APP_ORIGIN, 'ACME', 'c_9')
     expect(fetchMock.mock.calls[0]?.[0]).toContain('cursor=c_9')
   })
 })
 
 describe('actHref — the hand-off URL', () => {
   it('addresses the application, carries the intent and the subject', () => {
-    const href = actHref('follow', 'ACME', '/p/ACME/roadmap')
+    const href = actHref(APP_ORIGIN, 'follow', 'ACME', '/p/ACME/roadmap')
     const url = new URL(href)
 
     expect(url.origin).toBe(APP_ORIGIN)
@@ -159,7 +159,7 @@ describe('actHref — the hand-off URL', () => {
     // The application allow-lists the return against its configured public
     // origin and falls back otherwise. A relative path would be refused there
     // and the visitor would land on a dashboard having lost the hand-off.
-    const url = new URL(actHref('vote', 'ACME', '/p/ACME/roadmap'))
+    const url = new URL(actHref(APP_ORIGIN, 'vote', 'ACME', '/p/ACME/roadmap'))
 
     expect(url.searchParams.get('return')).toBe(`${SITE_ORIGIN}/p/ACME/roadmap`)
   })
@@ -173,7 +173,9 @@ describe('actHref — the hand-off URL', () => {
       'request',
     ] as const) {
       expect(
-        new URL(actHref(intent, 'ACME', '/p/ACME')).searchParams.get('intent'),
+        new URL(
+          actHref(APP_ORIGIN, intent, 'ACME', '/p/ACME'),
+        ).searchParams.get('intent'),
       ).toBe(intent)
     }
   })

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { PUBLIC_API_BASE } from '@/lib/publicProject'
 import { useCopy, usePageLocale } from '@/lib/copy'
 
 /**
@@ -47,7 +46,18 @@ type State =
  * deliberately vague success line the note above requires.
  */
 
-export function SubscribeForm({ identifier }: { identifier: string }) {
+export function SubscribeForm({
+  identifier,
+  apiBase,
+}: {
+  identifier: string
+  /**
+   * The public API this form posts to (`publicApiBase`), passed in rather than
+   * read from a build constant: the page that renders the form reads the app
+   * origin per request (MOTIR-10753), and the island carries it to the browser.
+   */
+  apiBase: string
+}) {
   const copy = useCopy()
   const subscribe = copy.publicProject.subscribe
   const locale = usePageLocale()
@@ -60,7 +70,7 @@ export function SubscribeForm({ identifier }: { identifier: string }) {
 
     try {
       const res = await fetch(
-        `${PUBLIC_API_BASE}/p/${encodeURIComponent(identifier)}/subscribe`,
+        `${apiBase}/p/${encodeURIComponent(identifier)}/subscribe`,
         {
           method: 'POST',
           headers: { 'content-type': 'application/json' },

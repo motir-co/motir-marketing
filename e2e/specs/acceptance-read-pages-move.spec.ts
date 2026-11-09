@@ -1,6 +1,6 @@
 import { writeFileSync } from 'node:fs'
 import { expect, test, type Page } from '@playwright/test'
-import { CUSTOM_ORIGIN, SITE_ORIGIN, STUB_ORIGIN } from '../stub/origin'
+import { SITE_ORIGIN, STUB_ORIGIN } from '../stub/origin'
 
 /*
  * ⚠️ THE ACCEPTANCE WALK FOR STORY MOTIR-6171 (MOTIR-6749) — motir.co's read
@@ -195,18 +195,10 @@ test('every old read path on motir.co answers 308 into the app', async ({
   }
 })
 
-test('a customer-owned address has no read link to move — it is the 404 room', async ({
-  page,
-}) => {
-  // A workspace host serves no project since MOTIR-9512, and a customer domain
-  // serves none since MOTIR-9528 (Story MOTIR-4533): an old board link there is
-  // not this site's to redirect, so it answers the one 404 room in place.
-  const res = await page.request.get(`${CUSTOM_ORIGIN}/board`, {
-    maxRedirects: 0,
-  })
-  expect(res.status()).toBe(404)
-  expect(res.headers()['location']).toBeUndefined()
-})
+// MOTIR-10758 — the customer-owned-address case is deleted, not ported: the
+// customer-host decision MOTIR-10113 took tenant and customer hosts off this
+// site, and the Worker reads no `Host` header, so there is no such address to
+// answer here any more.
 
 test('the changelog’s items link straight into the app', async ({ page }) => {
   await page.goto(`${SITE_ORIGIN}/p/MOTIR/changelog`)

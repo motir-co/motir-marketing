@@ -10,15 +10,15 @@
  * `app/**` would have to invent `/explore/topic/undefined`.
  *
  * The enumeration therefore lives one lane over, in
- * `tests/mainLandmark.test.ts`, and it enumerates `app/**​/page.tsx` from disk
- * and asserts that the pattern set below is EXACTLY that set — no missing
+ * `tests/mainLandmark.test.tsx`, and it enumerates `src/pages/[...locale]/**​/*.astro`
+ * from disk and asserts that the pattern set below is EXACTLY that set — no missing
  * entry, no stale one. So a thirteenth page turns the `test` job red until it
  * appears here, and appearing here is what puts it in the browser lane's walk.
  * The list is the E2E lane's parameter table; the enumeration is the guard.
  *
  * ⚠️ SO THE 404 IS NOT IN THIS TABLE, AND MUST NOT BE ADDED TO IT
- * (MOTIR-4193). `app/not-found.tsx` is not a `page.tsx` and serves no route
- * pattern, so a row for it would fail the very assertion above — the pattern
+ * (MOTIR-4193). `404.astro` serves no route pattern of its own, so a row
+ * for it would fail the very assertion above — the pattern
  * set here must be EXACTLY the enumerated one. The 404 has its own entry in
  * the lane instead: `e2e/specs/not-found.spec.ts`, which walks the four
  * arrivals that reach it and asserts the STATUS as well as the landmark count.
@@ -33,7 +33,7 @@
  */
 
 export type SiteRoute = {
-  /** The Next route pattern, as `tests/mainLandmark.test.ts` derives it. */
+  /** The route pattern, as `tests/mainLandmark.test.tsx` derives it. */
   readonly pattern: string
   /** A URL the browser lane can actually open against the stub. */
   readonly url: string
@@ -88,10 +88,10 @@ export const SITE_ROUTES: readonly SiteRoute[] = [
 
 /**
  * THE PER-REQUEST ROUTES (MOTIR-10649) — the pages a static build does not
- * serve, because each renders per request from the public API. They are the
- * Worker-routes story's, walked by `e2e/specs/landmark-live.spec.ts`, which
- * `playwright.config.ts` leaves out of the lane until that story serves them.
- * The tenant rows (`/no-application`, `/host-unavailable`) went with the
+ * serve, because each renders per request from the public API. The Worker
+ * answers them (MOTIR-10635), and `e2e/specs/landmark-live.spec.ts` walks
+ * them; `tests/mainLandmark.test.tsx` holds the table to the Worker's document
+ * slots. The tenant rows (`/no-application`, `/host-unavailable`) went with the
  * tenant router (MOTIR-10643).
  */
 export const LIVE_ROUTES: readonly SiteRoute[] = [

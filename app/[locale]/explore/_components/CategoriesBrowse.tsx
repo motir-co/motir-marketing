@@ -1,5 +1,4 @@
 import { localizedPath } from '@/i18n/localizedPath'
-import Link from 'next/link'
 import { Tag } from 'lucide-react'
 import { format, useCopy, usePageLocale } from '@/lib/copy'
 import type { ProjectCategoryDto } from '@/lib/explore'
@@ -33,7 +32,7 @@ export function CategoriesBrowse({
       </p>
       <nav aria-label={copy.explore.browseTitle} className="mt-4 flex flex-col">
         {categories.map((cat) => (
-          <Link
+          <a
             key={cat.slug}
             href={localizedPath(locale, `/explore/topic/${cat.slug}`)}
             className="flex items-center gap-3 rounded-(--radius-control) px-(--spacing-control-x) py-(--spacing-control-y) hover:bg-(--el-surface-soft)"
@@ -64,7 +63,7 @@ export function CategoriesBrowse({
             >
               {cat.projectCount}
             </span>
-          </Link>
+          </a>
         ))}
       </nav>
     </section>

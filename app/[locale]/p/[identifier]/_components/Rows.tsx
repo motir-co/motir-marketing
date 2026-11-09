@@ -1,5 +1,3 @@
-import Link from 'next/link'
-
 /**
  * The shared list primitives the pages compose from (MOTIR-4116) — one status
  * pill and one pager. (The work-item row left with the read pages it served,
@@ -40,13 +38,13 @@ export function StatusPill({
 export function MoreLink({ href, label }: { href: string; label: string }) {
   return (
     <p className="mt-5">
-      <Link
+      <a
         href={href}
         rel="next"
         className="inline-flex h-(--height-btn-sm) items-center rounded-(--radius-btn) border border-(--el-border-strong) px-3 text-[13px] font-medium text-(--el-text) hover:bg-(--el-surface-soft)"
       >
         {label}
-      </Link>
+      </a>
     </p>
   )
 }

@@ -8,8 +8,13 @@ import { SITE_ORIGIN } from '../stub/origin'
  * `acceptance-legal-binding-english.spec.ts` walks the static pages. These are
  * the assertions it carried that only a per-request answer can satisfy, moved
  * here verbatim (MOTIR-10649): a French browser's arrival on `/` is detected
- * and sent to `/fr`, the note's `/en/legal/terms` link serves English at that
- * address, and the next unprefixed page still opens in French.
+ * and sent to `/fr`, the note's `/en/legal/terms` link serves English, and the
+ * next visit to `/` still opens in French.
+ *
+ * ⚠️ PORTED TO THE BUILT SITE (MOTIR-10758): `/en/…` is not an address any
+ * more — `_redirects` answers it with a 308 to the unprefixed English page
+ * (`lib/redirects.ts`), so the note's link lands on `/legal/terms`. The
+ * Terms are still English there, and no language is chosen on the way.
  */
 
 const html = (page: Page) => page.locator('html')
@@ -44,7 +49,7 @@ test('a French browser lands in French, and the English Terms keep French chosen
   const link = note(page).getByRole('link')
   await expect(link).toHaveAttribute('href', '/en/legal/terms')
   await Promise.all([
-    page.waitForURL(`${SITE_ORIGIN}/en/legal/terms`),
+    page.waitForURL(`${SITE_ORIGIN}/legal/terms`),
     link.click(),
   ])
   await expect(html(page)).toHaveAttribute('lang', 'en')

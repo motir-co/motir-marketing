@@ -1,10 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, screen, within } from '@testing-library/react'
-import { render } from '@/tests/helpers/withCopy'
+import { render, renderHydrated } from '@/tests/helpers/withCopy'
 import { englishCopy as copy } from '@/lib/copy'
 import type { IdeasParams, PublicIdeaDto, PublicIdeaListDto } from '@/lib/ideas'
 import { IdeaDetail } from '@/app/[locale]/ideas/_components/IdeaDetail'
 import { OpenIdeaLink } from '@/app/[locale]/ideas/_components/IdeasNav'
+import { IdeasNavigator } from '@/app/[locale]/ideas/_components/IdeasNavigator'
 import ideasFixture from '../../e2e/fixtures/ideas.json'
 import ideaFixture from '../../e2e/fixtures/idea-stop-returns-before-they-happen.json'
 
@@ -13,10 +14,17 @@ import ideaFixture from '../../e2e/fixtures/idea-stop-returns-before-they-happen
  * field the contract carries and leaves out the empty ones, its close keeps the
  * filters, and close / Escape / the scrim go Back when the sheet was opened
  * from a card and REPLACE the URL when it was loaded from a link.
+ *
+ * The sheet is an island (`IdeaSheet`), so the cases that press a key or click
+ * render it hydrated, as the page script leaves it in the browser. Its close
+ * is the browser's own history now, not Next's router (MOTIR-10755): Back is
+ * `history.back()`, and the focus a closed sheet returns is handed to the list
+ * page behind it through `returnFocusTo`, which `IdeasNavigator` and its suite
+ * (`tests/worker/ideasClient.test.tsx`) carry out.
  */
 
-const router = { push: vi.fn(), back: vi.fn(), replace: vi.fn() }
-vi.mock('next/navigation', () => ({ useRouter: () => router }))
+/** The card the list page focuses once the sheet has gone. */
+const returnTarget = () => window.sessionStorage.getItem('motir:ideas:return')
 
 const d = copy.ideas.detail
 const list = ideasFixture as PublicIdeaListDto
@@ -29,15 +37,22 @@ const FILTERED: IdeasParams = {
   idea: direction.slug,
 }
 
+let back: ReturnType<typeof vi.spyOn>
+
 beforeEach(() => {
-  router.back.mockReset()
-  router.replace.mockReset()
+  window.sessionStorage.clear()
+  back = vi.spyOn(window.history, 'back').mockImplementation(() => {})
+  // jsdom does not navigate; it reports the attempt on the console.
+  vi.spyOn(console, 'error').mockImplementation(() => {})
   vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
     cb(0)
     return 0
   })
 })
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+})
 
 describe('IdeaDetail', () => {
   it('a direction: its eyebrow, title, every evidence row with a new-tab source and month, the gap', () => {
@@ -130,52 +145,57 @@ describe('IdeaDetail', () => {
     )
   })
 
-  it('loaded from a link: focus lands on the title, close REPLACES the URL, the page does not scroll', () => {
-    const { unmount } = render(
+  it('loaded from a link: focus lands on the title, close REPLACES the URL, the page does not scroll', async () => {
+    const { unmount } = await renderHydrated(
       <IdeaDetail idea={direction} params={FILTERED} />,
     )
     expect(document.activeElement).toBe(
       screen.getByRole('heading', { name: direction.title, level: 2 }),
     )
     expect(document.body.style.overflow).toBe('hidden')
-    fireEvent.click(screen.getByRole('link', { name: d.close }))
-    expect(router.replace).toHaveBeenCalledWith(
+    const close = screen.getByRole('link', { name: d.close })
+    expect(close).toHaveAttribute(
+      'href',
       '/ideas?category=ecommerce&tag=smb&q=returns',
-      { scroll: false },
     )
-    expect(router.back).not.toHaveBeenCalled()
-    unmount()
+    // Taken over: the address is replaced (`location.replace`), not pushed,
+    // so Back does not reopen the sheet.
+    expect(fireEvent.click(close)).toBe(false)
+    expect(back).not.toHaveBeenCalled()
+    expect(returnTarget()).toBe(direction.slug)
+    act(() => unmount())
     expect(document.body.style.overflow).toBe('')
   })
 
-  it('opened from a card: Escape and the scrim go Back, and focus returns to that card', () => {
+  it('opened from a card: Escape and the scrim go Back, and focus returns to that card', async () => {
     render(
       <>
-        <OpenIdeaLink href="/ideas?idea=x" slug={direction.slug}>
-          open
-        </OpenIdeaLink>
+        <IdeasNavigator />
+        <div data-ideas-results="">
+          <OpenIdeaLink href="/ideas?idea=x" slug={direction.slug}>
+            open
+          </OpenIdeaLink>
+        </div>
       </>,
     )
     fireEvent.click(screen.getByRole('link', { name: 'open' }))
-    const { unmount } = render(
+    const { unmount } = await renderHydrated(
       <IdeaDetail idea={direction} params={FILTERED} />,
     )
     fireEvent.keyDown(document, { key: 'Escape' })
-    expect(router.back).toHaveBeenCalledTimes(1)
+    expect(back).toHaveBeenCalledTimes(1)
     const scrim = document.querySelector(
       `[data-idea-sheet] > a[aria-hidden="true"]`,
     ) as HTMLElement
-    fireEvent.click(scrim)
-    expect(router.back).toHaveBeenCalledTimes(2)
-    expect(router.replace).not.toHaveBeenCalled()
+    expect(fireEvent.click(scrim)).toBe(false)
+    expect(back).toHaveBeenCalledTimes(2)
     act(() => unmount())
-    expect(document.activeElement).toBe(
-      screen.getByRole('link', { name: 'open' }),
-    )
+    // The list page behind it is asked to focus that card.
+    expect(returnTarget()).toBe(direction.slug)
   })
 
-  it('holds Tab inside the sheet', () => {
-    render(<IdeaDetail idea={direction} params={FILTERED} />)
+  it('holds Tab inside the sheet', async () => {
+    await renderHydrated(<IdeaDetail idea={direction} params={FILTERED} />)
     const sheet = screen.getByRole('dialog')
     const links = within(sheet).getAllByRole('link')
     const first = links[0]

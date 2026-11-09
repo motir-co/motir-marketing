@@ -6,6 +6,18 @@ import { render } from '@/tests/helpers/withCopy'
 /*
  * THE STORY'S motir-marketing GATE (MOTIR-6747, Story MOTIR-6171).
  *
+ * HELD with `proxy.ts` until MOTIR-10639 deletes both (MOTIR-10758). Every
+ * case drives `proxy()` or renders a Next page module the Worker replaced
+ * (`app/[locale]/p/[identifier]/page.tsx` and its siblings), so none can run
+ * as written. On the Worker the same claims are measured by
+ * `tests/worker/project.test.ts` ("the retired read views": every old read
+ * link is a 308 into the app; "the project page", "the changelog, request and
+ * doorway pages": the pages that stay render, with app-absolute read links),
+ * `tests/publicProject/readPageRedirects.test.ts` (the redirect targets) and
+ * `e2e/specs/acceptance-read-pages-move.spec.ts` through `wrangler dev`. A
+ * project whose primary is another host renders on motir.co the same: the
+ * Worker never reads `addresses.primary` to route (`tests/worker/project.test.ts`).
+ *
  * Each code card shipped its own tests: the redirect handlers alone
  * (`tests/publicProject/readPageRedirects.test.ts`), the header alone
  * (`tests/host/tenantLinks.test.tsx`). This file asks what neither can: whether

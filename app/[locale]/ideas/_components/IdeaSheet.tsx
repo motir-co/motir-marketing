@@ -1,10 +1,9 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { filterLinkRel } from '@/lib/crawlPolicy'
-import { takeOpenedFromList } from './IdeasNav'
+import { returnFocusTo, takeOpenedFromList } from './IdeasNavigator'
 
 /*
  * The side sheet an idea opens in (MOTIR-7688) — `design/ideas/design-notes.md`
@@ -19,11 +18,13 @@ import { takeOpenedFromList } from './IdeasNav'
  *
  *  · close — the close control, Escape and a click on the scrim all close it.
  *    When the sheet was opened from a card in this session the open was a
- *    history PUSH, so closing goes `back()` and Back/close agree; when it was
- *    loaded from a link there is nothing behind it, so closing REPLACES the URL.
+ *    navigation from the list, so closing goes `history.back()` and Back/close
+ *    agree; when it was loaded from a link there is nothing behind it, so
+ *    closing REPLACES the URL with the list's (`location.replace`). Since
+ *    MOTIR-10755 both are full navigations to the page the Worker renders.
  *  · focus — moves to the title on open, is held inside the sheet while it is
  *    open, and returns to the card that opened it (or the "Find an idea"
- *    heading) when it closes.
+ *    heading) on the list page it closes to (`IdeasNavigator`).
  *  · the page behind does not scroll while it is open.
  */
 
@@ -46,33 +47,25 @@ export function IdeaSheet({
   eyebrow: ReactNode
   children: ReactNode
 }) {
-  const router = useRouter()
   const sheetRef = useRef<HTMLElement>(null)
   const fromList = useRef(false)
 
   useEffect(() => {
-    fromList.current = takeOpenedFromList()
+    fromList.current = takeOpenedFromList(slug)
     const title = document.getElementById(titleId)
     title?.focus({ preventScroll: true })
     const { overflow } = document.body.style
     document.body.style.overflow = 'hidden'
     return () => {
       document.body.style.overflow = overflow
-      // The sheet is gone once its URL is; hand focus back to where it came
-      // from, after the list underneath has rendered.
-      requestAnimationFrame(() => {
-        const back =
-          document.querySelector<HTMLElement>(`[data-idea-link="${slug}"]`) ??
-          document.getElementById('find-h')
-        back?.focus({ preventScroll: true })
-      })
     }
   }, [slug, titleId])
 
   const close = useCallback(() => {
-    if (fromList.current) router.back()
-    else router.replace(closeHref, { scroll: false })
-  }, [router, closeHref])
+    returnFocusTo(slug)
+    if (fromList.current) window.history.back()
+    else window.location.replace(closeHref)
+  }, [slug, closeHref])
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {

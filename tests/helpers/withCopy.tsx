@@ -6,6 +6,7 @@ import {
 } from '@testing-library/react'
 import type { Locale } from '@/i18n/routing'
 import { clientCopy, type Copy, englishCopy, PageProvider } from '@/lib/copy'
+import type { Root } from 'react-dom/client'
 import { hydrateIslands } from '@/lib/hydrateIslands'
 
 /**
@@ -64,12 +65,19 @@ export async function renderHydrated(
 ) {
   const result = render(ui, options)
   const { locale = 'en', messages = englishCopy, pathname = '/' } = options
+  let islands: Root[] = []
   await act(async () => {
-    await hydrateIslands(result.container, {
+    islands = await hydrateIslands(result.container, {
       locale,
       copy: clientCopy(messages) as unknown as Copy,
       pathname,
     })
   })
-  return result
+  // Each island is a React root of its own, as in the browser: unmounting the
+  // page unmounts them first, so their effects clean up too.
+  const unmount = () => {
+    for (const island of islands) island.unmount()
+    result.unmount()
+  }
+  return { ...result, islands, unmount }
 }

@@ -3,15 +3,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 /*
  * THE PROJECT HALF OF MOTIR.CO'S SITEMAP (MOTIR-4222, MOTIR-6743, MOTIR-7956).
  *
- * ⚠️ HELD FOR MOTIR-10635. `/sitemap-projects.xml` renders per request, so the
- * Worker-routes story ports it, and these cases are the net it ports against.
- * They are the motir.co cases of the Next tree's file, kept verbatim. The
- * tenant-host cases are gone with the tenant branch (MOTIR-10113), and the
- * static half (robots, `/sitemap-site.xml`) is `tests/robots.test.ts` and
- * `tests/sitemapRoutes.test.ts`.
- *
- * The host is supplied through `next/headers`, the seam `requestPublicHost`
- * reads; with no headers the request is motir.co's.
+ * `/sitemap-projects.xml` renders per request in the Worker (MOTIR-10756);
+ * these are the motir.co cases of the Next tree's file, kept verbatim and
+ * re-included by MOTIR-10758. The tenant-host cases are gone with the tenant
+ * branch (MOTIR-10113), and the static half (robots, `/sitemap-site.xml`) is
+ * `tests/robots.test.ts` and `tests/sitemapRoutes.test.ts`.
  */
 
 const INDEX = {
@@ -38,14 +34,12 @@ const INDEX = {
 /** Load the sitemap as motir.co, with a stubbed public index. */
 async function sitemapOnMotirCo() {
   vi.resetModules()
-  vi.doMock('next/headers', () => ({ headers: async () => new Headers() }))
   vi.stubGlobal('fetch', async () => Response.json(INDEX))
   const sitemap = (await import('@/tests/helpers/sitemap')).default
   return { entries: await sitemap() }
 }
 
 afterEach(() => {
-  vi.doUnmock('next/headers')
   vi.unstubAllGlobals()
   vi.resetModules()
 })
@@ -105,7 +99,6 @@ describe('the sitemap on motir.co', () => {
 describe('a failed index read', () => {
   it('leaves motir.co its static entries rather than 500ing', async () => {
     vi.resetModules()
-    vi.doMock('next/headers', () => ({ headers: async () => new Headers() }))
     vi.stubGlobal('fetch', async () => {
       throw new Error('ECONNREFUSED')
     })

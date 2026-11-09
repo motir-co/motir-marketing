@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { fireEvent, screen, within } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
+import { screen, within } from '@testing-library/react'
 import { render } from '@/tests/helpers/withCopy'
 import { englishCopy as copy, format } from '@/lib/copy'
 import {
@@ -30,7 +30,6 @@ import {
 import {
   IdeasNavProvider,
   ResultsRegion,
-  takeOpenedFromList,
 } from '@/app/[locale]/ideas/_components/IdeasNav'
 import ideasFixture from '../../e2e/fixtures/ideas.json'
 import tagsFixture from '../../e2e/fixtures/ideas-tags.json'
@@ -41,11 +40,6 @@ import tagsFixture from '../../e2e/fixtures/ideas-tags.json'
  * and unavailable states, and the copy that left `messages/en.json`.
  */
 
-const push = vi.fn()
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push, back: vi.fn(), replace: vi.fn() }),
-}))
-
 const list = ideasFixture as PublicIdeaListDto
 const tags = tagsFixture as PublicIdeaTagListDto
 const EMPTY: IdeasParams = { tags: [] }
@@ -54,8 +48,6 @@ const direction = list.items.find(
   (i) => i.kind === 'direction',
 ) as PublicIdeaDto
 const f = copy.ideas.find
-
-beforeEach(() => push.mockReset())
 
 function controls(
   params: IdeasParams,
@@ -162,29 +154,9 @@ describe('IdeaControls', () => {
     expect(screen.getByRole('link', { name: /“vet”/ })).toBeTruthy()
   })
 
-  it('navigates a submitted search through the router, without the open idea', () => {
-    controls({ tags: ['smb'], idea: 'x' })
-    const input = screen.getByRole('textbox', { name: f.searchAria })
-    fireEvent.change(input, { target: { value: '  returns ' } })
-    fireEvent.submit(screen.getByRole('search'))
-    expect(push).toHaveBeenCalledWith('/ideas?tag=smb&q=returns', {
-      scroll: false,
-    })
-    fireEvent.change(input, { target: { value: '   ' } })
-    fireEvent.submit(screen.getByRole('search'))
-    expect(push).toHaveBeenLastCalledWith('/ideas?tag=smb', { scroll: false })
-  })
-
-  it('takes over a plain click on a filter link and leaves a modified click to the browser', () => {
-    controls(EMPTY)
-    const legal = screen.getByRole('link', { name: /Legal/ })
-    fireEvent.click(legal, { button: 0, metaKey: true })
-    expect(push).not.toHaveBeenCalled()
-    fireEvent.click(legal, { button: 0 })
-    expect(push).toHaveBeenCalledWith('/ideas?category=legal', {
-      scroll: false,
-    })
-  })
+  // The search's canonical address and a plain click on a filter are the
+  // Worker page's navigator now, not Next's router: `IdeasNavigator` and its
+  // suite (`tests/worker/ideasClient.test.tsx`) own both (MOTIR-10755).
 })
 
 describe('the cards', () => {
@@ -205,9 +177,6 @@ describe('the cards', () => {
       within(card).getByRole('list', { name: copy.ideas.card.tagsAria }),
     ).toBeTruthy()
     expect(card).toHaveTextContent(copy.ideas.needLabel)
-    fireEvent.click(link)
-    expect(takeOpenedFromList()).toBe(true)
-    expect(takeOpenedFromList()).toBe(false)
   })
 
   it('cycles the band tones and leaves out empty optional fields', () => {

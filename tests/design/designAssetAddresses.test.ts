@@ -18,9 +18,9 @@ import { ROOT, designTree, filesUnder } from './designTree'
  *
  * ── The two sweeps ───────────────────────────────────────────────────────────
  *  1. ADDRESSES — every `/…` an asset names must still be a page this app
- *     serves: the Astro pages under `src/pages/**` and the Next route tree
- *     under `app/**` that the story's later cards are still porting
- *     (MOTIR-10643), plus every redirect the built `_redirects` declares
+ *     serves: the Astro pages under `src/pages/**`, the live pages the Worker
+ *     answers (`run_worker_first` in `wrangler.jsonc`, MOTIR-10752), and any
+ *     route file still under `app/**`, plus every redirect the built `_redirects` declares
  *     (checked FIRST — a redirect source resolves, but only by sending the
  *     reader somewhere else).
  *  2. SOURCE PATHS — every path anchored on one of this repository's own
@@ -72,6 +72,7 @@ function appRoutePatterns(): string[][] {
     seen.add(parts.filter((segment) => !/^\(.*\)$/.test(segment)).join('/'))
   }
   for (const route of astroRoutes()) seen.add(route)
+  for (const route of workerRoutes()) seen.add(route)
   return [...seen].map((path) => (path === '' ? [] : path.split('/')))
 }
 
@@ -99,6 +100,29 @@ function astroRoutes(): string[] {
   })
 }
 
+/**
+ * Every address the Worker answers, read off `run_worker_first` in
+ * `wrangler.jsonc` — the list Cloudflare itself reads, which
+ * `tests/worker/runWorkerFirst.test.ts` holds to the Worker's route table. A
+ * trailing `*` is the family under a path (`/p/*` → every `/p/…` address, the
+ * retired read views among them, which the Worker answers with a redirect).
+ * Read as TEXT rather than imported: the route table pulls in the share
+ * card's wasm engines, which this lane does not compile.
+ */
+function workerRoutes(): string[] {
+  const config = readFileSync(join(ROOT, 'wrangler.jsonc'), 'utf8')
+  const start = config.indexOf('"run_worker_first": [')
+  if (start === -1) return []
+  const list = config.slice(start, config.indexOf(']', start))
+  return [...list.matchAll(/"(\/[^"]*)"/g)].map(([, entry]) =>
+    entry!
+      .replace(/^\//, '')
+      .split('/')
+      .map((segment) => (segment === '*' ? ':splat*' : segment))
+      .join('/'),
+  )
+}
+
 const APP_ROUTES = appRoutePatterns()
 
 /*
@@ -108,9 +132,9 @@ const APP_ROUTES = appRoutePatterns()
  * guard forgot would make it call a live address dead. A `*` segment is a
  * catch-all (`/en/*` → every address under `/en`).
  *
- * ⚠️ `proxy.ts` IS NOT READ. It is out of every gate until the Worker-routes
- * story ports it, and on motir.co itself it served no address `app/**` did not
- * already list — every rewrite it made was keyed on a tenant host.
+ * ⚠️ `proxy.ts` IS NOT READ. It is held out of every gate until its
+ * decommission (MOTIR-10639); the Worker answers what it answered, and on
+ * motir.co itself every rewrite it made was keyed on a tenant host.
  */
 const REDIRECT_SOURCES: string[][] = redirectRules().map(({ from }) =>
   from
@@ -669,6 +693,16 @@ const KNOWN_PATHS: { file: string; path: string; why: string }[] = [
     file: 'design/legal/design-notes.md',
     path: 'app/legal/layout.tsx',
     why: 'The legal shell as a Next route layout. MOTIR-10644 moved it, unchanged, to `app/[locale]/legal/LegalLayout.tsx`, which the Astro legal pages render it through; the dated note is not rewritten.',
+  },
+  {
+    file: 'design/ideas/design-notes.md',
+    path: 'app/ideas/page.tsx',
+    why: '`/ideas` as a Next page module. MOTIR-10755 moved it to `app/[locale]/ideas/IdeasPage.tsx`, which the Worker’s ideas slot (`worker/ideas/handler.tsx`) renders per request; the dated asset is a record and is not rewritten.',
+  },
+  {
+    file: 'design/ideas/ideas.mock.html',
+    path: 'app/ideas/page.tsx',
+    why: '`/ideas` as a Next page module. MOTIR-10755 moved it to `app/[locale]/ideas/IdeasPage.tsx`, which the Worker’s ideas slot (`worker/ideas/handler.tsx`) renders per request; the dated asset is a record and is not rewritten.',
   },
   {
     file: 'design/marketing/design-notes.md',

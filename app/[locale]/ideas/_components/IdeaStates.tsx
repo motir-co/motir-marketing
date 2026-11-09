@@ -1,6 +1,5 @@
 import { localizedPath } from '@/i18n/localizedPath'
 import { filterLinkRel } from '@/lib/crawlPolicy'
-import Link from 'next/link'
 import { RefreshCw } from 'lucide-react'
 import { buttonVariants, cn } from '@motir/design-system'
 import { useCopy, usePageLocale } from '@/lib/copy'
@@ -27,12 +26,12 @@ export function IdeasEmpty() {
       <p className="m-0 max-w-[56ch] text-[15px] text-(--el-text-secondary)">
         {e.body}
       </p>
-      <Link
+      <a
         href={localizedPath(locale, '/ideas')}
         className={buttonVariants({ variant: 'ghost', size: 'md' })}
       >
         {e.action}
-      </Link>
+      </a>
     </section>
   )
 }

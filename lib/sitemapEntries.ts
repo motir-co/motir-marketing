@@ -2,7 +2,7 @@ import { DEFAULT_LOCALE } from '@/i18n/routing'
 import { everyLanguage } from '@/lib/siteSitemap'
 import type { SitemapEntry } from '@/lib/sitemapXml'
 import { PROJECT_TABS, loadAllPublicProjects } from '@/lib/publicProject'
-import { currentHost, publicPathFor, type PublicHost } from '@/lib/publicHost'
+import { publicPathFor, SITE_HOST } from '@/lib/publicHost'
 
 /*
  * motir.co's sitemap (MOTIR-1154 · 8.3.7), served at `/sitemap.xml`.
@@ -70,27 +70,26 @@ import { currentHost, publicPathFor, type PublicHost } from '@/lib/publicHost'
  * which is itself in this list, so a short sitemap is a delay rather than a hole.
  */
 /**
- * The PROJECT half: every crawlable project URL THIS HOST has, and nothing else.
- * Request-rendered, because which host asked decides which projects are listed
- * and the index behind them is a network read (`/sitemap-projects.xml`).
+ * The PROJECT half: every crawlable project URL motir.co has, and nothing else.
+ * Rendered per request by the Worker (`worker/sitemapProjects.ts`, MOTIR-10756),
+ * because the index behind it is a network read of the app `appOrigin` names.
+ *
+ * `siteHost` is the host this sitemap is served on — the Worker's
+ * `MOTIR_SITE_ORIGIN`'s — and a project is listed only when its canonical
+ * (`primaryHost`) is that host. Since MOTIR-10113 there is no tenant host, so
+ * no other host is asked about.
  */
 export async function projectSitemapEntries(
-  host: PublicHost,
+  appOrigin: string,
+  siteHost: string,
 ): Promise<SitemapEntry[]> {
-  // Only the site serves a project path (MOTIR-9528): a workspace host serves
-  // none (MOTIR-9512), so nothing on it is crawlable — whatever a stale index
-  // row says its canonical is — and the project index is not even read.
-  if (host.kind !== 'site') return []
-
-  const thisHost = currentHost(host)
-
   // The projects, and their tab paths — every crawlable URL THIS HOST has.
   // `/p/<id>/requests/new` is deliberately absent: it is a `noindex` doorway
   // (MOTIR-4117), and a sitemap that listed it would be asking a crawler to
   // index a page the page itself refuses.
-  const { projects } = await loadAllPublicProjects()
+  const { projects } = await loadAllPublicProjects(appOrigin)
   const projectEntries: SitemapEntry[] = projects
-    .filter((project) => project.primaryHost === thisHost)
+    .filter((project) => project.primaryHost === siteHost)
     .flatMap((project) => {
       const lastModified = new Date(project.updatedAt)
       // Only the pages THIS host serves (MOTIR-6743): the project page and its
@@ -105,7 +104,7 @@ export async function projectSitemapEntries(
           // goes stale.
           // The ENGLISH path: `everyLanguage` spells the other ten from it.
           const path = publicPathFor(
-            host,
+            SITE_HOST,
             project.identifier,
             tab.segment,
             DEFAULT_LOCALE,

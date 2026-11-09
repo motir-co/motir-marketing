@@ -1,5 +1,6 @@
 import { visitorViewUrl } from '@/lib/publicProject'
 import { format, formatRich, useCopy } from '@/lib/copy'
+import { useAppOrigin } from '@/lib/appOriginContext'
 
 /**
  * "WATCH IT BEING BUILT" (MOTIR-6745; design MOTIR-6742 panel A, the
@@ -16,8 +17,8 @@ import { format, formatRich, useCopy } from '@/lib/copy'
  * in `publicProject.watchLive.cost` now (MOTIR-7954), and app.motir.co's
  * catalogues carry the same clause in every language.
  *
- * ⚠️ A PLAIN `<a>`, NOT `next/link`: the destination is another origin, and a
- * `next/link` would be RSC-prefetched on render (MOTIR-4372). It targets the
+ * ⚠️ A PLAIN `<a>` on the app origin the render points at (`useAppOrigin`,
+ * MOTIR-10753). It targets the
  * BOARD — the Visitor tree's default view, the one the consent screen returns
  * to. It needs only the identifier, so the page renders it even when the
  * overview read failed (design panel E), titled with `name` absent.
@@ -32,6 +33,7 @@ export function WatchLive({
 }) {
   const titleId = `watch-${identifier}`
   const watch = useCopy().publicProject.watchLive
+  const appOrigin = useAppOrigin()
   return (
     <section
       aria-labelledby={titleId}
@@ -75,7 +77,7 @@ export function WatchLive({
         </p>
       </div>
       <a
-        href={visitorViewUrl(identifier, 'board')}
+        href={visitorViewUrl(appOrigin, identifier, 'board')}
         className="inline-flex h-(--height-btn-lg) items-center justify-center self-start rounded-(--radius-btn) bg-(--el-showcase-field-text) px-(--spacing-btn-x) text-[15px] font-medium text-(--el-showcase-field) no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--el-showcase-field-text)"
       >
         {watch.cta}&nbsp;<span aria-hidden>↗</span>

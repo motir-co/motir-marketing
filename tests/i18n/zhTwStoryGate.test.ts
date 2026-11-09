@@ -6,8 +6,7 @@ import {
   LOCALE_FONT_SET,
   resolveFontSet,
 } from '@motir/design-system'
-import { NextRequest } from 'next/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { loadOgFonts, type OgFont } from '@/app/_brand/ogFonts'
 import {
   DEFAULT_LOCALE,
@@ -25,8 +24,9 @@ import {
 } from '@/lib/docsDocuments'
 import { matchAcceptLanguage } from '@/lib/localeDetection'
 import { languageAlternates } from '@/lib/localeMetadata'
-import { proxy } from '@/proxy'
 import { drawnStrings } from '@/scripts/brand/subset-og-fonts'
+import type { Env } from '@/worker/env'
+import { route } from '@/worker/router'
 
 /*
  * THE zh-tw STORY'S SEAMS IN motir.co (MOTIR-8937 · MOTIR-9252).
@@ -256,21 +256,27 @@ describe('the browser-language matcher', () => {
   })
 })
 
-describe('the /zh-TW spelling', () => {
+describe('the /zh-TW spelling, on the Worker (MOTIR-10758)', () => {
+  const env: Env = {
+    ASSETS: {
+      fetch: async () => new Response('page', { status: 200 }),
+    },
+    MOTIR_APP_ORIGIN: 'https://app.test.motir.co',
+    MOTIR_SITE_ORIGIN: 'https://motir.co',
+  }
   const ask = (path: string) =>
-    proxy(
-      new NextRequest(`https://motir.co${path}`, {
-        headers: { host: 'motir.co' },
-      }),
-    )
+    route(new Request(`https://motir.co${path}`), env)
 
   it('is moved to the URL code with a 308; the URL code is served as it is', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
     const moved = await ask('/zh-TW/docs/mcp?x=1')
     expect(moved.status).toBe(308)
     const location = new URL(moved.headers.get('location')!)
     expect(`${location.pathname}${location.search}`).toBe('/zh-tw/docs/mcp?x=1')
     const served = await ask('/zh-tw/docs/mcp?x=1')
+    expect(served.status).toBe(200)
     expect(served.headers.get('location')).toBeNull()
+    log.mockRestore()
   })
 })
 

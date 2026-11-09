@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import * as publicHostModule from '@/lib/publicHost'
 import {
   PUBLIC_ADDRESS_KIND_HEADER,
   PUBLIC_HOST_HEADER,
@@ -220,5 +221,15 @@ describe('publicPathFor keeps the page’s locale (MOTIR-7971)', () => {
         '/fr/p/ACME/board',
       )
     }
+  })
+})
+
+describe('the address vocabulary cannot spell a customer host (MOTIR-9531)', () => {
+  it('exports neither page-redirect helper', () => {
+    // Read off the module's bindings, not its source, so a re-export under
+    // another file's name still fails here.
+    const exported = Object.keys(publicHostModule)
+    expect(exported).not.toContain('redirectIfNotPrimary')
+    expect(exported).not.toContain('isOnPrimaryHost')
   })
 })
