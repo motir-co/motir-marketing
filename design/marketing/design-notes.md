@@ -1721,6 +1721,14 @@ live only in motir-core and are unreachable here, exactly as the card says.
    Palette (10) and Type (6) are correct. **It is a layout input, not a trivium** — two extra chips
    are what make the Style axis wrap to a second row at 1440 and what forced the narrow-viewport
    scrolling row — so a rail drawn to "9" would have been wrong at both viewports.
+   **Re-measured 2026-11-09 (MOTIR-10783), for the pin moving to `@motir/design-system@0.22.0`: 19 /
+   14 / 10** — styles / palettes / pairings, the lengths of `STYLE_IDS`, `PALETTE_IDS` and `TYPE_IDS`
+   that MOTIR-10773 read out of the published 0.22.0 tarball installed from the public registry (not
+   motir-core's design-system source; see _Designed against shipped reality_). All three axes are
+   larger than the figure above. The figure above stays the record of the population this asset was
+   drawn at: the mock's rail of 11 style chips, 10 palettes and 6 pairings, its fold table and its
+   wrap rows are unchanged and re-taken nowhere in this change, and nothing here says how the rail
+   lays out at 19 / 14 / 10.
 3. **The `theme.css` block counts in MOTIR-1043 are wrong for every version.** It says 35
    `[data-palette]`, 109 `[data-style]`, 9 `[data-type]`. Measured on 0.1.0 (the version installed
    when this was written): **23 / 107 / 9**. **Re-measured on the pinned 0.1.1, 2026-08-29
