@@ -5,19 +5,19 @@ import { describe, expect, it } from 'vitest'
 import { referencedFontSources } from './support/themeTokens'
 
 /*
- * ALL SIX TYPE PAIRINGS RENDER THEIR REAL FACES (MOTIR-1043).
+ * ALL TEN TYPE PAIRINGS RENDER THEIR REAL FACES (MOTIR-1043 · MOTIR-10774).
  *
- * `/design` is a picker, and three of the six pairings read faces the default
+ * `/design` is a picker, and seven of the ten pairings read faces the default
  * one does not. TWO OF THEM FAIL HARD RATHER THAN DEGRADING:
  * `[data-type='grotesk']` and `[data-type='editorial']` read
  * `var(--font-grotesk-source)` / `var(--font-editorial-source)` with NO in-var
  * fallback, so an unloaded face makes the whole declaration invalid and the
  * role silently reverts — a Type axis that appears to work and does nothing.
  *
- * ⚠️ THE ASSERTION IS TOTAL OVER THE STYLESHEET, NOT OVER A LIST OF SIX. What
+ * ⚠️ THE ASSERTION IS TOTAL OVER THE STYLESHEET, NOT OVER A LIST OF TEN. What
  * this reads is every `--font-*-source` variable `theme.css` actually
  * references through `var()`, whatever declares it, and requires
- * `app/fonts.css` to define each one AND to load the face it names. A seventh
+ * `app/fonts.css` to define each one AND to load the face it names. An eleventh
  * pairing that loads no face fails the suite on the day the package is bumped.
  *
  * ⚠️ THE DECLARATION MOVED (MOTIR-10643). The faces were `next/font/google`
@@ -59,6 +59,10 @@ const PAIRING = new Map([
   ['--font-grotesk-source', '@fontsource-variable/space-grotesk/'],
   ['--font-editorial-source', '@fontsource-variable/fraunces/'],
   ['--font-mono-technical-source', '@fontsource/ibm-plex-mono/'],
+  ['--font-marker-source', '@fontsource-variable/caveat/'],
+  ['--font-rounded-source', '@fontsource-variable/nunito/'],
+  ['--font-slab-source', '@fontsource-variable/roboto-slab/'],
+  ['--font-humanist-source', '@fontsource/fira-sans/'],
 ])
 
 describe('the type axis loads every face it offers', () => {
@@ -127,7 +131,7 @@ describe('the type axis loads every face it offers', () => {
     }
   })
 
-  it('registers exactly the six pairings the rail offers', () => {
+  it('registers exactly the ten pairings the rail offers', () => {
     expect(TYPE_IDS).toEqual([
       'motir',
       'motir-sans',
@@ -135,6 +139,10 @@ describe('the type axis loads every face it offers', () => {
       'grotesk',
       'editorial',
       'mono-technical',
+      'marker',
+      'rounded',
+      'slab',
+      'humanist',
     ])
   })
 })

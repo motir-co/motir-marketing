@@ -51,11 +51,11 @@ function stubMatchMedia() {
  * and dark, for every style × palette pair" criterion (MOTIR-1043), measured
  * over the registries rather than sampled by eye.
  *
- * The full grid the page can wear is 11 styles × 10 palettes × 6 pairings × 2
- * themes = 1,320 cells. Two of those axes are proved NOT to participate rather
+ * The full grid the page can wear is 19 styles × 14 palettes × 10 pairings × 2
+ * themes = 5,320 cells. Two of those axes are proved NOT to participate rather
  * than assumed not to: the first test asserts that no `[data-style]` block in
  * `theme.css` declares a colour token at all, and type pairings only re-point
- * `--font-*`. What remains — 10 palettes × 2 themes, over every ink/surface
+ * `--font-*`. What remains — 14 palettes × 2 themes, over every ink/surface
  * pair this page composes — is measured exhaustively below and reported as a
  * table, not a sample.
  */
@@ -176,13 +176,15 @@ describe('the axes that do not carry colour, proved rather than assumed', () => 
     ).toBe(true)
   })
 
-  it('registers 11 styles, 10 palettes and 6 pairings — read from the package, not from a card', () => {
-    // The card's body said "9 styles"; the installed package says 11, and the
+  it('registers 19 styles, 14 palettes and 10 pairings — read from the package, not from a card', () => {
+    // The card's body said "9 styles"; the installed package said 11, and the
     // count is a LAYOUT input (it is what wraps the Style axis to a second row
-    // at 1440 and forces the narrow scrolling row).
-    expect(STYLE_IDS).toHaveLength(11)
-    expect(PALETTE_IDS).toHaveLength(10)
-    expect(TYPE_IDS).toHaveLength(6)
+    // at 1440 and forces the narrow scrolling row). Re-pinned to 0.22.0
+    // (MOTIR-10774): 19 / 14 / 10, the lengths MOTIR-10773 read out of the
+    // published tarball.
+    expect(STYLE_IDS).toHaveLength(19)
+    expect(PALETTE_IDS).toHaveLength(14)
+    expect(TYPE_IDS).toHaveLength(10)
   })
 })
 
@@ -441,7 +443,7 @@ describe('AA over every palette × theme, for every pair this site paints', () =
     ).toBe(true)
     // Print it so a reviewer reads a table rather than a green tick.
     console.log(
-      ['', 'AA matrix — minimum ratio per pair over 10 palettes × 2 themes']
+      ['', 'AA matrix — minimum ratio per pair over 14 palettes × 2 themes']
         .concat(
           PAIRS.map(({ ink, surface, element, verdict }) => {
             let min = Infinity
@@ -518,7 +520,7 @@ describe('what the site actually paints, read off the rendered pages', () => {
 
   /*
    * The stronger form, and the one that does not consult the list at all: every
-   * pair the page paints has to clear AA on all 10 palettes × 2 themes. A pair
+   * pair the page paints has to clear AA on all 14 palettes × 2 themes. A pair
    * that is neither declared `clears-AA` nor declared `below-AA` is measured
    * here on its own merits, so a new element painting a new pair is caught the
    * first time it renders rather than the first time somebody widens a list.

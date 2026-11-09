@@ -562,6 +562,38 @@
       "retrofuturism": {
         "name": "Retrofuturismus",
         "tagline": "Chrom, schwungvolle Farbverläufe und ein Synthwave-Horizont – Sci-Fi der 70er/80er."
+      },
+      "dense-pro": {
+        "name": "Dicht / Pro",
+        "tagline": "Kompakt und informationsdicht – mehr Zeilen, weniger Rahmenwerk, ein schnellerer Rhythmus."
+      },
+      "high-contrast-accessible": {
+        "name": "Hoher Kontrast / Barrierefrei",
+        "tagline": "Maximale Lesbarkeit – kräftigere Striche, große Klickflächen und ein Fokus, den Sie nicht übersehen."
+      },
+      "tonal-elevated": {
+        "name": "Tonal / Erhöht",
+        "tagline": "Tiefe durch Tonwerte – Flächen steigen eine ruhige Stufenleiter hinauf, getragen von weichen Schatten."
+      },
+      "claymorphism": {
+        "name": "Claymorphismus",
+        "tagline": "Weiche, aufgeblähte Kacheln wie aus Ton geformt – freundlich, haptisch und ruhig."
+      },
+      "bento": {
+        "name": "Bento",
+        "tagline": "Gleichmäßige, großzügige Kacheln – ein Radius, haarfeine Abstände und eine fast flache Fläche, damit die Arbeit in ruhigen Fächern liegt."
+      },
+      "editorial-print": {
+        "name": "Editorial Print / Zeitung",
+        "tagline": "Eckige Kanten, Tintenlinien und kein Schatten – die ruhige Autorität einer gedruckten Spalte."
+      },
+      "art-deco": {
+        "name": "Art déco",
+        "tagline": "Gerahmt und geometrisch – Doppellinien, gestufte Ecken und eine Metallkante aus Ihrer Palette."
+      },
+      "memphis": {
+        "name": "Memphis",
+        "tagline": "Verspielte, laute postmoderne Collage: ungleiche Ecken, dicke Konturen und harte zweiblockige Schatten über einem Punkt-und-Schraffur-Hintergrund."
       }
     },
     "palettes": {
@@ -604,6 +636,22 @@
       "candy": {
         "name": "Bonbon",
         "tagline": "Süß und verspielt – ein helles Kaugummirosa als Primärfarbe über Bonbonpapier-Rosatönen, mit einem vollen Pastell-Bonbon-Regenbogen."
+      },
+      "lagoon": {
+        "name": "Lagune",
+        "tagline": "Kühl und frisch – ein tiefes Lagunen-Cyan als Primärfarbe über Flachwasser-Flächen und schiefergrauer Schrift, mit einem Korallen-Akzent."
+      },
+      "olive": {
+        "name": "Oliv",
+        "tagline": "Gedämpft und erdig – ein Moosgrün als Primärfarbe über warmen Olivgrautönen, mit einem Terrakotta-Akzent."
+      },
+      "contrast": {
+        "name": "Kontrast",
+        "tagline": "Klar und kräftig – papierweiße Flächen, fast schwarze Schrift, Sekundärtext in AAA und sichtbare Kanten."
+      },
+      "midnight": {
+        "name": "Mitternacht",
+        "tagline": "Dunkel zuerst und ruhig – ein nachtschiefergrauer Grund mit einem sternenhellen Himmelblau als Primärfarbe und einem violetten Akzent."
       }
     },
     "types": {
@@ -630,6 +678,22 @@
       "mono-technical": {
         "name": "Mono-Technisch",
         "tagline": "Durchgehend IBM Plex Mono – eine präzise UI auf Entwicklerniveau."
+      },
+      "marker": {
+        "name": "Marker",
+        "tagline": "Handgeschriebene Marker-Überschriften über einer klaren Sans-Fließschrift – skizzenhaft, freundlich, menschlich."
+      },
+      "rounded": {
+        "name": "Abgerundet",
+        "tagline": "Eine weiche, abgerundete Sans in der gesamten UI – freundlich und zugänglich."
+      },
+      "slab": {
+        "name": "Slab",
+        "tagline": "Kräftige Slab-Serif-Überschriften über einer klaren Sans-Fließschrift – selbstbewusst, wie gedruckt."
+      },
+      "humanist": {
+        "name": "Humanistisch",
+        "tagline": "Eine warme humanistische Sans in der gesamten UI – offen und gut lesbar."
       }
     }
   },

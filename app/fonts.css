@@ -15,9 +15,9 @@
  * next/font's variable named only its face: `theme.css` supplies the fallback
  * stack where it reads the variable.
  *
- * ── The six pairing faces ────────────────────────────────────────────────
+ * ── The ten pairing faces ────────────────────────────────────────────────
  *
- * The Latin faces the six Type pairings name, as the RAW `-source` variables
+ * The Latin faces the ten Type pairings name, as the RAW `-source` variables
  * the token layer reads.
  *
  * ⚠️ THE VARIABLE NAME MUST BE THE `-source` ONE. `theme.css` declares the
@@ -30,7 +30,7 @@
  * included, so ą ę ł ś ź ż ó draw in the pairing's face — and the browser
  * fetches a slice only when a rendered character falls in it, as it did under
  * next/font. The default pairing's Latin files are preloaded by
- * `app/fontPreloads.ts`; the three non-default pairings' are not, so only a
+ * `app/fontPreloads.ts`; the non-default pairings' are not, so only a
  * visitor who picks one on `/design` pays for its face.
  *
  * `tests/typeFaces.test.ts` reads every `-source` variable the installed
@@ -52,8 +52,8 @@
  * Static faces load the set's two weights, `400` and `700`.
  */
 
-/* The pairing faces. IBM Plex Mono is not a variable font, so the weights it
-   is used at are enumerated. */
+/* The pairing faces. IBM Plex Mono and Fira Sans are not variable fonts, so
+   the weights they are used at are enumerated. */
 @import '@fontsource-variable/inter/wght.css';
 @import '@fontsource-variable/source-serif-4/wght.css';
 @import '@fontsource-variable/jetbrains-mono/wght.css';
@@ -62,6 +62,13 @@
 @import '@fontsource/ibm-plex-mono/400.css';
 @import '@fontsource/ibm-plex-mono/500.css';
 @import '@fontsource/ibm-plex-mono/600.css';
+@import '@fontsource-variable/caveat/wght.css';
+@import '@fontsource-variable/nunito/wght.css';
+@import '@fontsource-variable/roboto-slab/wght.css';
+@import '@fontsource/fira-sans/400.css';
+@import '@fontsource/fira-sans/500.css';
+@import '@fontsource/fira-sans/600.css';
+@import '@fontsource/fira-sans/700.css';
 
 /* The font-set faces. */
 @import '@fontsource-variable/noto-sans-sc/wght.css';
@@ -87,6 +94,10 @@
   --font-grotesk-source: 'Space Grotesk Variable';
   --font-editorial-source: 'Fraunces Variable';
   --font-mono-technical-source: 'IBM Plex Mono';
+  --font-marker-source: 'Caveat Variable';
+  --font-rounded-source: 'Nunito Variable';
+  --font-slab-source: 'Roboto Slab Variable';
+  --font-humanist-source: 'Fira Sans';
 
   /* The font-set faces. */
   --font-set-zh-Hans-sans-noto-sans-sc: 'Noto Sans SC Variable';
