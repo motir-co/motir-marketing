@@ -250,3 +250,55 @@ describe("the Worker's production variables (MOTIR-10637)", () => {
     )
   })
 })
+
+describe('the triggers that reach the deploy (MOTIR-10651)', () => {
+  /** `ci.yml`'s `on:` block, comments removed: from `on:` to the next top-level key. */
+  const triggers = (() => {
+    const lines = ci.split('\n')
+    const start = lines.indexOf('on:')
+    if (start === -1) throw new Error('no on: block in ci.yml')
+    const rest = lines.slice(start + 1)
+    const end = rest.findIndex((line) => /^[a-z][\w-]*:/.test(line))
+    return code([lines[start], ...rest.slice(0, end)].join('\n'))
+  })()
+
+  it('rebuilds on a skills release AND on a plan-ladder change, and on nothing else dispatched', () => {
+    expect(triggers).toMatch(
+      /^ {2}repository_dispatch:\n {4}types: \[motir-skills-release, motir-plan-ladder-changed\]$/m,
+    )
+  })
+
+  it('keeps the push, pull-request and daily-backstop triggers', () => {
+    expect(triggers).toMatch(/^ {2}push:\n {4}branches: \[main\]$/m)
+    expect(triggers).toMatch(/^ {2}pull_request:$/m)
+    expect(triggers).toMatch(/^ {2}schedule:\n {4}- cron: '17 5 \* \* \*'$/m)
+  })
+
+  it('says why the plan-ladder type exists and what backs it up', () => {
+    const lines = ci.split('\n')
+    const at = lines.findIndex((line) =>
+      /^ {2}repository_dispatch:$/.test(line),
+    )
+    const comment = lines
+      .slice(0, at)
+      .reverse()
+      .filter((_, i, all) => all.slice(0, i + 1).every((l) => /^\s*#/.test(l)))
+      .reverse()
+      .join('\n')
+    expect(comment).toContain('`motir-plan-ladder-changed`')
+    expect(comment).toContain('`/price`')
+    expect(comment).toContain('`/how-the-calculation-works`')
+    expect(comment).toContain('`GET /v1/public/plans`')
+    expect(comment).toMatch(/daily schedule stays the backstop/)
+  })
+
+  it('a dispatched run is on the default branch, so the deploy guard admits it', () => {
+    // A `repository_dispatch` run's `github.ref` is the default branch and its
+    // event is not `pull_request`, so the guard that admits a push admits it.
+    for (const name of ['deploy', 'subprocessor-seam']) {
+      expect(code(job(name))).toMatch(
+        /^ {4}if: github\.ref == 'refs\/heads\/main' && github\.event_name != 'pull_request'$/m,
+      )
+    }
+  })
+})
