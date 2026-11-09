@@ -8,7 +8,7 @@ import {
   pagedTabHref,
   type PublicProjectOverviewDto,
 } from '@/lib/publicProject'
-import { SITE_HOST, type PublicHost } from '@/lib/publicHost'
+import { SITE_HOST } from '@/lib/publicHost'
 
 /*
  * THE RENDERED HREF, ON EACH HOST KIND (MOTIR-4220's third criterion).
@@ -42,12 +42,6 @@ const project: PublicProjectOverviewDto = {
 }
 
 const APP = 'https://app.test.motir.co'
-
-const WORKSPACE: PublicHost = {
-  kind: 'workspace',
-  host: 'acme.motir.site',
-  origin: 'https://acme.motir.site',
-}
 
 /** Every href a rendered tree emits, in document order. */
 function hrefs(container: HTMLElement): string[] {
@@ -112,10 +106,7 @@ describe.each([
 })
 
 describe('the hand-off’s RETURN is the site path on every host', () => {
-  it.each([
-    ['the site', SITE_HOST],
-    ['a workspace subdomain', WORKSPACE],
-  ])('%s', (_label, host) => {
+  it.each([['the site', SITE_HOST]])('%s', (_label, host) => {
     // ⚠️ THE ONE PATH THAT MUST NOT FOLLOW THE HOST. `actHref` prefixes it with
     // `SITE_ORIGIN`, so a host-relative return would become `motir.co/board` —
     // a URL that does not exist.

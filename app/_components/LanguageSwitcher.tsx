@@ -24,8 +24,8 @@ import { useDismiss } from './useDismiss'
  * gives every language its own address, so an entry is the page being read
  * under another locale, and it works without JavaScript. With JavaScript the
  * click first writes the remembered-choice cookie, then `location.assign`s the
- * page built for that locale. On a tenant host the entry is the same address,
- * and the cookie is the whole signal.
+ * page built for that locale. Off the site (the 404 room's unresolved host)
+ * the entry is the same address, and the cookie is the whole signal.
  *
  * It hydrates as part of the header island (MOTIR-10643). The query and
  * fragment are read from `location` at click time, so the built markup does
@@ -48,8 +48,8 @@ export function LanguageSwitcher({ host }: { host: PublicHost }) {
   }, [])
   useDismiss(rootRef, open, close)
 
-  // The site's address carries the locale; a tenant host's never does, and
-  // its browser path is the project path the visitor typed.
+  // The site's address carries the locale; off the site (the 404 room, which
+  // cannot know its host) the browser path is kept as the visitor typed it.
   const path = host.kind === 'site' ? stripLocale(browserPath) : browserPath
 
   const choose = (event: MouseEvent<HTMLAnchorElement>, locale: Locale) => {

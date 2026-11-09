@@ -19,11 +19,11 @@ import type { PublicHost } from '@/lib/publicHost'
  * it agrees with the `as-needed` routing `i18n/routing.ts` declares without
  * pulling a navigation runtime into a React-free module.
  *
- * On a tenant or customer host the address never carries a prefix, so the
- * entry is the same path: the cookie written on click is what changes the
- * language there, read by the Next `proxy.ts` (MOTIR-7951) on the reload. That
- * router and its tenant branch are gone (MOTIR-10113, MOTIR-10639); the Worker
- * serves motir.co alone.
+ * Off the site — the 404 room's `unresolved` host, the one non-site kind left
+ * since the tenant `workspace` kind went with the Next `proxy.ts` (MOTIR-10113,
+ * MOTIR-10639, MOTIR-10811) — the entry is the same path, unprefixed: the room
+ * cannot know which host serves it, so it does not claim the address is the
+ * language, and the cookie written on click is the whole signal.
  */
 export function switchHref(
   host: PublicHost,

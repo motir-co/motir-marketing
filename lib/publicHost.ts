@@ -16,10 +16,14 @@ import type { Locale } from '@/i18n/routing'
  *
  * ── ⚠️ THE HOST IS A PROP, NOT AN AMBIENT READ, AND THAT IS DELIBERATE ────
  *
- * `requestPublicHost()` below reads it from the request once, in the async
- * component at the top of each route; everything under that takes it as a
- * parameter. The alternative — every leaf component awaiting `headers()` — was
- * rejected for two reasons, and the second is the load-bearing one:
+ * Each route names its host once, at the top — {@link SITE_HOST} on every page
+ * the site builds, {@link UNKNOWN_HOST} in the 404 room — and everything under
+ * that takes it as a parameter. (The Next `proxy.ts` used to resolve it per
+ * request and hand it over in three `x-motir-*` headers; that router and its
+ * tenant branch are gone, MOTIR-10113 · MOTIR-10639, and so are the headers and
+ * their reader, MOTIR-10811.) The alternative — every leaf component reading
+ * the request — was rejected for two reasons, and the second is the
+ * load-bearing one:
  *
  *   1. It makes the rows, `ErrorState` and the tab bar async Server
  *      Components, which `@testing-library/react` cannot render at all. The
@@ -36,68 +40,44 @@ import type { Locale } from '@/i18n/routing'
  */
 
 /**
- * Which SHAPE of address this request arrived on.
+ * Which SHAPE of address a page is rendered for.
  *
- * `site` is `motir.co` itself. `workspace` is a live workspace subdomain
- * (`acme.motir.site`), the one tenant case the router serves. There is no
- * customer-domain kind (MOTIR-9528): a customer's own domain is the certificate
- * edge's, and this repository answers it with the one 404 as `unresolved`.
+ * `site` is `motir.co` itself. There is no tenant kind: the `workspace` kind
+ * (`acme.motir.site`) left with the Next `proxy.ts` that was its one producer
+ * (MOTIR-10113 · MOTIR-10639 · MOTIR-10811), and there is no customer-domain
+ * kind (MOTIR-9528) — a customer's own domain is the certificate edge's.
  *
- * ── ⚠️ `unresolved` IS THE FOURTH SHAPE, AND IT IS NOT A TENANT (MOTIR-4430) ─
+ * ── ⚠️ `unresolved` IS "NOT THE SITE", AND IT IS NOT A TENANT (MOTIR-4430) ──
  *
- * A request can arrive on a host that is neither this site nor an address the
- * contract could resolve. There were exactly three of them and the Next
- * `proxy.ts` (deleted with its tenant branch, MOTIR-10639) named each one:
+ * It was the shape of a host that is neither this site nor an address the
+ * contract could resolve — the tenant base domain, an unknown host, a host the
+ * contract did not answer for — which the router rewrote onto the 404 room.
+ * Before it existed the room rendered as {@link SITE_HOST}, so the shared
+ * chrome spelled `/explore`, `/docs`, `/design` and the legal paths
+ * ROOT-RELATIVE against a host that serves none of them.
  *
- *   • the tenant BASE DOMAIN itself (`motir.site`), which has no row by
- *     construction and is answered without a hop;
- *   • a host the contract says it does NOT know (`read.status === 'not-found'`);
- *   • a host the contract did not ANSWER for (`read.status === 'failed'`) — the
- *     outage, while `app.motir.co` restarts.
- *
- * A host outside the tenant namespace — a customer's domain whose DNS still
- * points here — is answered the same way as the base domain, without a hop
- * (MOTIR-9527).
- *
- * Before this kind existed those three rendered the 404 room and
- * `/host-unavailable` as {@link SITE_HOST}, so the shared chrome spelled
- * `/explore`, `/docs`, `/design` and the legal paths ROOT-RELATIVE — against a
- * host that serves none of them. The one thing all three know for certain is
- * the thing that decides every link: **this is not `motir.co`**. So `unresolved`
- * reads as "not the site" wherever a link is spelled ({@link siteLinkFor}) and
- * as nothing else — it is never a project address, and no page under `app/p/**`
- * is ever reached with it, because the router rewrites all three to one of its
- * own two landing pads.
- *
- * It carries `host` and `origin` like a tenant kind, because the router knows
- * both from the request itself — they are read off the forwarded headers rather
- * than from the contract, so an unresolvable host has them exactly as a resolved
- * one does.
+ * It survives the router because the 404 room is still a page that cannot
+ * know which host serves it ({@link UNKNOWN_HOST}). The one thing that decides
+ * every link there is **this may not be `motir.co`**, so `unresolved` reads as
+ * "not the site" wherever a link is spelled ({@link siteLinkFor}) and as
+ * nothing else — it is never a project address.
  */
-export type PublicAddressKind = 'site' | 'workspace' | 'unresolved'
+export type PublicAddressKind = 'site' | 'unresolved'
 
-/** The request's address, as the router resolved it. */
+/**
+ * The address a page is rendered for.
+ *
+ * ⚠️ IT CARRIES ONLY THE KIND. The tenant `host` and `origin` it used to carry
+ * were read off the router's headers and were `null` on every value this site
+ * can still produce, so they went with their reader (MOTIR-10811). Every
+ * consumer branches on `kind === 'site'` and nothing else.
+ */
 export interface PublicHost {
   readonly kind: PublicAddressKind
-  /** The tenant host, lowercased and without a port; `null` on the site. */
-  readonly host: string | null
-  /**
-   * The tenant's full ORIGIN — scheme, host and port; `null` on the site.
-   *
-   * ⚠️ IT IS CARRIED RATHER THAN DERIVED, and the two things it removes are
-   * both guesses. A tenant address always serves over https in production, so
-   * `https://${host}` looks safe — but the browser lane reaches the app at
-   * `http://acme.localhost:4318`, and a `robots.txt` there would name
-   * `https://acme.localhost/sitemap.xml`: a URL that resolves nowhere, in the
-   * one file whose entire job is to hand a crawler a working address. The
-   * router knows the scheme (`x-forwarded-proto`) and the port (the forwarded
-   * host), so it says so instead of leaving each consumer to assume.
-   */
-  readonly origin: string | null
 }
 
-/** `motir.co` — and every request the router stepped aside for. */
-export const SITE_HOST: PublicHost = { kind: 'site', host: null, origin: null }
+/** `motir.co` — every page the site builds. */
+export const SITE_HOST: PublicHost = { kind: 'site' }
 
 /**
  * FOR A DOCUMENT THAT CANNOT ASK WHICH HOST IT IS ON (MOTIR-4430).
@@ -115,62 +95,14 @@ export const SITE_HOST: PublicHost = { kind: 'site', host: null, origin: null }
  * So the room takes THIS, and the answer it gets is right on every host: the
  * `kind` is not `site`, so {@link siteLinkFor} spells every `motir.co` path
  * ABSOLUTELY, which resolves to the same page on `motir.co` and to the only
- * working one everywhere else. `host` and `origin` are null because nothing
- * knows them — and nothing on that page reads them.
+ * working one everywhere else.
  *
  * ⚠️ IT IS NOT A DEFAULT AND IT IS NOT `SITE_HOST`'s SIBLING. A page that CAN
  * read the request must read it: `app/host-unavailable/page.tsx` is its own
  * route and does, and every `/p/**` surface has since MOTIR-4372. This constant
  * exists for the one document whose asking is charged to every other page.
  */
-export const UNKNOWN_HOST: PublicHost = {
-  kind: 'unresolved',
-  host: null,
-  origin: null,
-}
-
-/**
- * The two request headers the router sets, read back by
- * {@link requestPublicHost}.
- *
- * ⚠️ SET ON THE FORWARDED REQUEST, NEVER ON THE RESPONSE — nothing about a
- * route's caching changes. And OVERWRITTEN on every request the router handles,
- * so a client that sends its own `x-motir-address-kind` cannot talk a page into
- * emitting another host's links. A request the router did NOT handle carries
- * neither header and reads as {@link SITE_HOST}, which is the correct answer for
- * it — the headers are never an authorization input, only a link shape.
- */
-export const PUBLIC_HOST_HEADER = 'x-motir-public-host'
-export const PUBLIC_ADDRESS_KIND_HEADER = 'x-motir-address-kind'
-/** Scheme, host and port — see {@link PublicHost.origin}. */
-export const PUBLIC_ORIGIN_HEADER = 'x-motir-public-origin'
-
-const KINDS: ReadonlySet<string> = new Set<PublicAddressKind>([
-  'site',
-  'workspace',
-  'unresolved',
-])
-
-/**
- * A `Host` / `x-forwarded-host` value reduced to a comparable hostname:
- * lowercased, trimmed, with the port removed.
- *
- * ⚠️ IPv6 LITERALS KEEP THEIR BRACKETS AND LOSE ONLY THE PORT. `[::1]:4318`
- * has colons inside the address as well as before the port, so splitting on the
- * first colon would truncate it to `[` — a host that matches nothing and is not
- * obviously wrong when read in a log.
- */
-export function normaliseHost(raw: string | null | undefined): string | null {
-  const value = (raw ?? '').trim().toLowerCase()
-  if (!value) return null
-  if (value.startsWith('[')) {
-    const close = value.indexOf(']')
-    return close === -1 ? value : value.slice(0, close + 1)
-  }
-  const colon = value.indexOf(':')
-  const host = colon === -1 ? value : value.slice(0, colon)
-  return host || null
-}
+export const UNKNOWN_HOST: PublicHost = { kind: 'unresolved' }
 
 /**
  * The path of one public-project page.
@@ -181,11 +113,10 @@ export function normaliseHost(raw: string | null | undefined): string | null {
  * segment this function alone emits.
  *
  * ⚠️ ONE SHAPE FOR EVERY KIND (MOTIR-9528). A project page lives on the site
- * only: a workspace host serves no project (MOTIR-9790, its root is the
- * no-application page) and an `unresolved` host reaches only the router's own
- * two landing pads (MOTIR-4430). No kind can produce a path at a host's root.
+ * only, and the one other kind, `unresolved`, is the 404 room's, which is never
+ * a project address (MOTIR-4430). No kind can produce a path at a host's root.
  * `host` stays a parameter so every caller keeps saying which host it renders
- * on, which {@link siteLinkFor} and the canonical still need.
+ * on, which {@link siteLinkFor} still needs.
  *
  * ⚠️ THE LOCALE IS A REQUIRED PARAMETER (MOTIR-7971). On motir.co a project
  * page has twelve addresses — `/p/ACME` and `/fr/p/ACME` and the rest — and a
@@ -248,7 +179,9 @@ export function publicPathWithQuery(
  * unknown host, a host the contract could not answer for — is not the site, so
  * it takes the absolute arm, which is the only arm that can work. A predicate
  * written as a list of tenant kinds would have answered "relative" for a shape
- * that did not exist when it was written.
+ * that did not exist when it was written. Since the tenant kind left
+ * (MOTIR-10811) `unresolved` — the 404 room's {@link UNKNOWN_HOST} — is the one
+ * value that takes that arm.
  *
  * ⚠️ AND IT CARRIES THE PAGE'S LOCALE, ON EVERY HOST (MOTIR-7971). The site is
  * served in twelve languages, English unprefixed, and a link that dropped the
@@ -271,22 +204,6 @@ export function siteLinkFor(
 ): string {
   const localized = localizedPath(locale, path)
   return host.kind === 'site' ? localized : siteUrl(localized)
-}
-
-/** Read the router's two headers off a `Headers`. Pure, so a test can call it. */
-export function readPublicHost(headers: Headers): PublicHost {
-  const kind = headers.get(PUBLIC_ADDRESS_KIND_HEADER)
-  if (!kind || !KINDS.has(kind) || kind === 'site') return SITE_HOST
-  const host = normaliseHost(headers.get(PUBLIC_HOST_HEADER))
-  const origin = headers.get(PUBLIC_ORIGIN_HEADER)
-  return {
-    kind: kind as PublicAddressKind,
-    host,
-    // A value that is not an origin is treated as absent rather than passed on:
-    // it ends up in a `robots.txt` and a sitemap, where a malformed one is worse
-    // than the https guess it replaced.
-    origin: origin && /^https?:\/\/[^/\s]+$/.test(origin) ? origin : null,
-  }
 }
 
 /* ── the CANONICAL address (MOTIR-4222 · MOTIR-9528) ───────────────────────── */
@@ -319,24 +236,6 @@ function primaryOf(project: AddressedProject): string {
     project.addresses?.primary ??
     `${SITE_ORIGIN}/p/${encodeURIComponent(project.identifier)}`
   )
-}
-
-/** The host this request is on — `SITE_ORIGIN`'s when the router stepped aside. */
-export function currentHost(host: PublicHost): string {
-  return host.host ?? new URL(SITE_ORIGIN).host
-}
-
-/**
- * The absolute origin of the host this request is on.
- *
- * The router's own value where there is one, `https://<host>` as the fallback
- * for a tenant host that somehow arrived without it (a tenant address serves
- * only once its certificate is ISSUED, and the host redirects http to https), and
- * `SITE_ORIGIN` on the site itself.
- */
-export function currentOrigin(host: PublicHost): string {
-  if (host.origin) return host.origin
-  return host.host ? `https://${host.host}` : SITE_ORIGIN
 }
 
 /**

@@ -8,7 +8,7 @@ import {
   projectTabHref,
   readPublic,
 } from '@/lib/publicProject'
-import { SITE_HOST } from '@/lib/publicHost'
+import { SITE_HOST, UNKNOWN_HOST } from '@/lib/publicHost'
 
 /*
  * The `/p/*` data layer (MOTIR-4115).
@@ -146,15 +146,10 @@ describe('the tab set', () => {
     // `lib/publicHost.ts` owns the mapping and `tests/host/publicHost.test.ts`
     // covers it; this asserts that the tab helper DELEGATES rather than keeping
     // its own copy of the rule. A project is served on motir.co alone now.
-    const workspace = {
-      kind: 'workspace',
-      host: 'acme.motir.site',
-      origin: 'https://acme.motir.site',
-    } as const
     expect(projectTabHref(SITE_HOST, 'ACME', 'board', 'en')).toBe(
       '/p/ACME/board',
     )
-    expect(projectTabHref(workspace, 'ACME', 'board', 'en')).toBe(
+    expect(projectTabHref(UNKNOWN_HOST, 'ACME', 'board', 'en')).toBe(
       '/p/ACME/board',
     )
   })
