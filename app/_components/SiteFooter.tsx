@@ -123,7 +123,7 @@ export function SiteFooter({ host }: { host: PublicHost }) {
               <li key={item.href}>
                 {/* The look a visitor picked on /design stays on for the
                     visit across these document loads (Yue, 2026-10-09):
-                    `lib/useVisitAppearance.ts` keeps it for the session. */}
+                    `lib/useVisitAppearance.ts` keeps it in sessionStorage. */}
                 <ChromeLink
                   href={
                     'site' in item && item.site

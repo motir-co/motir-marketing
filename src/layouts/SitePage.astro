@@ -30,7 +30,7 @@ import {
 import { serializeJsonForScript } from '@/lib/scriptJson'
 import { servedPathname } from '@/lib/staticPaths'
 import {
-  clearStoredAppearanceScript,
+  appearanceHeadScript,
   siteAppearanceAttributes,
 } from '@/lib/siteDefaults'
 
@@ -110,7 +110,7 @@ const pageContext = serializeJsonForScript({
       type="image/png"
       sizes="180x180"
     />
-    <script is:inline set:html={clearStoredAppearanceScript} />
+    <script is:inline set:html={appearanceHeadScript} />
   </head>
   <body>
     <PageRoot value={value} page={page} layouts={layouts} params={params} />
