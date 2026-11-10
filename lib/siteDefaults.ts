@@ -19,13 +19,16 @@ import {
  *     another style on `/design` gets that style's own type, as the app gives
  *     it (`siteTypeForStyle`).
  *
- * ⚠️ NOTHING IS STORED, AND NOTHING STORED IS READ. `app/layout.tsx` renders
- * these four as attributes on `<html>`, server-side, so they are right on the
- * first byte with no init script. The site used to run the package's
- * `themeInitScript`, which followed the OS into dark mode and replayed every
- * `/design` choice from `localStorage` on every page and every later visit;
- * a `/design` pick now lasts for the visit only (`lib/useVisitAppearance.ts`)
- * and writes no storage.
+ * ⚠️ NOTHING OUTLIVES THE VISIT. Every page is served with these four as
+ * attributes on `<html>` (`src/layouts/SitePage.astro`,
+ * `worker/render/document.tsx`), so they are right on the first byte. The site
+ * used to run the package's `themeInitScript`, which followed the OS into dark
+ * mode and replayed every `/design` choice from `localStorage` on every page
+ * and every later visit; a `/design` pick now lasts for the visit only
+ * (`lib/useVisitAppearance.ts`). Since the Astro build every link is a full
+ * document load, so the visit's pick is kept in `sessionStorage` (this tab
+ * only) and `visitAppearanceScript` replays it in `<head>` before the first
+ * paint — and drops it on a reload, which is the site look again.
  */
 export const SITE_DEFAULT_STYLE: StyleId = 'hand-drawn-indie'
 export const SITE_DEFAULT_TYPE: TypeId = 'grotesk'
@@ -84,3 +87,23 @@ const escapeUnsafeScriptChars = (value: string): string =>
 export const clearStoredAppearanceScript = `(function(){try{var ls=window.localStorage,k=${escapeUnsafeScriptChars(
   JSON.stringify(Object.values(THEME_STORAGE_KEYS)),
 )};for(var i=0;i<k.length;i++){ls.removeItem(k[i]);}}catch(e){}})();`
+
+/**
+ * Where the visit's `/design` pick is kept between document loads: this tab's
+ * `sessionStorage`, written only by `lib/useVisitAppearance.ts`.
+ */
+export const VISIT_APPEARANCE_KEY = 'motir-visit-appearance'
+
+/*
+ * Replays the visit's pick onto `<html>` before the first paint, on every
+ * page. A reload forgets it (the site look again, as before the Astro move);
+ * a link, back or forward keeps it. Only the appearance attributes are ever
+ * written, whatever the stored value holds.
+ */
+export const visitAppearanceScript = `(function(){try{var ss=window.sessionStorage,k=${escapeUnsafeScriptChars(
+  JSON.stringify(VISIT_APPEARANCE_KEY),
+)},n=window.performance&&performance.getEntriesByType&&performance.getEntriesByType('navigation')[0];if(n&&n.type==='reload'){ss.removeItem(k);return;}var v=JSON.parse(ss.getItem(k)||'null');if(!v||typeof v.attributes!=='object'||!v.attributes)return;var h=document.documentElement,a=v.attributes;for(var x in a){if(/^data-(theme|style|palette|type|cjk-[a-z-]+)$/.test(x)&&typeof a[x]==='string')h.setAttribute(x,a[x]);}if(v.system&&window.matchMedia)h.setAttribute('data-theme',window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');}catch(e){}})();`
+
+/** The one inline script every motir.co `<head>` runs. */
+export const appearanceHeadScript =
+  clearStoredAppearanceScript + visitAppearanceScript
