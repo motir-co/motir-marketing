@@ -98,6 +98,19 @@ interface Box {
 }
 
 /**
+ * The element whose box the canvas fills. On a built page the canvas sits
+ * inside its island's `<motir-island style="display:contents">`
+ * (`lib/island.tsx`), which has no box of its own — measuring that drew
+ * nothing (0×0) — so any `display: contents` wrapper is skipped.
+ */
+export function boxParent(el: Element): HTMLElement | null {
+  let parent = el.parentElement
+  while (parent && getComputedStyle(parent).display === 'contents')
+    parent = parent.parentElement
+  return parent
+}
+
+/**
  * `focusId` names the element the lines gather around — the idea box by
  * default; the Build in public page gathers them around its search.
  */
@@ -108,7 +121,7 @@ export function HeroWaves({
 
   useEffect(() => {
     const canvas = canvasRef.current
-    const hero = canvas?.parentElement
+    const hero = canvas ? boxParent(canvas) : null
     const ctx = canvas?.getContext('2d')
     if (!canvas || !hero || !ctx) return
     const still = window.matchMedia?.(
