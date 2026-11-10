@@ -31,7 +31,7 @@ function servedPage() {
 
 function navigation(type: string) {
   vi.spyOn(performance, 'getEntriesByType').mockReturnValue([
-    { type } as PerformanceEntry,
+    { type } as unknown as PerformanceEntry,
   ])
 }
 
