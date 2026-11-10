@@ -8,6 +8,7 @@ import type {
 import {
   SITE_APPEARANCE,
   VISIT_APPEARANCE_KEY,
+  VISIT_LANDING_KEY,
   siteTypeForStyle,
 } from '@/lib/siteDefaults'
 import {
@@ -31,8 +32,8 @@ import {
  * full document load, so the module-level value alone would be lost on the
  * next page; it is mirrored into this tab's `sessionStorage`
  * (`VISIT_APPEARANCE_KEY`), which `visitAppearanceScript` replays onto
- * `<html>` in every page's `<head>`. A new tab or a reload is the site look
- * again (`SITE_APPEARANCE`) — the head script drops the key on a reload.
+ * `<html>` in every page's `<head>`. A new tab or a reload is a new visit,
+ * which lands on a random style (`LANDING_STYLES`, drawn by the head script).
  *
  * This replaces the package's `ThemeProvider` here on purpose: that provider
  * seeds from `localStorage` with the APP's defaults as its fallback (which is
@@ -80,30 +81,45 @@ function attributesFor(c: VisitChoice): Record<string, string> {
   return attributes
 }
 
-function readStoredChoice(): VisitChoice {
-  try {
-    const raw = storage()?.getItem(VISIT_APPEARANCE_KEY)
-    const stored = raw ? (JSON.parse(raw) as { choice?: unknown }) : null
-    const c = stored?.choice as Partial<VisitChoice> | undefined
-    if (
-      c &&
-      typeof c.pattern === 'string' &&
-      typeof c.styleId === 'string' &&
-      typeof c.palette === 'string'
-    ) {
-      return {
-        pattern: c.pattern,
-        styleId: c.styleId,
-        palette: c.palette,
-        pinnedType: typeof c.pinnedType === 'string' ? c.pinnedType : null,
-        cjkFaces:
-          c.cjkFaces && typeof c.cjkFaces === 'object' ? c.cjkFaces : {},
-      }
+function asChoice(value: unknown): VisitChoice | null {
+  const c = value as Partial<VisitChoice> | null | undefined
+  if (
+    c &&
+    typeof c.pattern === 'string' &&
+    typeof c.styleId === 'string' &&
+    typeof c.palette === 'string'
+  ) {
+    return {
+      pattern: c.pattern,
+      styleId: c.styleId,
+      palette: c.palette,
+      pinnedType: typeof c.pinnedType === 'string' ? c.pinnedType : null,
+      cjkFaces: c.cjkFaces && typeof c.cjkFaces === 'object' ? c.cjkFaces : {},
     }
+  }
+  return null
+}
+
+function readJson(key: string): unknown {
+  try {
+    const raw = storage()?.getItem(key)
+    return raw ? JSON.parse(raw) : null
   } catch {
     // Unreadable or blocked storage is a fresh visit.
+    return null
   }
-  return SITE_CHOICE
+}
+
+/*
+ * The look this visit landed on: the random style `visitAppearanceScript`
+ * drew, or the site look when it drew none (no script storage, an automated
+ * browser). Reset returns here, and "off default" is measured from here.
+ */
+const landing = asChoice(readJson(VISIT_LANDING_KEY)) ?? SITE_CHOICE
+
+function readStoredChoice(): VisitChoice {
+  const stored = readJson(VISIT_APPEARANCE_KEY) as { choice?: unknown } | null
+  return asChoice(stored?.choice) ?? landing
 }
 
 function storeChoice() {
@@ -139,9 +155,9 @@ function updateChoice(patch: Partial<VisitChoice>) {
   for (const listener of listeners) listener()
 }
 
-/** Back to a fresh visit. What a new page load does; tests call it too. */
+/** Back to the look the visit landed on. Reset does this; tests call it too. */
 export function forgetVisitAppearance() {
-  choice = SITE_CHOICE
+  choice = landing
   storeChoice()
   for (const listener of listeners) listener()
 }
@@ -197,11 +213,16 @@ export function useVisitAppearance() {
     }
   }, [current, resolvedPattern, styleId, palette, type, cjkFaces, osDark])
 
+  // Hydration renders the server snapshot, which never knows the landing
+  // style; measuring it against the site look keeps Reset out of that pass,
+  // as in the server HTML. The re-render with the stored pick measures from
+  // the landing style.
+  const base = current === choice ? landing : SITE_CHOICE
   const offDefault =
-    pattern !== SITE_APPEARANCE.pattern ||
-    styleId !== SITE_APPEARANCE.style ||
-    palette !== SITE_APPEARANCE.palette ||
-    type !== SITE_APPEARANCE.type ||
+    pattern !== base.pattern ||
+    styleId !== base.styleId ||
+    palette !== base.palette ||
+    type !== (base.pinnedType ?? siteTypeForStyle(base.styleId)) ||
     Object.keys(cjkFaces).length > 0
 
   return {
