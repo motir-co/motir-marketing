@@ -63,9 +63,11 @@ import {
  * visitor's choice PERSISTS*). The page opens on exactly the look the visitor
  * is already on, so arriving changes nothing. A pick restyles all of motir.co
  * for the rest of the visit — a visitor who picks Neo-Brutalism here meets the
- * landing in Neo-Brutalism — but nothing is written to storage, so the next
- * fresh load is light Hand-Drawn / Grotesk again. **Reset to default** returns
- * to that site look, and it is present exactly while any axis is off it.
+ * landing in Neo-Brutalism — kept in this tab's sessionStorage only, so a new
+ * tab or a reload is a new visit, which lands on a random style
+ * (`LANDING_STYLES`, `lib/siteDefaults.ts`). **Reset to default** returns to
+ * the style this visit landed on, and it is present exactly while any axis is
+ * off it.
  */
 export function DesignShowcase() {
   /*

@@ -2,8 +2,11 @@ import { readFileSync } from 'node:fs'
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
+  LANDING_STYLES,
+  LANDING_STYLE_EXCLUDED,
   SITE_APPEARANCE,
   VISIT_APPEARANCE_KEY,
+  VISIT_LANDING_KEY,
   appearanceHeadScript,
   siteAppearanceAttributes,
   visitAppearanceScript,
@@ -58,15 +61,15 @@ describe('a /design pick across document loads', () => {
     expect(html.getAttribute('data-cjk-ja')).toBe('noto-serif-jp')
   })
 
-  it('is forgotten on a reload', () => {
+  it('is forgotten on a reload, which lands as a new visit', () => {
     const { result } = renderHook(() => useVisitAppearance())
     act(() => result.current.setStyleId('neo-brutalism'))
 
     servedPage()
     navigation('reload')
+    vi.spyOn(Math, 'random').mockReturnValue(0)
     new Function(visitAppearanceScript)()
-    expect(html.getAttribute('data-style')).toBe(SITE_APPEARANCE.style)
-    expect(window.sessionStorage.getItem(VISIT_APPEARANCE_KEY)).toBeNull()
+    expect(html.getAttribute('data-style')).toBe(LANDING_STYLES[0])
   })
 
   it('leaves storage empty after Reset', () => {
@@ -98,5 +101,88 @@ describe('a /design pick across document loads', () => {
     expect(readFileSync('worker/render/document.tsx', 'utf8')).toMatch(
       /\$\{appearanceHeadScript\}/,
     )
+  })
+})
+
+describe('a new visit', () => {
+  it('lands on a random style and keeps it for the visit', () => {
+    navigation('navigate')
+    vi.spyOn(Math, 'random').mockReturnValue(0.5)
+    new Function(visitAppearanceScript)()
+    const style = LANDING_STYLES[Math.floor(0.5 * LANDING_STYLES.length)]!
+    expect(html.getAttribute('data-style')).toBe(style)
+    expect(html.getAttribute('data-theme')).toBe(SITE_APPEARANCE.pattern)
+    expect(html.getAttribute('data-palette')).toBe(SITE_APPEARANCE.palette)
+
+    // The next page replays the same style instead of drawing again.
+    servedPage()
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    new Function(visitAppearanceScript)()
+    expect(html.getAttribute('data-style')).toBe(style)
+    expect(
+      JSON.parse(window.sessionStorage.getItem(VISIT_LANDING_KEY)!).styleId,
+    ).toBe(style)
+  })
+
+  it('never lands on an excluded style', () => {
+    expect(LANDING_STYLE_EXCLUDED).toEqual([
+      'retrofuturism',
+      'high-contrast-accessible',
+      'cybercore-y2k',
+      'art-deco',
+      'memphis',
+      '3d-immersive',
+    ])
+    navigation('navigate')
+    const seen = new Set<string>()
+    for (let i = 0; i < LANDING_STYLES.length; i++) {
+      window.sessionStorage.clear()
+      vi.spyOn(Math, 'random').mockReturnValue(
+        (i + 0.5) / LANDING_STYLES.length,
+      )
+      new Function(visitAppearanceScript)()
+      seen.add(html.getAttribute('data-style')!)
+    }
+    expect([...seen].sort()).toEqual([...LANDING_STYLES].sort())
+    for (const id of LANDING_STYLE_EXCLUDED) expect(seen.has(id)).toBe(false)
+  })
+
+  it('keeps the served style for an automated browser', () => {
+    navigation('navigate')
+    Object.defineProperty(navigator, 'webdriver', {
+      value: true,
+      configurable: true,
+    })
+    try {
+      new Function(visitAppearanceScript)()
+    } finally {
+      Reflect.deleteProperty(navigator, 'webdriver')
+    }
+    expect(html.getAttribute('data-style')).toBe(SITE_APPEARANCE.style)
+    expect(window.sessionStorage.getItem(VISIT_APPEARANCE_KEY)).toBeNull()
+  })
+
+  it('makes the landing style what /design starts from and resets to', async () => {
+    window.sessionStorage.setItem(
+      VISIT_LANDING_KEY,
+      JSON.stringify({
+        pattern: 'light',
+        styleId: 'bento',
+        palette: SITE_APPEARANCE.palette,
+        pinnedType: null,
+        cjkFaces: {},
+      }),
+    )
+    vi.resetModules()
+    const fresh = await import('@/lib/useVisitAppearance')
+    const { result } = renderHook(() => fresh.useVisitAppearance())
+    expect(result.current.styleId).toBe('bento')
+    expect(result.current.offDefault).toBe(false)
+
+    act(() => result.current.setStyleId('aurora'))
+    expect(result.current.offDefault).toBe(true)
+    act(() => result.current.reset())
+    expect(result.current.styleId).toBe('bento')
+    expect(html.getAttribute('data-style')).toBe('bento')
   })
 })
