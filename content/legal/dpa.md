@@ -1,6 +1,6 @@
 ---
 title: Data Processing Agreement
-version: 1.0.0
+version: 1.1.0
 effectiveDate: TBD
 status: approved
 ---
@@ -100,9 +100,10 @@ You give **general written authorisation** for moooon B.V. to engage subprocesso
 The current list, with each subprocessor's purpose and location, is published at
 `/legal/subprocessors` and kept current. **We will update that page before a new
 subprocessor begins processing Customer Data.** You may object on reasonable
-data-protection grounds within thirty days of an addition; if we cannot accommodate the
-objection, you may terminate the affected part of the service and receive a pro-rata
-refund of prepaid fees.
+data-protection grounds within thirty days of an addition, or of a change to an existing
+subprocessor's purposes, the Customer Data it reaches or where it processes it; if we
+cannot accommodate the objection, you may terminate the affected part of the service and
+receive a pro-rata refund of prepaid fees.
 
 Each subprocessor is bound by data-protection obligations no less protective than those
 in this agreement, and moooon B.V. remains fully liable to you for their performance.
@@ -115,12 +116,15 @@ transfer** and needs no Chapter V mechanism between the two of us. This clause i
 what happens after that.
 
 **Several of our subprocessors are established outside the EEA**, predominantly in the
-United States. Those onward transfers are ours to make lawful, not yours. For each one we
-hold a mechanism permitted by Chapter V of the GDPR — the recipient's certification under
-the **EU–US Data Privacy Framework**, or the **Standard Contractual Clauses, Module 3
+United States. Those onward transfers are ours to make lawful, not yours. Where we hold a
+mechanism permitted by Chapter V of the GDPR, it is the recipient's certification under the
+**EU–US Data Privacy Framework**, or the **Standard Contractual Clauses, Module 3
 (processor to sub-processor)**, which is the correct module where we act as your
-processor. **The mechanism relied on for each subprocessor is published, company by
-company, at [/legal/subprocessors](/legal/subprocessors).**
+processor. Where we hold none, the list says so on that subprocessor's row, and Customer
+Data reaches that subprocessor only when you choose it — an AI model you select, or an
+integration you connect — never through Motir's own defaults. **The mechanism relied on
+for each subprocessor, or its absence, is published, company by company, at
+[/legal/subprocessors](/legal/subprocessors).**
 
 We remain fully liable to you for those subprocessors' performance (§6).
 
@@ -153,7 +157,7 @@ moooon B.V.'s supervisory authority is the **Autoriteit Persoonsgegevens** (Neth
 > unconditionally, as though the customer-to-moooon transfer were itself restricted. It is
 > not — we are EEA-established — and the module that actually carries the risk here is
 > **Module 3**, between us and each non-EEA subprocessor. The per-vendor bases behind that
-> are published and one row remains open.
+> are published, and the rows still open are named there.
 
 ## 8. Assistance to the controller
 
