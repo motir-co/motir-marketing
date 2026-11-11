@@ -1945,7 +1945,7 @@
       "zones": {
         "outside": "Buiten",
         "public": "Publiek · internet, TLS",
-        "private": "Privé · privénetwerk Fly",
+        "private": "Privé · AWS-VPC",
         "fleet": "Vloot · machines op aanvraag",
         "data": "Data"
       },

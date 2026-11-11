@@ -4,9 +4,9 @@ import { parseAiOrigin } from '@/lib/aiOrigin'
 /* The motir-ai origin /price reads (MOTIR-8382): an origin or null, never a throw. */
 describe('parseAiOrigin', () => {
   it.each([
-    ['https://motir-ai.fly.dev', 'https://motir-ai.fly.dev'],
+    ['https://ai.example', 'https://ai.example'],
     [' http://127.0.0.1:4319 ', 'http://127.0.0.1:4319'],
-    ['https://motir-ai.fly.dev/', 'https://motir-ai.fly.dev'],
+    ['https://ai.example/', 'https://ai.example'],
   ])('reads %j as an origin', (raw, origin) => {
     expect(parseAiOrigin(raw)).toBe(origin)
   })
@@ -15,7 +15,7 @@ describe('parseAiOrigin', () => {
     undefined,
     '',
     'not a url',
-    'ftp://motir-ai.fly.dev',
+    'ftp://ai.example',
     'https://a.example/v1',
     'https://a.example/?x=1',
     'https://a.example/#x',

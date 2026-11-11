@@ -1960,7 +1960,7 @@
       "zones": {
         "outside": "Fora",
         "public": "Público · internet, TLS",
-        "private": "Privado · rede privada Fly",
+        "private": "Privado · VPC da AWS",
         "fleet": "Frota · máquinas sob demanda",
         "data": "Dados"
       },

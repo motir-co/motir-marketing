@@ -1908,7 +1908,7 @@
       "zones": {
         "outside": "外部",
         "public": "公用網路 · 網際網路，TLS",
-        "private": "私有網路 · Fly 私有網路",
+        "private": "私有網路 · AWS VPC",
         "fleet": "叢集 · 按需啟動的機器",
         "data": "資料"
       },

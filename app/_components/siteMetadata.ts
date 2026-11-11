@@ -24,8 +24,9 @@ import type { Locale } from '@/i18n/routing'
  * ⚠️ EVALUATED AT BUILD TIME, because this is a static export on a statically
  * rendered route. That is correct for every value here — `SITE_ORIGIN` is a
  * `PUBLIC_*` constant and the catalogue is a compiled-in import — but it
- * is also why the verification variable below must be a BUILD arg if it is ever
- * set, never a Fly secret. Same rule, and same reason, as
+ * is also why the verification variable below must be set in the BUILD's
+ * environment on the runner if it is ever set, never on the deployed Worker.
+ * Same rule, and same reason, as
  * `PUBLIC_MOTIR_APP_ORIGIN`.
  */
 /*

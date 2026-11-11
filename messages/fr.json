@@ -1965,7 +1965,7 @@
       "zones": {
         "outside": "Extérieur",
         "public": "Public · internet, TLS",
-        "private": "Privé · réseau privé Fly",
+        "private": "Privé · VPC AWS",
         "fleet": "Flotte · machines à la volée",
         "data": "Données"
       },

@@ -1953,7 +1953,7 @@
       "zones": {
         "outside": "Außerhalb",
         "public": "Öffentlich · Internet, TLS",
-        "private": "Privat · privates Fly-Netz",
+        "private": "Privat · AWS-VPC",
         "fleet": "Flotte · Maschinen bei Bedarf",
         "data": "Daten"
       },

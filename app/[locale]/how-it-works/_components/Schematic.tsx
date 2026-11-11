@@ -12,8 +12,8 @@ import { useCanvas } from './canvas'
  *  • ink says what travels on a wire — MCP (orange: your agent), HTTP, a
  *    stream (SSE / WebSocket), a database or object-store line, or the design
  *    system arriving at build time;
- *  • a dashed wire stays on Fly's private network, a solid one crosses the
- *    public internet over TLS;
+ *  • a dashed wire stays inside the private network (the AWS VPC), a solid
+ *    one crosses the public internet over TLS;
  *  • the arrowhead points away from the caller; a wire with two heads carries
  *    traffic both ways (a WebSocket, a webhook answered by API calls).
  * Where two wires cross without a dot they are not connected.
@@ -906,7 +906,7 @@ export function Schematic() {
         both
       />
 
-      {/* The worker boots the fleet through the Fly Machines API. */}
+      {/* The worker boots the fleet through the AWS EC2 API. */}
       <Wire
         pts={[
           [755, 420],

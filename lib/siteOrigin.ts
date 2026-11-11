@@ -23,9 +23,10 @@
  * ⚠️ `PUBLIC_` BECAUSE IT IS READ AT BUILD TIME. Every consumer here is
  * statically rendered (root metadata, `sitemap.ts`, `robots.ts`), so the value
  * is baked into the output by `astro build` exactly as `PUBLIC_*` is —
- * setting it as a Fly SECRET would do nothing, for the same reason
- * `.env.example` already gives for the app origin. It travels in `fly.toml`'s
- * `[build.args]` if it is ever overridden.
+ * setting it on the deployed Worker would do nothing, for the same reason
+ * `.env.example` already gives for the app origin. If it is ever overridden,
+ * it is set in the build's environment on the runner (CI's workflow-level
+ * `env`).
  */
 
 export const SITE_ORIGIN_ENV_VAR = 'PUBLIC_MOTIR_SITE_ORIGIN'

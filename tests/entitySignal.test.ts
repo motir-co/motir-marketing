@@ -25,7 +25,7 @@ import { LOCALE_BCP47, LOCALES } from '@/i18n/routing'
  * and names an absolute sitemap, that the sitemap lists the site's own URL, and
  * that the committed logomark is still the mark `@motir/brand` draws. They say
  * NOTHING about `https://motir.co/robots.txt` or `https://motir.co/sitemap.xml`,
- * which are served by the Fly deployment and only change when `main` is merged
+ * which are served by the deployed Worker and only change when `main` is merged
  * and released. Those two acceptance criteria are read live, against the
  * deployed host, and no test in this repository can stand in for them.
  */
