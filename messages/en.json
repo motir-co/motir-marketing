@@ -1939,7 +1939,7 @@
       "zones": {
         "outside": "Outside",
         "public": "Public · internet, TLS",
-        "private": "Private · Fly private network",
+        "private": "Private · AWS VPC",
         "fleet": "Fleet · machines booted on demand",
         "data": "Data"
       },

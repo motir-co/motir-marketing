@@ -9,7 +9,7 @@ import { MAX_IDEA_LENGTH, handOffIdea } from '@/lib/ideaHandoff'
  *
  * Every failure arm below is a real answer that route can give — 403
  * ORIGIN_NOT_ALLOWED, 429 RATE_LIMITED, 400 BAD_REQUEST — plus the network
- * throw a cross-origin POST between two Fly apps can always produce.
+ * throw a cross-origin POST between two origins can always produce.
  */
 const ORIGIN = 'https://app.test.motir.co'
 

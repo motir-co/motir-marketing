@@ -1948,7 +1948,7 @@
       "zones": {
         "outside": "Esterno",
         "public": "Pubblico · internet, TLS",
-        "private": "Privato · rete privata Fly",
+        "private": "Privato · VPC AWS",
         "fleet": "Flotta · macchine avviate su richiesta",
         "data": "Dati"
       },

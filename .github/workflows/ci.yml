@@ -84,14 +84,16 @@ env:
   # motir-ai's public origin (MOTIR-8382), for /price — the release builds
   # with it too. The browser lane points it at the stub instead.
   #
-  # It reads the repository variable MOTIR_AI_ORIGIN, defaulting to today's Fly
-  # name, so with the variable unset nothing about the build changes
-  # (MOTIR-10276). `motir-ai.fly.dev` is Fly's name and cannot follow DNS: after
-  # the AWS cutover calls go, the person running the window sets
-  # `MOTIR_AI_ORIGIN=https://ai.motir.co` on this repository and runs a release
-  # (a push to main, or a re-run of this workflow on main). The decommission
-  # removes the Fly default.
-  PUBLIC_MOTIR_AI_ORIGIN: ${{ vars.MOTIR_AI_ORIGIN || 'https://motir-ai.fly.dev' }}
+  # It reads the repository variable MOTIR_AI_ORIGIN, the override (MOTIR-10276),
+  # and falls back to the Motir-owned origin `https://ai.motir.co` when it is
+  # unset, so the default build already reaches production motir-ai
+  # (MOTIR-10938). A fallback is kept so that an unset variable is never an
+  # unset origin: `lib/aiOrigin.ts` reads a missing origin as null, and the
+  # pages built from the plan ladder (/price, /how-the-calculation-works) then
+  # stop the build rather than ship without figures (MOTIR-10644). Set
+  # MOTIR_AI_ORIGIN only to point a release somewhere else, then run a release
+  # (a push to main, or a re-run of this workflow on main).
+  PUBLIC_MOTIR_AI_ORIGIN: ${{ vars.MOTIR_AI_ORIGIN || 'https://ai.motir.co' }}
 
 jobs:
   lint:

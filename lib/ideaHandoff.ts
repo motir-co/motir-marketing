@@ -64,7 +64,7 @@ export async function handOffIdea(
 
     return { ok: true, href: signInWithDraft(draftId) }
   } catch {
-    // A cross-origin POST between two Fly apps fails for reasons that have
+    // A cross-origin POST between two origins fails for reasons that have
     // nothing to do with the visitor — CORS, a cold machine, a network blip —
     // at the exact moment they have typed the most valuable thing they will
     // type all session. The caller keeps their text and draws the banner.

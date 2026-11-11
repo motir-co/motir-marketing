@@ -1291,7 +1291,7 @@
   "howItWorks.schematic.sub": "Inside the modules",
   "howItWorks.schematic.zones.outside": "Outside",
   "howItWorks.schematic.zones.public": "Public · internet, TLS",
-  "howItWorks.schematic.zones.private": "Private · Fly private network",
+  "howItWorks.schematic.zones.private": "Private · AWS VPC",
   "howItWorks.schematic.zones.fleet": "Fleet · machines booted on demand",
   "howItWorks.schematic.zones.data": "Data",
   "howItWorks.schematic.legend.title": "Signal lines",

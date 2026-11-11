@@ -1944,7 +1944,7 @@
       "zones": {
         "outside": "外部",
         "public": "公開 · ネット、TLS",
-        "private": "非公開 · Fly 内部網",
+        "private": "非公開 · AWS VPC",
         "fleet": "フリート · 必要時に起動",
         "data": "データ"
       },

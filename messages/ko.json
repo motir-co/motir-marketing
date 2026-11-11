@@ -1914,7 +1914,7 @@
       "zones": {
         "outside": "외부",
         "public": "공개 · 인터넷, TLS",
-        "private": "비공개 · Fly 사설망",
+        "private": "비공개 · AWS VPC",
         "fleet": "플릿 · 필요 시 부팅",
         "data": "데이터"
       },
