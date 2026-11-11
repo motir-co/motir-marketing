@@ -1,6 +1,6 @@
 ---
 title: Model providers
-version: 1.0.3
+version: 1.0.4
 effectiveDate: TBD
 status: approved
 ---
@@ -38,8 +38,10 @@ one is doing what — particularly because two of them are usable without the ot
 
 **None of the three is a subprocessor of the others.** A subprocessor is a _third party_
 a processor engages. All three are moooon B.V., so naming them on a subprocessor list
-would list a company to itself. What they run **on** — Fly.io — is a subprocessor, and
-it is named on the [subprocessor list](/legal/subprocessors).
+would list a company to itself. What they run **on** — Amazon Web Services — is a
+subprocessor, and it is named on the [subprocessor list](/legal/subprocessors).
+**⚠️ Updated 2026-11-11:** this sentence used to name Fly.io, which hosted the three
+products until they moved to Amazon Web Services.
 
 ### What motir-gateway does with your prompt
 
