@@ -1,8 +1,8 @@
 ---
-source: e9b75788dc66
+source: 9091e5e2f59e
 ---
 
-La Motir CLI parla con lo stesso server MCP usato dagli agenti ospitati. Automatizza il ciclo di pianificazione ed esecuzione con un token legato a un’area di lavoro: un’esecuzione prende il prossimo elemento di lavoro pronto, recupera il prompt generato dal server e avvia un agente in una sandbox per eseguirlo. L’elemento di lavoro è il sistema di riferimento; la CLI è chi lo porta avanti.
+La Motir CLI parla con lo stesso server MCP usato dall’agente Motir. Automatizza il ciclo di pianificazione ed esecuzione con un token legato a un’area di lavoro: un’esecuzione prende il prossimo elemento di lavoro pronto, recupera il prompt generato dal server e avvia un agente in una sandbox per eseguirlo. L’elemento di lavoro è il sistema di riferimento; la CLI è chi lo porta avanti.
 
 {{part:meta}}
 

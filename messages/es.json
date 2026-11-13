@@ -176,7 +176,7 @@
       },
       "agentFleet": {
         "name": "Flota de agentes Motir",
-        "blurb": "Agentes alojados que trabajan tu plan en paralelo"
+        "blurb": "El agente Motir trabaja tu plan en paralelo"
       },
       "agentHosting": {
         "name": "Alojamiento de agentes Motir",
@@ -1572,9 +1572,9 @@
       }
     },
     "agentFleet": {
-      "metaDescription": "Los agentes alojados de Motir trabajan a la vez todos los elementos listos de tu plan, cada uno en su propia máquina y con un modelo adecuado para la tarea. Lánzalos tú o deja que el Gestor de proyectos Motir los mantenga ocupados.",
+      "metaDescription": "El agente Motir trabaja a la vez todos los elementos listos de tu plan, cada uno en su propia máquina y con un modelo adecuado para la tarea. Lánzalo tú o deja que el Gestor de proyectos Motir lo mantenga ocupado.",
       "headline": "Todo tu plan, trabajado en paralelo.",
-      "lede": "Los agentes alojados de Motir toman cada elemento de trabajo que está listo y los trabajan a la vez, cada uno en una máquina nueva con su propia rama y su propia pull request. Lánzalos tú o deja que el Gestor de proyectos Motir los mantenga ocupados, y el proyecto avanza en todos los frentes a la vez.",
+      "lede": "El agente Motir toma cada elemento de trabajo que está listo y los trabaja todos a la vez, cada uno en una máquina nueva con su propia rama y su propia pull request. Lánzalo tú o deja que el Gestor de proyectos Motir lo mantenga ocupado, y el proyecto avanza en todos los frentes a la vez.",
       "parallel": {
         "eyebrow": "Escala",
         "headline": "Una máquina para cada elemento de trabajo listo",
@@ -2191,7 +2191,7 @@
         "paras": [
           "Un agente toma el siguiente elemento de trabajo listo (`motir next` o `motir run <KEY>`), lo reclama, construye en su propia rama y abre una pull request por repositorio, vinculada al elemento de trabajo.",
           "Un error que encuentre fuera de su propio elemento de trabajo no detiene la ejecución: el agente averigua su causa raíz, lo registra con `motir log bug` en la carpeta Errores como un elemento de trabajo propio y sigue adelante.",
-          "Cada ejecución registra el harness del agente, el modelo, cada paso y el resultado. Los agentes se conectan por MCP, en tu máquina o con los agentes alojados de Motir."
+          "Cada ejecución registra el harness del agente, el modelo, cada paso y el resultado. Los agentes se conectan por MCP, en tu máquina o en el agente Motir."
         ]
       },
       {

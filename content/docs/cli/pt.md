@@ -1,8 +1,8 @@
 ---
-source: e9b75788dc66
+source: 9091e5e2f59e
 ---
 
-A Motir CLI conversa com o mesmo servidor MCP que os agentes hospedados usam. Ela automatiza o ciclo de planejamento e execução com um token restrito a um espaço de trabalho: uma execução pega o próximo item de trabalho pronto, busca o prompt gerado pelo servidor e despacha um agente em um sandbox para executá-lo. O item de trabalho é o sistema de registro; a CLI é quem conduz.
+A Motir CLI conversa com o mesmo servidor MCP que o agente Motir usa. Ela automatiza o ciclo de planejamento e execução com um token restrito a um espaço de trabalho: uma execução pega o próximo item de trabalho pronto, busca o prompt gerado pelo servidor e despacha um agente em um sandbox para executá-lo. O item de trabalho é o sistema de registro; a CLI é quem conduz.
 
 {{part:meta}}
 

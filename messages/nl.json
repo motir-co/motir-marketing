@@ -176,7 +176,7 @@
       },
       "agentFleet": {
         "name": "Motir Agentenvloot",
-        "blurb": "Gehoste agents die je plan parallel uitvoeren"
+        "blurb": "De Motir-agent voert je plan parallel uit"
       },
       "agentHosting": {
         "name": "Motir Agenthosting",
@@ -1557,9 +1557,9 @@
       }
     },
     "agentFleet": {
-      "metaDescription": "De gehoste agents van Motir werken alle gereedstaande items van je plan tegelijk af, elk op een eigen machine met een model dat bij de taak past. Start ze zelf of laat Motir Projectmanager ze aan het werk houden.",
+      "metaDescription": "De Motir-agent werkt alle gereedstaande items van je plan tegelijk af, elk op een eigen machine met een model dat bij de taak past. Start hem zelf of laat Motir Projectmanager hem aan het werk houden.",
       "headline": "Je hele plan, parallel uitgevoerd.",
-      "lede": "De gehoste agents van Motir pakken elk werkitem dat gereed is en werken ze tegelijk af, elk op een nieuwe machine met een eigen branch en pull request. Start ze zelf, of laat Motir Projectmanager ze aan het werk houden, en het project schiet op alle fronten tegelijk op.",
+      "lede": "De Motir-agent pakt elk werkitem dat gereed is en werkt ze tegelijk af, elk op een nieuwe machine met een eigen branch en pull request. Start hem zelf, of laat Motir Projectmanager hem aan het werk houden, en het project schiet op alle fronten tegelijk op.",
       "parallel": {
         "eyebrow": "Schaal",
         "headline": "Eén machine voor elk gereed werkitem",
@@ -2176,7 +2176,7 @@
         "paras": [
           "Een agent pakt het volgende gerede werkitem (`motir next` of `motir run <KEY>`), claimt het, bouwt op een eigen branch en opent één pull request per repository, gekoppeld aan het werkitem.",
           "Een bug die hij buiten zijn eigen werkitem vindt, houdt de run niet tegen: de agent zoekt de oorzaak, legt hem met `motir log bug` vast in de map Bugs als eigen werkitem en gaat door.",
-          "Elke run legt de agent-harness, het model, elke stap en de uitkomst vast. Agents verbinden via MCP, op je eigen machine of als gehoste agents van Motir."
+          "Elke run legt de agent-harness, het model, elke stap en de uitkomst vast. Agents verbinden via MCP, op je eigen machine of in de Motir-agent."
         ]
       },
       {

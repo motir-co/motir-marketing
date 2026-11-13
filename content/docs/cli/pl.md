@@ -1,8 +1,8 @@
 ---
-source: e9b75788dc66
+source: 9091e5e2f59e
 ---
 
-Motir CLI komunikuje się z tym samym serwerem MCP, z którego korzystają agenci hostowani. Automatyzuje pętlę planowania i wykonywania na tokenie przypisanym do obszaru roboczego: uruchomienie przejmuje następny gotowy element roboczy, pobiera wygenerowany przez serwer prompt i przekazuje agenta w piaskownicy, by go wykonał. Systemem źródłowym jest element roboczy; CLI jest tylko kierowcą.
+Motir CLI komunikuje się z tym samym serwerem MCP, z którego korzysta agent Motir. Automatyzuje pętlę planowania i wykonywania na tokenie przypisanym do obszaru roboczego: uruchomienie przejmuje następny gotowy element roboczy, pobiera wygenerowany przez serwer prompt i przekazuje agenta w piaskownicy, by go wykonał. Systemem źródłowym jest element roboczy; CLI jest tylko kierowcą.
 
 {{part:meta}}
 

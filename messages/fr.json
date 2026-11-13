@@ -176,7 +176,7 @@
       },
       "agentFleet": {
         "name": "Flotte d’agents Motir",
-        "blurb": "Des agents hébergés qui exécutent votre plan en parallèle"
+        "blurb": "L’agent Motir exécute votre plan en parallèle"
       },
       "agentHosting": {
         "name": "Hébergement d’agents Motir",
@@ -1577,9 +1577,9 @@
       }
     },
     "agentFleet": {
-      "metaDescription": "Les agents hébergés de Motir travaillent en même temps sur chaque élément prêt de votre plan, chacun sur sa propre machine, avec un modèle adapté à la tâche. Lancez-les vous-même, ou laissez le Chef de projet Motir les occuper.",
+      "metaDescription": "L’agent Motir travaille en même temps sur chaque élément prêt de votre plan, chacun sur sa propre machine, avec un modèle adapté à la tâche. Lancez-le vous-même, ou laissez le Chef de projet Motir l’occuper.",
       "headline": "Tout votre plan, exécuté en parallèle.",
-      "lede": "Les agents hébergés de Motir prennent chaque élément de travail prêt et les traitent en même temps, chacun sur une machine neuve avec sa propre branche et sa propre pull request. Lancez-les vous-même, ou laissez le Chef de projet Motir les occuper, et le projet avance sur tous les fronts à la fois.",
+      "lede": "L’agent Motir prend chaque élément de travail prêt et les traite tous en même temps, chacun sur une machine neuve avec sa propre branche et sa propre pull request. Lancez-le vous-même, ou laissez le Chef de projet Motir l’occuper, et le projet avance sur tous les fronts à la fois.",
       "parallel": {
         "eyebrow": "Échelle",
         "headline": "Une machine pour chaque élément de travail prêt",
@@ -2200,7 +2200,7 @@
         "paras": [
           "Un agent prend le prochain élément de travail prêt (`motir next` ou `motir run <KEY>`), le réserve, construit sur sa propre branche et ouvre une pull request par dépôt, liée à l’élément de travail.",
           "Un bug trouvé en dehors de son propre élément de travail n’arrête pas l’exécution : l’agent en cherche la cause, le consigne avec `motir log bug` dans le dossier Bugs comme élément de travail à part entière, et continue.",
-          "Chaque exécution enregistre le harnais de l’agent, le modèle, chaque étape et le résultat. Les agents se connectent via MCP, sur votre machine ou via les agents hébergés de Motir."
+          "Chaque exécution enregistre le harnais de l’agent, le modèle, chaque étape et le résultat. Les agents se connectent via MCP, sur votre machine ou dans l’agent Motir."
         ]
       },
       {

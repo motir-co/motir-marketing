@@ -1,8 +1,8 @@
 ---
-source: c9e99622f03a
+source: 2aa432672926
 ---
 
-O Motir expõe um servidor do Model Context Protocol — um único endpoint HTTP com streaming, que agentes e a CLI chamam para ler e conduzir o núcleo de gestão de projetos. É a mesma superfície que os agentes hospedados usam para executar um plano. Adicioná-lo ao Claude exige um único login e nenhum token; qualquer outro cliente, ou um pipeline, se conecta com um token em três passos.
+O Motir expõe um servidor do Model Context Protocol — um único endpoint HTTP com streaming, que agentes e a CLI chamam para ler e conduzir o núcleo de gestão de projetos. É a mesma superfície que o agente Motir usa para executar um plano. Adicioná-lo ao Claude exige um único login e nenhum token; qualquer outro cliente, ou um pipeline, se conecta com um token em três passos.
 
 ## Adicione o Motir ao Claude {#claude}
 

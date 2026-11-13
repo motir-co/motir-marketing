@@ -1,8 +1,8 @@
 ---
-source: c9e99622f03a
+source: 2aa432672926
 ---
 
-Motir stellt einen Model-Context-Protocol-Server bereit – einen Streamable-HTTP-Endpunkt, den Agenten und die CLI aufrufen, um den Projektmanagement-Kern zu lesen und zu steuern. Es ist dieselbe Schnittstelle, die die gehosteten Agenten nutzen, um einen Plan auszuführen. Ihn zu Claude hinzuzufügen erfordert eine Anmeldung und kein Token; jeder andere Client und jede Pipeline verbindet sich in drei Schritten mit einem Token.
+Motir stellt einen Model-Context-Protocol-Server bereit – einen Streamable-HTTP-Endpunkt, den Agenten und die CLI aufrufen, um den Projektmanagement-Kern zu lesen und zu steuern. Es ist dieselbe Schnittstelle, die der Motir-Agent nutzt, um einen Plan auszuführen. Ihn zu Claude hinzuzufügen erfordert eine Anmeldung und kein Token; jeder andere Client und jede Pipeline verbindet sich in drei Schritten mit einem Token.
 
 ## Motir zu Claude hinzufügen {#claude}
 

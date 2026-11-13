@@ -1,8 +1,8 @@
 ---
-source: e9b75788dc66
+source: 9091e5e2f59e
 ---
 
-De Motir CLI praat met dezelfde MCP-server die de gehoste agents gebruiken. Hij automatiseert de plannings- en uitvoeringslus op een token dat aan een werkruimte is gebonden: een run claimt het volgende gereed werkitem, haalt de door de server gegenereerde prompt op en stuurt een agent in een sandbox aan om het uit te voeren. Het werkitem is het systeem van record; de CLI is de aandrijver.
+De Motir CLI praat met dezelfde MCP-server die de Motir-agent gebruikt. Hij automatiseert de plannings- en uitvoeringslus op een token dat aan een werkruimte is gebonden: een run claimt het volgende gereed werkitem, haalt de door de server gegenereerde prompt op en stuurt een agent in een sandbox aan om het uit te voeren. Het werkitem is het systeem van record; de CLI is de aandrijver.
 
 {{part:meta}}
 

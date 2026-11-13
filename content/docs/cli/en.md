@@ -1,4 +1,4 @@
-The Motir CLI talks to the same MCP server the hosted agents use. It automates the planning-and-execution loop over a workspace-scoped token: a run claims the next ready work item, fetches the server-generated prompt, and dispatches an agent in a sandbox to execute it. The work item is the system of record; the CLI is the driver.
+The Motir CLI talks to the same MCP server Motir agent uses. It automates the planning-and-execution loop over a workspace-scoped token: a run claims the next ready work item, fetches the server-generated prompt, and dispatches an agent in a sandbox to execute it. The work item is the system of record; the CLI is the driver.
 
 {{part:meta}}
 

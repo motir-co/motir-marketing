@@ -176,7 +176,7 @@
       },
       "agentFleet": {
         "name": "Motir Agent Fleet",
-        "blurb": "Hosted agents that work your plan in parallel"
+        "blurb": "Motir agent works your plan in parallel"
       },
       "agentHosting": {
         "name": "Motir Agent Hosting",
@@ -1551,9 +1551,9 @@
       }
     },
     "agentFleet": {
-      "metaDescription": "Motir's hosted agents work every ready item of your plan at once, each on its own machine with a model that fits the job. Start them yourself or let Motir Project Manager keep them busy.",
+      "metaDescription": "Motir agent works every ready item of your plan at once, each on its own machine with a model that fits the job. Start it yourself or let Motir Project Manager keep it busy.",
       "headline": "Your whole plan, worked in parallel.",
-      "lede": "Motir's hosted agents take every work item that is ready and work them at the same time, each on a fresh machine with its own branch and pull request. Start them yourself, or let Motir Project Manager keep them busy, and the project moves on every front at once.",
+      "lede": "Motir agent takes every work item that is ready and works them all at the same time, each on a fresh machine with its own branch and pull request. Start it yourself, or let Motir Project Manager keep it busy, and the project moves on every front at once.",
       "parallel": {
         "eyebrow": "Scale",
         "headline": "One machine for every ready work item",
@@ -2166,7 +2166,7 @@
         "paras": [
           "An agent takes the next ready work item (`motir next` or `motir run <KEY>`), claims it, builds on its own branch and opens one pull request per repository, linked to the work item.",
           "A bug it finds outside its own work item doesn't stop the run: the agent root-causes it, files it with `motir log bug` into the Bugs folder as a work item of its own, and keeps going.",
-          "Each run records the agent harness, the model, every step and the outcome. Agents connect over MCP, on your machine or Motir's hosted agents."
+          "Each run records the agent harness, the model, every step and the outcome. Agents connect over MCP, on your machine or in Motir agent."
         ]
       },
       {

@@ -1,8 +1,8 @@
 ---
-source: e9b75788dc66
+source: 9091e5e2f59e
 ---
 
-Die Motir-CLI spricht mit demselben MCP-Server wie die gehosteten Agenten. Sie automatisiert die Schleife aus Planung und Ausführung über ein auf einen Arbeitsbereich beschränktes Token: Ein Lauf beansprucht das nächste bereite Arbeitselement, ruft den vom Server erzeugten Prompt ab und startet einen Agenten in einer Sandbox, der es ausführt. Das Arbeitselement ist das führende System; die CLI ist der Antrieb.
+Die Motir-CLI spricht mit demselben MCP-Server wie der Motir-Agent. Sie automatisiert die Schleife aus Planung und Ausführung über ein auf einen Arbeitsbereich beschränktes Token: Ein Lauf beansprucht das nächste bereite Arbeitselement, ruft den vom Server erzeugten Prompt ab und startet einen Agenten in einer Sandbox, der es ausführt. Das Arbeitselement ist das führende System; die CLI ist der Antrieb.
 
 {{part:meta}}
 
