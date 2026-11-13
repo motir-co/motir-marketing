@@ -176,7 +176,7 @@
       },
       "agentFleet": {
         "name": "Motir Agentenflotte",
-        "blurb": "Gehostete Agenten, die Ihren Plan parallel abarbeiten"
+        "blurb": "Der Motir-Agent arbeitet Ihren Plan parallel ab"
       },
       "agentHosting": {
         "name": "Motir Agenten-Hosting",
@@ -1565,9 +1565,9 @@
       }
     },
     "agentFleet": {
-      "metaDescription": "Die gehosteten Agenten von Motir bearbeiten jedes bereite Element Ihres Plans gleichzeitig, jeder auf seiner eigenen Maschine mit einem Modell, das zur Aufgabe passt. Starten Sie sie selbst, oder lassen Sie Motir Projektmanager sie beschäftigt halten.",
+      "metaDescription": "Der Motir-Agent bearbeitet jedes bereite Element Ihres Plans gleichzeitig, jedes auf einer eigenen Maschine mit einem Modell, das zur Aufgabe passt. Starten Sie ihn selbst, oder lassen Sie Motir Projektmanager ihn beschäftigt halten.",
       "headline": "Ihr ganzer Plan, parallel abgearbeitet.",
-      "lede": "Die gehosteten Agenten von Motir nehmen sich jedes Arbeitselement, das bereit ist, und bearbeiten alle gleichzeitig, jedes auf einer frischen Maschine mit eigenem Branch und Pull Request. Starten Sie sie selbst, oder lassen Sie Motir Projektmanager sie beschäftigt halten – und das Projekt kommt an allen Fronten zugleich voran.",
+      "lede": "Der Motir-Agent nimmt sich jedes Arbeitselement, das bereit ist, und bearbeitet alle gleichzeitig, jedes auf einer frischen Maschine mit eigenem Branch und Pull Request. Starten Sie ihn selbst, oder lassen Sie Motir Projektmanager ihn beschäftigt halten – und das Projekt kommt an allen Fronten zugleich voran.",
       "parallel": {
         "eyebrow": "Skalierung",
         "headline": "Eine Maschine für jedes bereite Arbeitselement",
@@ -2180,7 +2180,7 @@
         "paras": [
           "Ein Agent nimmt sich das nächste bereite Arbeitselement (`motir next` oder `motir run <KEY>`), beansprucht es, baut auf seinem eigenen Branch und öffnet einen Pull Request pro Repository, verknüpft mit dem Arbeitselement.",
           "Ein Bug, den er außerhalb seines eigenen Arbeitselements findet, stoppt den Lauf nicht: Der Agent ermittelt die Ursache, erfasst ihn mit `motir log bug` als eigenes Arbeitselement im Bugs-Ordner und macht weiter.",
-          "Jeder Lauf erfasst das Agent-Harness, das Modell, jeden Schritt und das Ergebnis. Agenten verbinden sich über MCP – auf Ihrem Rechner oder als gehostete Agenten von Motir."
+          "Jeder Lauf erfasst das Agent-Harness, das Modell, jeden Schritt und das Ergebnis. Agenten verbinden sich über MCP – auf Ihrem Rechner oder im Motir-Agenten."
         ]
       },
       {

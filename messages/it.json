@@ -176,7 +176,7 @@
       },
       "agentFleet": {
         "name": "Flotta di agenti Motir",
-        "blurb": "Agenti ospitati che lavorano al tuo piano in parallelo"
+        "blurb": "L’agente Motir lavora al tuo piano in parallelo"
       },
       "agentHosting": {
         "name": "Hosting di agenti Motir",
@@ -1560,9 +1560,9 @@
       }
     },
     "agentFleet": {
-      "metaDescription": "Gli agenti in hosting di Motir lavorano contemporaneamente su ogni elemento pronto del tuo piano, ciascuno sulla propria macchina con un modello adatto al compito. Avviali tu oppure lascia che il Responsabile di progetto Motir li tenga occupati.",
+      "metaDescription": "L’agente Motir lavora contemporaneamente su ogni elemento pronto del tuo piano, ciascuno sulla propria macchina con un modello adatto al compito. Avvialo tu oppure lascia che il Responsabile di progetto Motir lo tenga occupato.",
       "headline": "Il tuo intero piano, portato avanti in parallelo.",
-      "lede": "Gli agenti in hosting di Motir prendono ogni elemento di lavoro pronto e ci lavorano contemporaneamente, ciascuno su una macchina nuova con il proprio branch e la propria pull request. Avviali tu, oppure lascia che il Responsabile di progetto Motir li tenga occupati, e il progetto avanza su tutti i fronti insieme.",
+      "lede": "L’agente Motir prende ogni elemento di lavoro pronto e ci lavora contemporaneamente, ciascuno su una macchina nuova con il proprio branch e la propria pull request. Avvialo tu, oppure lascia che il Responsabile di progetto Motir lo tenga occupato, e il progetto avanza su tutti i fronti insieme.",
       "parallel": {
         "eyebrow": "Scalabilità",
         "headline": "Una macchina per ogni elemento di lavoro pronto",
@@ -2179,7 +2179,7 @@
         "paras": [
           "Un agente prende il prossimo elemento di lavoro pronto (`motir next` o `motir run <KEY>`), lo prende in carico, lavora sul proprio branch e apre una pull request per repository, collegata all’elemento di lavoro.",
           "Un Bug trovato al di fuori del proprio elemento di lavoro non ferma l’esecuzione: l’agente ne individua la causa, lo registra con `motir log bug` nella cartella Bug come elemento di lavoro a sé e va avanti.",
-          "Ogni esecuzione registra l’harness dell’agente, il modello, ogni passo e l’esito. Gli agenti si collegano tramite MCP, sulla tua macchina o come agenti in hosting di Motir."
+          "Ogni esecuzione registra l’harness dell’agente, il modello, ogni passo e l’esito. Gli agenti si collegano tramite MCP, sulla tua macchina o nell’agente Motir."
         ]
       },
       {

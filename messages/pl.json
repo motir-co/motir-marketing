@@ -176,7 +176,7 @@
       },
       "agentFleet": {
         "name": "Flota agentów Motir",
-        "blurb": "Hostowani agenci, którzy równolegle realizują Twój plan"
+        "blurb": "Agent Motir realizuje Twój plan równolegle"
       },
       "agentHosting": {
         "name": "Hosting agentów Motir",
@@ -1559,9 +1559,9 @@
       }
     },
     "agentFleet": {
-      "metaDescription": "Hostowani agenci Motir realizują jednocześnie każdy gotowy element Twojego planu, każdy na własnej maszynie, z modelem dopasowanym do zadania. Uruchamiaj ich samodzielnie albo pozwól, by Kierownik projektu Motir zapewniał im pracę.",
+      "metaDescription": "Agent Motir realizuje jednocześnie każdy gotowy element Twojego planu, każdy na własnej maszynie, z modelem dopasowanym do zadania. Uruchamiaj go samodzielnie albo pozwól, by Kierownik projektu Motir zapewniał mu pracę.",
       "headline": "Cały Twój plan, realizowany równolegle.",
-      "lede": "Hostowani agenci Motir biorą każdy gotowy element roboczy i realizują je jednocześnie, każdy na świeżej maszynie, z własną gałęzią i własnym pull requestem. Uruchamiaj ich samodzielnie albo pozwól, by Kierownik projektu Motir zapewniał im pracę, a projekt posuwa się naprzód na wszystkich frontach naraz.",
+      "lede": "Agent Motir bierze każdy gotowy element roboczy i realizuje je jednocześnie, każdy na świeżej maszynie, z własną gałęzią i własnym pull requestem. Uruchamiaj go samodzielnie albo pozwól, by Kierownik projektu Motir zapewniał mu pracę, a projekt posuwa się naprzód na wszystkich frontach naraz.",
       "parallel": {
         "eyebrow": "Skala",
         "headline": "Jedna maszyna na każdy gotowy element roboczy",
@@ -2178,7 +2178,7 @@
         "paras": [
           "Agent bierze kolejny gotowy element roboczy (`motir next` lub `motir run <KEY>`), rezerwuje go, buduje na własnej gałęzi i otwiera jeden pull request na repozytorium, powiązany z elementem roboczym.",
           "Błąd znaleziony poza własnym elementem roboczym nie zatrzymuje uruchomienia: agent ustala jego przyczynę, zapisuje go poleceniem `motir log bug` w folderze Błędy jako osobny element roboczy i pracuje dalej.",
-          "Każde uruchomienie zapisuje środowisko agenta, model, każdy krok i wynik. Agenci łączą się przez MCP — na Twojej maszynie albo jako hostowani agenci Motir."
+          "Każde uruchomienie zapisuje środowisko agenta, model, każdy krok i wynik. Agenci łączą się przez MCP — na Twojej maszynie albo w agencie Motir."
         ]
       },
       {
