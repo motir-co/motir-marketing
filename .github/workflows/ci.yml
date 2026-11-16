@@ -45,6 +45,10 @@ on:
   push:
     branches: [main]
   pull_request:
+    # `ready_for_review` starts the run when a draft is marked ready: the jobs
+    # below skip while the pull request is a draft (saves CI minutes on work in
+    # progress), and without this type nothing would run at that moment.
+    types: [opened, synchronize, reopened, ready_for_review]
   # A new `motir-skills` release re-releases the site (MOTIR-8802): every install
   # command on motir.co names the latest release, resolved at BUILD
   # (`scripts/skills/resolve-release.ts`). `motir-skills`' release workflow can
@@ -98,6 +102,7 @@ env:
 jobs:
   lint:
     name: Lint
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     # The runner is chosen by the MOTIR_RUNNER org variable, which the /admin fleet switch writes
     # (Story MOTIR-8699); unset means GitHub-hosted. Never hard-code a runner label here again.
     runs-on: ${{ vars.MOTIR_RUNNER || 'ubuntu-latest' }}
@@ -115,6 +120,7 @@ jobs:
 
   typecheck:
     name: Typecheck
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ${{ vars.MOTIR_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 10
     steps:
@@ -129,6 +135,7 @@ jobs:
 
   build:
     name: Build
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ${{ vars.MOTIR_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
     steps:
@@ -166,6 +173,7 @@ jobs:
   # by inspection".
   test:
     name: Test
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ${{ vars.MOTIR_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 10
     steps:
@@ -195,6 +203,7 @@ jobs:
   # browser, which is all `chromium.launch()` needs here.
   design-guards:
     name: Design guards
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ${{ vars.MOTIR_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 10
     steps:
@@ -231,6 +240,7 @@ jobs:
   # `--only-shell` takes the headless shell, as `design-guards` above does.
   e2e:
     name: E2E
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ${{ vars.MOTIR_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 20
     steps:
