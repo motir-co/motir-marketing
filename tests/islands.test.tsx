@@ -153,10 +153,12 @@ describe('an island in the browser', () => {
 
   it('hydrates an island written with no props as one with none', async () => {
     const Bare = () => <b>{useCopy().nav.menu}</b>
-    vi.spyOn(ISLANDS, 'HeroWaves').mockResolvedValue(
-      Bare as unknown as Awaited<ReturnType<(typeof ISLANDS)['HeroWaves']>>,
+    vi.spyOn(ISLANDS, 'HeroBackground').mockResolvedValue(
+      Bare as unknown as Awaited<
+        ReturnType<(typeof ISLANDS)['HeroBackground']>
+      >,
     )
-    document.body.innerHTML = `<${ISLAND_TAG} data-island="HeroWaves"><b>${englishCopy.nav.menu}</b></${ISLAND_TAG}>`
+    document.body.innerHTML = `<${ISLAND_TAG} data-island="HeroBackground"><b>${englishCopy.nav.menu}</b></${ISLAND_TAG}>`
     const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
     let roots: Awaited<ReturnType<typeof hydrateIslands>> = []
     await act(async () => {

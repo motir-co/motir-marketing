@@ -4,6 +4,9 @@ import { useState } from 'react'
 import {
   AxisField,
   AxisNote,
+  Background,
+  BACKGROUND_NONE,
+  BACKGROUND_REGISTRY,
   Button,
   Card,
   Combobox,
@@ -23,10 +26,11 @@ import {
   Tooltip,
 } from '@motir/design-system'
 import { RotateCcw } from 'lucide-react'
-import { usePageLocale, useCopy } from '@/lib/copy'
+import { format, usePageLocale, useCopy } from '@/lib/copy'
 import { cjkLangOf, defaultCjkFace } from '@/lib/cjkFaces'
 import { useVisitAppearance } from '@/lib/useVisitAppearance'
 import {
+  BackgroundChips,
   CjkFaceChips,
   PaletteChips,
   StyleChips,
@@ -81,14 +85,14 @@ export function DesignShowcase() {
   return (
     <>
       <AxisRail theme={theme} />
-      <Specimen />
+      <Specimen background={theme.background} />
     </>
   )
 }
 
 /*
  * The rail — a full-width band under the bar: a header row carrying the theme
- * control and Reset, then the three registry axes as stacked `AxisField`s.
+ * control and Reset, then the three registry axes and Background as stacked `AxisField`s.
  *
  * A band rather than a sidebar, and that was measured rather than preferred:
  * Style is ELEVEN chips of real words and Palette is ten with a swatch each,
@@ -250,9 +254,53 @@ function AxisRail({ theme }: { theme: ReturnType<typeof useVisitAppearance> }) {
               </AxisField>
             )}
           </AxisRow>
+
+          {/*
+           * Background (MOTIR-11610, drawn by MOTIR-11603). Its note answers
+           * "does this change with the style?" — the Wave and Topography are
+           * redrawn per style, the other five follow only palette and theme.
+           * It restyles this page's hero only, never `<html>`.
+           */}
+          <AxisRow>
+            <AxisField
+              name={copy.designShowcase.background.name}
+              help={copy.designShowcase.background.help}
+              note={<BackgroundNote theme={theme} />}
+            >
+              <BackgroundChips
+                value={theme.background}
+                onChange={theme.setBackground}
+                label={copy.designShowcase.background.name}
+              />
+            </AxisField>
+          </AxisRow>
         </Card>
       </div>
     </section>
+  )
+}
+
+/** The chosen background's name and tagline, then whether the style redraws it. */
+function BackgroundNote({
+  theme,
+}: {
+  theme: ReturnType<typeof useVisitAppearance>
+}) {
+  const ds = useCopy().designShowcase
+  const id = theme.background
+  if (id === BACKGROUND_NONE) return <>{ds.background.noneNote}</>
+  return (
+    <>
+      <AxisNote
+        name={ds.backgrounds[id].name}
+        tagline={ds.backgrounds[id].tagline}
+      />{' '}
+      {BACKGROUND_REGISTRY[id].followsStyle
+        ? format(ds.background.followsNote, {
+            style: ds.styles[theme.styleId].name,
+          })
+        : ds.background.fixedNote}
+    </>
   )
 }
 
@@ -280,17 +328,33 @@ function AxisRow({ children }: { children: React.ReactNode }) {
  * per style and per palette. Mounting the shipped export is what the asset
  * asks for; it is also the only version that cannot drift from the package.
  */
-function Specimen() {
+function Specimen({
+  background,
+}: {
+  background: ReturnType<typeof useVisitAppearance>['background']
+}) {
   const copy = useCopy()
   return (
     <>
-      <div className="mx-auto max-w-[1080px] px-4 pt-10 pb-4 sm:px-7">
-        <h1 className="mb-3 font-(family-name:--font-serif) text-[28px] leading-[1.1] font-bold tracking-[-0.02em] text-(--el-text) sm:text-[40px]">
-          {copy.designShowcase.heading}
-        </h1>
-        <p className="max-w-[62ch] text-[14.5px] leading-relaxed text-(--el-text-secondary) sm:text-[16px]">
-          {copy.designShowcase.subline}
-        </p>
+      {/*
+       * The page's own hero, with the Background pick drawn live behind it
+       * (MOTIR-11603). The band is full width; the column is the focus the Wave
+       * gathers around and every other background clears behind. `none` draws
+       * no canvas, and the band is then the page colour.
+       */}
+      <div className="relative isolate overflow-hidden bg-(--el-page-bg)">
+        <Background id={background} focusId="design-hero" />
+        <div
+          id="design-hero"
+          className="mx-auto max-w-[1080px] px-4 pt-10 pb-10 sm:px-7"
+        >
+          <h1 className="mb-3 font-(family-name:--font-serif) text-[28px] leading-[1.1] font-bold tracking-[-0.02em] text-(--el-text) sm:text-[40px]">
+            {copy.designShowcase.heading}
+          </h1>
+          <p className="max-w-[62ch] text-[14.5px] leading-relaxed text-(--el-text-secondary) sm:text-[16px]">
+            {copy.designShowcase.subline}
+          </p>
+        </div>
       </div>
 
       <div className="mx-auto flex max-w-[1080px] flex-col gap-8 px-4 pb-4 sm:px-7">

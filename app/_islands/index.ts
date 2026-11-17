@@ -9,7 +9,7 @@ import { RackStage } from '../[locale]/how-it-works/_components/RackStage'
 import { StackArt } from '../[locale]/how-to-use/_components/StackArt'
 import { DesignShowcase } from '../_components/DesignShowcase'
 import { HeroBrief } from '../_components/landing/HeroBrief'
-import { HeroWaves } from '../_components/landing/HeroWaves'
+import { HeroBackground } from '../_components/landing/HeroBackground'
 import { Calculator } from '../_components/price/Calculator'
 import {
   PlansUnavailable,
@@ -36,8 +36,8 @@ export const HeroBriefIsland = island<
   NonNullable<Parameters<typeof HeroBrief>[0]>
 >('HeroBrief', HeroBrief)
 
-/** The wave lines behind a hero, drawn from the Motir mark. */
-export const HeroWavesIsland = island('HeroWaves', HeroWaves)
+/** The package's Wave behind a hero, gathered around its main content. */
+export const HeroBackgroundIsland = island('HeroBackground', HeroBackground)
 
 /** The price page's credit calculator, which reads motir-ai in the browser. */
 export const CalculatorIsland = island('Calculator', Calculator)

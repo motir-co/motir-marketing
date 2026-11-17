@@ -1,7 +1,7 @@
 import { act, screen, within } from '@testing-library/react'
 import { render } from '@/tests/helpers/withCopy'
 import userEvent from '@testing-library/user-event'
-import { THEME_STORAGE_KEYS } from '@motir/design-system'
+import { BACKGROUND_IDS, THEME_STORAGE_KEYS } from '@motir/design-system'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { DesignShowcase } from '@/app/_components/DesignShowcase'
 import { englishCopy as copy } from '@/lib/copy'
@@ -355,6 +355,124 @@ describe('a choice for the visit, never stored (MOTIR-7724)', () => {
     serveSitePage()
     render(<DesignShowcase />)
     expect(htmlAppearance()).toEqual(siteAppearanceAttributes)
+    expect(
+      screen.queryByRole('button', { name: copy.designShowcase.reset }),
+    ).toBeNull()
+  })
+})
+
+describe('the Background axis (MOTIR-11610)', () => {
+  const bg = copy.designShowcase.background
+  const group = () => screen.getByRole('radiogroup', { name: bg.name })
+  const heroCanvas = () =>
+    document.querySelector<HTMLCanvasElement>(
+      'canvas[data-background-focus="design-hero"]',
+    )
+
+  it('offers the seven registered backgrounds in registry order, then None', () => {
+    render(<DesignShowcase />)
+    expect(
+      within(group())
+        .getAllByRole('radio')
+        .map((r) => r.textContent),
+    ).toEqual([
+      ...BACKGROUND_IDS.map((id) => copy.designShowcase.backgrounds[id].name),
+      bg.none,
+    ])
+    expect(screen.getByText(bg.help)).toBeInTheDocument()
+  })
+
+  it('leads every background chip with a still swatch of it, and None with an empty frame', () => {
+    render(<DesignShowcase />)
+    const radios = within(group()).getAllByRole('radio')
+    BACKGROUND_IDS.forEach((id, i) => {
+      const swatch = radios[i]!.querySelector('canvas')!
+      expect(swatch.dataset.background).toBe(id)
+      expect(swatch.closest('[aria-hidden="true"]')).not.toBeNull()
+    })
+    expect(radios.at(-1)!.querySelector('canvas')).toBeNull()
+  })
+
+  it('draws the Wave behind the page hero on arrival, around its column', () => {
+    render(<DesignShowcase />)
+    expect(
+      within(group()).getByRole('radio', {
+        name: copy.designShowcase.backgrounds.wave.name,
+      }),
+    ).toHaveAttribute('aria-checked', 'true')
+    expect(heroCanvas()?.dataset.background).toBe('wave')
+    expect(document.getElementById('design-hero')).toContainElement(
+      screen.getByRole('heading', {
+        level: 1,
+        name: copy.designShowcase.heading,
+      }),
+    )
+  })
+
+  it('says a style-following background is redrawn for the current style', () => {
+    render(<DesignShowcase />)
+    const style =
+      copy.designShowcase.styles[
+        siteAppearanceAttributes[
+          'data-style'
+        ] as keyof typeof copy.designShowcase.styles
+      ].name
+    expect(
+      screen.getByText(bg.followsNote.replace('{style}', style), {
+        exact: false,
+      }),
+    ).toBeInTheDocument()
+  })
+
+  it('redraws the hero with a style-fixed background and says it follows only palette and theme', async () => {
+    const user = userEvent.setup()
+    render(<DesignShowcase />)
+    await user.click(
+      within(group()).getByRole('radio', {
+        name: copy.designShowcase.backgrounds.cyclic.name,
+      }),
+    )
+    expect(heroCanvas()?.dataset.background).toBe('cyclic')
+    expect(screen.getByText(bg.fixedNote, { exact: false })).toBeInTheDocument()
+    expect(
+      screen.getByText(copy.designShowcase.backgrounds.cyclic.tagline, {
+        exact: false,
+      }),
+    ).toBeInTheDocument()
+  })
+
+  it('draws no canvas behind the hero for None, and says the hero shows the page colour', async () => {
+    const user = userEvent.setup()
+    render(<DesignShowcase />)
+    await user.click(within(group()).getByRole('radio', { name: bg.none }))
+    expect(heroCanvas()).toBeNull()
+    expect(screen.getByText(bg.noneNote)).toBeInTheDocument()
+  })
+
+  it('restyles this page only: <html> carries no background', async () => {
+    const user = userEvent.setup()
+    render(<DesignShowcase />)
+    await user.click(
+      within(group()).getByRole('radio', {
+        name: copy.designShowcase.backgrounds.aurora.name,
+      }),
+    )
+    expect(htmlAppearance()).toEqual(siteAppearanceAttributes)
+    expect(html().hasAttribute('data-background')).toBe(false)
+  })
+
+  it('brings up Reset, which returns the hero to the Wave', async () => {
+    const user = userEvent.setup()
+    render(<DesignShowcase />)
+    await user.click(
+      within(group()).getByRole('radio', {
+        name: copy.designShowcase.backgrounds.topography.name,
+      }),
+    )
+    await user.click(
+      screen.getByRole('button', { name: copy.designShowcase.reset }),
+    )
+    expect(heroCanvas()?.dataset.background).toBe('wave')
     expect(
       screen.queryByRole('button', { name: copy.designShowcase.reset }),
     ).toBeNull()

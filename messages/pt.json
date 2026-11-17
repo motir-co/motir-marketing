@@ -520,8 +520,16 @@
       "name": "Tipografia",
       "help": "A combinação de fontes para títulos e corpo de texto."
     },
+    "background": {
+      "name": "Fundo",
+      "help": "O que a página desenha por trás do hero.",
+      "none": "Nenhum",
+      "noneNote": "Sem fundo: o hero mostra a cor da página.",
+      "followsNote": "Redesenhado para {style}.",
+      "fixedNote": "Igual em todos os estilos: segue apenas a paleta e o tema."
+    },
     "reset": "Restaurar o padrão",
-    "closing": "Os três eixos daqui são os mesmos três que o seu projeto escolhe quando você o inicia no Motir — com o mesmo design system por baixo. Este site não é uma demonstração dele: ele é construído com ele.",
+    "closing": "Os eixos daqui são os mesmos que o seu projeto escolhe quando você o inicia no Motir — com o mesmo design system por baixo. Este site não é uma demonstração dele: ele é construído com ele.",
     "styles": {
       "warm-editorial": {
         "name": "Editorial caloroso",
@@ -698,6 +706,36 @@
       "humanist": {
         "name": "Humanista",
         "tagline": "Uma sans humanista acolhedora em toda a interface: aberta e legível."
+      }
+    },
+    "backgrounds": {
+      "wave": {
+        "name": "Onda",
+        "tagline": "A linha da marca Motir, repetida por toda a página. As linhas se juntam em torno do conteúdo principal."
+      },
+      "topography": {
+        "name": "Topografia",
+        "tagline": "Curvas de nível sobre um mapa de altitude que muda devagar."
+      },
+      "aurora": {
+        "name": "Aurora",
+        "tagline": "Faixas de cor suaves que flutuam e mudam de cor devagar."
+      },
+      "cyclic": {
+        "name": "Cyclic CA",
+        "tagline": "Dezesseis estados de cor se perseguem em anéis e faixas."
+      },
+      "brian": {
+        "name": "Brian's Brain",
+        "tagline": "As células disparam, esmaecem e se apagam. Nunca se acomoda."
+      },
+      "daynight": {
+        "name": "Dia e noite",
+        "tagline": "Grandes regiões sólidas com bordas que não param de se mover."
+      },
+      "rule110": {
+        "name": "Rule 110",
+        "tagline": "Uma regra unidimensional desenhada uma linha por vez, rolando para cima."
       }
     }
   },

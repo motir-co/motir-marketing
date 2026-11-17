@@ -525,8 +525,16 @@
       "name": "Typographie",
       "help": "L’association de polices pour les titres et le corps du texte."
     },
+    "background": {
+      "name": "Arrière-plan",
+      "help": "Ce que la page dessine derrière son hero.",
+      "none": "Aucun",
+      "noneNote": "Aucun arrière-plan : le hero affiche la couleur de la page.",
+      "followsNote": "Redessiné pour {style}.",
+      "fixedNote": "Identique dans tous les styles : il ne suit que la palette et le thème."
+    },
     "reset": "Rétablir la valeur par défaut",
-    "closing": "Les trois axes présentés ici sont les trois mêmes que votre projet choisit lorsque vous en démarrez un dans Motir, sur le même design system. Ce site ne vous en montre pas une démo : il est construit avec.",
+    "closing": "Les axes présentés ici sont les mêmes que votre projet choisit lorsque vous en démarrez un dans Motir, sur le même design system. Ce site ne vous en montre pas une démo : il est construit avec.",
     "styles": {
       "warm-editorial": {
         "name": "Éditorial chaleureux",
@@ -703,6 +711,36 @@
       "humanist": {
         "name": "Humaniste",
         "tagline": "Une linéale humaniste chaleureuse dans toute l’interface : ouverte et lisible."
+      }
+    },
+    "backgrounds": {
+      "wave": {
+        "name": "Vague",
+        "tagline": "La ligne du logo Motir, répétée sur toute la page. Les lignes se resserrent autour du contenu principal."
+      },
+      "topography": {
+        "name": "Topographie",
+        "tagline": "Des courbes de niveau sur un relief qui évolue lentement."
+      },
+      "aurora": {
+        "name": "Aurore",
+        "tagline": "Des bandes de couleur douces qui dérivent et changent lentement de teinte."
+      },
+      "cyclic": {
+        "name": "Cyclic CA",
+        "tagline": "Seize états de couleur se poursuivent en anneaux et en bandes."
+      },
+      "brian": {
+        "name": "Brian's Brain",
+        "tagline": "Les cellules s’allument, pâlissent et s’éteignent. Il ne se stabilise jamais."
+      },
+      "daynight": {
+        "name": "Jour et nuit",
+        "tagline": "De grandes zones pleines aux bords toujours en mouvement."
+      },
+      "rule110": {
+        "name": "Rule 110",
+        "tagline": "Une règle à une dimension, dessinée ligne par ligne, qui défile vers le haut."
       }
     }
   },

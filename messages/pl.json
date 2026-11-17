@@ -516,8 +516,16 @@
       "name": "Krój",
       "help": "Zestaw czcionek dla nagłówków i tekstu."
     },
+    "background": {
+      "name": "Tło",
+      "help": "To, co strona rysuje za swoim hero.",
+      "none": "Brak",
+      "noneNote": "Bez tła — hero pokazuje kolor strony.",
+      "followsNote": "Rysowane na nowo dla stylu {style}.",
+      "fixedNote": "Takie samo w każdym stylu — zmienia się tylko z paletą i motywem."
+    },
     "reset": "Przywróć domyślne",
-    "closing": "Trzy osie tutaj to te same trzy, które wybierasz dla projektu, zakładając go w aplikacji Motir — i ten sam system projektowania pod spodem. Ta strona nie pokazuje jego wersji demonstracyjnej; jest z niego zbudowana.",
+    "closing": "Osie tutaj to te same, które wybierasz dla projektu, zakładając go w aplikacji Motir — i ten sam system projektowania pod spodem. Ta strona nie pokazuje jego wersji demonstracyjnej; jest z niego zbudowana.",
     "styles": {
       "warm-editorial": {
         "name": "Ciepły redakcyjny",
@@ -694,6 +702,36 @@
       "humanist": {
         "name": "Humanistyczny",
         "tagline": "Ciepły humanistyczny krój bezszeryfowy w całym interfejsie: otwarty i czytelny."
+      }
+    },
+    "backgrounds": {
+      "wave": {
+        "name": "Fala",
+        "tagline": "Linia ze znaku Motir powtórzona na całej stronie. Linie zbierają się wokół głównej treści."
+      },
+      "topography": {
+        "name": "Topografia",
+        "tagline": "Poziomice nad powoli zmieniającą się mapą wysokości."
+      },
+      "aurora": {
+        "name": "Zorza",
+        "tagline": "Miękkie pasma koloru, które dryfują i powoli zmieniają barwę."
+      },
+      "cyclic": {
+        "name": "Cyclic CA",
+        "tagline": "Szesnaście stanów koloru goni się w pierścieniach i pasmach."
+      },
+      "brian": {
+        "name": "Brian's Brain",
+        "tagline": "Komórki odpalają, gasną i znikają. Nigdy się nie uspokaja."
+      },
+      "daynight": {
+        "name": "Dzień i noc",
+        "tagline": "Duże jednolite obszary z krawędziami, które wciąż się przesuwają."
+      },
+      "rule110": {
+        "name": "Rule 110",
+        "tagline": "Jednowymiarowa reguła rysowana wiersz po wierszu, przewijana w górę."
       }
     }
   },

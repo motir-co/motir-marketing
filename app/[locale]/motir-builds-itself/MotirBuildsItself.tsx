@@ -15,7 +15,7 @@ import type {
 } from '@/lib/publicProject'
 import { SITE_HOST } from '@/lib/publicHost'
 import { SiteShell } from '../../_components/SiteShell'
-import { HeroWavesIsland } from '../../_islands'
+import { HeroBackgroundIsland } from '../../_islands'
 import { RoadmapUi } from '../products/_components/PmUi'
 import { Eyebrow, GUTTER, H2 } from '../products/_components/ProductPage'
 import { LostTiles, NeedList, Staircase } from './_components/StoryArt'
@@ -118,7 +118,7 @@ export function MotirBuildsItself({
           GUTTER,
         )}
       >
-        <HeroWavesIsland focusId="mbi-actions" />
+        <HeroBackgroundIsland focusId="mbi-actions" />
         <div className="mx-auto grid max-w-[1400px] gap-6">
           <p
             className={cn(

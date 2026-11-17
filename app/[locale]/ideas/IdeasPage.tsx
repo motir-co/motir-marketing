@@ -1,6 +1,6 @@
 import { ArrowDown } from 'lucide-react'
 import { cn } from '@motir/design-system'
-import { HeroBriefIsland, HeroWavesIsland } from '@/app/_islands'
+import { HeroBriefIsland, HeroBackgroundIsland } from '@/app/_islands'
 import { SiteShell } from '@/app/_components/SiteShell'
 import { format, useCopy, usePageLocale } from '@/lib/copy'
 import { localizedPath } from '@/lib/localeMetadata'
@@ -73,7 +73,7 @@ export function IdeasPage({ params, list, tags, open }: IdeasView) {
             GUTTER,
           )}
         >
-          <HeroWavesIsland />
+          <HeroBackgroundIsland />
           <div className="mx-auto grid max-w-[1400px] items-center gap-x-[clamp(32px,5vw,80px)] gap-y-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
             <div className="grid gap-6">
               <p

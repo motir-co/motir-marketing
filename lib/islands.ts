@@ -24,8 +24,10 @@ export const ISLANDS = {
     import('@/app/_components/SiteHeader').then((m) => m.SiteHeader),
   HeroBrief: () =>
     import('@/app/_components/landing/HeroBrief').then((m) => m.HeroBrief),
-  HeroWaves: () =>
-    import('@/app/_components/landing/HeroWaves').then((m) => m.HeroWaves),
+  HeroBackground: () =>
+    import('@/app/_components/landing/HeroBackground').then(
+      (m) => m.HeroBackground,
+    ),
   Calculator: () =>
     import('@/app/_components/price/Calculator').then((m) => m.Calculator),
   PriceCadence: () =>

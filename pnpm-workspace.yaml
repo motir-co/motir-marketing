@@ -91,6 +91,13 @@ allowBuilds:
 # it is pinned, `/design` offers none of them.** Published
 # 2026-11-09T15:51:00Z, about six hours before this install. The 0.17.0 line
 # matches nothing once the pin moves, so it was deleted.
+#
+# ⚠️ RE-POINTED design-system 0.22.0 → 0.24.0 by MOTIR-11610 (2026-11-17), for
+# the same reason. **0.24.0 carries the background registry and its seven
+# backgrounds: until it is pinned, the heroes draw nothing from the package and
+# `/design` has no Background axis.** Published 2026-11-17T20:43Z, under an
+# hour before this install. The 0.22.0 line matches nothing once the pin moves,
+# so it was deleted.
 minimumReleaseAgeExclude:
   - '@motir/brand@0.4.4'
-  - '@motir/design-system@0.22.0'
+  - '@motir/design-system@0.24.0'
