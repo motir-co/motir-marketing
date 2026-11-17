@@ -85,11 +85,11 @@ export function TypeChips(props: PickerProps<TypeId>) {
  * palette and theme. None's swatch is an empty dashed frame.
  */
 export function BackgroundChips(props: PickerProps<BackgroundChoice>) {
-  const copy = useCopy().designShowcase
+  const ds = useCopy().designShowcase
   const options: Array<AxisOption<BackgroundChoice>> = [
     ...BACKGROUND_IDS.map((id) => ({
       id,
-      label: copy.backgrounds[id].name,
+      label: ds.backgrounds[id].name,
       leading: (
         <span
           aria-hidden="true"
@@ -101,7 +101,7 @@ export function BackgroundChips(props: PickerProps<BackgroundChoice>) {
     })),
     {
       id: BACKGROUND_NONE,
-      label: copy.background.none,
+      label: ds.background.none,
       leading: (
         <span
           aria-hidden="true"
