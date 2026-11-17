@@ -2035,6 +2035,12 @@ of [`design-showcase.mock.html`](design-showcase.mock.html). What ships is
 `app/_components/DesignShowcase.tsx` and `app/_components/AppearancePickers.tsx`, and the delta is
 drawn against those files, not against the older mock.
 
+**The mock shows still frames, and that is deliberate.** Motir's design card frames a mock with
+`sandbox=""`, which runs no script, so a background drawn on a `<canvas>` by JavaScript shows nothing
+there. Every background in this mock is therefore a still frame of the shipped drawer, baked into an
+image when the mock is generated (`bake.cjs`, reduced motion, 2x). The motion each background has is
+described in words beside it; the build cards draw it live.
+
 **Design system: Motir Design (branch a).** Files read: `package.json` (depends on
 `@motir/design-system` **0.22.0**) and `app/globals.css` (`@import '@motir/design-system/theme.css'`).
 The site's axes are a per-visit random style (`LANDING_STYLES`), so the mock draws the package
