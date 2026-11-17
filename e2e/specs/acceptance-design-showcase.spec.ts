@@ -340,7 +340,10 @@ test('/design on the 0.22.0 re-pin, as the release is accepted', async ({
   // ── 2 · THE LAYOUT ─────────────────────────────────────────────────────
   chapter('The layout: one rail band, three stacked axes, the specimen below')
   await expect(rail(page)).toHaveCount(1)
-  await expect(rail(page).getByRole('radiogroup')).toHaveCount(4)
+  // Theme, the three registry axes, and Background (MOTIR-11610, which added
+  // the fifth row under story MOTIR-11600; its walk is
+  // acceptance-backgrounds.spec.ts).
+  await expect(rail(page).getByRole('radiogroup')).toHaveCount(5)
   await expect(rail(page).locator(axis(page, 'theme'))).toHaveCount(1)
   const [bar, band, themeBox, styleBox, paletteBox, typeBox, h1Box] =
     await Promise.all([
