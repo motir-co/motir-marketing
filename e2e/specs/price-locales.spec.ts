@@ -4,7 +4,10 @@ import { expect, test } from '@playwright/test'
 import { STUB_ORIGIN } from '../stub/origin'
 import { saveBadge, t } from '../support/catalogue'
 import { LOCALES, LOCALE_BCP47 } from '../../i18n/routing'
-import { TRACKER_SEAT_FEE_USD_PER_MONTH } from '../../lib/seatFee'
+import {
+  TRACKER_SEAT_FEE_USD_PER_MONTH,
+  TRACKER_SEAT_FEE_USD_PER_YEAR,
+} from '../../lib/seatFee'
 
 /*
  * /price in all twelve languages (MOTIR-8382 · MOTIR-9688): each answers 200
@@ -43,10 +46,18 @@ for (const locale of LOCALES) {
       1,
     )
     const number = new Intl.NumberFormat(LOCALE_BCP47[locale]).format
-    const seatFee = fill(t(locale, 'pricePage.plans.seatFee'), {
-      price: number(TRACKER_SEAT_FEE_USD_PER_MONTH),
-    })
-    await expect(page.locator('#plans')).toContainText(seatFee)
+    // The seat card opens on Annual; both prices are in its markup.
+    const seat = page.locator('#plans [data-plan="seat"]')
+    await expect(seat).toContainText(
+      fill(t(locale, 'pricePage.plans.seatPerYr'), {
+        n: number(TRACKER_SEAT_FEE_USD_PER_YEAR),
+      }),
+    )
+    await expect(seat).toContainText(
+      fill(t(locale, 'pricePage.plans.seatPerMo'), {
+        n: number(TRACKER_SEAT_FEE_USD_PER_MONTH),
+      }),
+    )
     await expect(page.locator('#plans')).toContainText(
       t(locale, 'pricePage.plans.perOrg'),
     )
@@ -54,7 +65,7 @@ for (const locale of LOCALES) {
       for (const key of [
         'pricePage.heading',
         'pricePage.plans.perOrg',
-        'pricePage.plans.seatFee',
+        'pricePage.plans.seatTitle',
         'pricePage.plans.tiers.host.useCase',
       ]) {
         expect(t(locale, key), key).not.toBe(t('en', key))

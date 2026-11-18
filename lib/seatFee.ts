@@ -7,5 +7,13 @@
  */
 export const TRACKER_SEAT_FEE_USD_PER_MONTH = 5
 
+/**
+ * The same seat billed annually: motir-core's `BILLING_CATALOG.seatPlan`
+ * annual price (`tracker_annual`, lib/billing/catalog.ts), eight months of the
+ * monthly fee, the same ~33% off the plans' annual prices take. Keep the two
+ * in step with that catalog.
+ */
+export const TRACKER_SEAT_FEE_USD_PER_YEAR = 40
+
 /** Motir seats every paid AI plan includes at no charge. */
 export const INCLUDED_TRACKER_SEATS = 1

@@ -3,7 +3,10 @@ import { join } from 'node:path'
 import { expect, test, type Page } from '@playwright/test'
 import { SITE_ORIGIN, STUB_ORIGIN } from '../stub/origin'
 import { saveBadge, t } from '../support/catalogue'
-import { TRACKER_SEAT_FEE_USD_PER_MONTH } from '../../lib/seatFee'
+import {
+  TRACKER_SEAT_FEE_USD_PER_MONTH,
+  TRACKER_SEAT_FEE_USD_PER_YEAR,
+} from '../../lib/seatFee'
 
 /*
  * ⚠️ THE /price WALK FOR STORY MOTIR-8382 (MOTIR-9688), signed out, as a
@@ -26,7 +29,7 @@ import { TRACKER_SEAT_FEE_USD_PER_MONTH } from '../../lib/seatFee'
  * unknown-version") and the receipt's count of server-side ladder reads went
  * with the per-request render.
  * Every expected figure is read from the same recordings; the only literal
- * amount is the seat fee, imported from `lib/seatFee.ts`.
+ * amounts are the seat fees, imported from `lib/seatFee.ts`.
  *
  * ⚠️ THE FILE RUNS SERIALLY: the stub's modes are shared by every caller.
  */
@@ -142,9 +145,17 @@ test('a prospect reads the plans, toggles annual and estimates their usage, as M
   for (const pool of ladder.largerPlans)
     await expect(page.getByText(pool.name)).toHaveCount(0)
   await expect(page.getByText(/enterprise|contact sales/i)).toHaveCount(0)
-  await expect(page.locator('#plans')).toContainText(
-    fill(t('en', 'pricePage.plans.seatFee'), {
-      price: n(TRACKER_SEAT_FEE_USD_PER_MONTH),
+  const seat = page.locator('#plans [data-plan="seat"]')
+  await expect(
+    seat.getByText(
+      fill(t('en', 'pricePage.plans.seatPerYr'), {
+        n: n(TRACKER_SEAT_FEE_USD_PER_YEAR),
+      }),
+    ),
+  ).toBeVisible()
+  await expect(seat).toContainText(
+    fill(t('en', 'pricePage.plans.seatPerMo'), {
+      n: n(TRACKER_SEAT_FEE_USD_PER_MONTH),
     }),
   )
   await expect(page.locator('#plans')).toContainText(
@@ -152,10 +163,19 @@ test('a prospect reads the plans, toggles annual and estimates their usage, as M
   )
   await beat(page)
 
-  chapter('Monthly / Annual, by keyboard — and back')
+  chapter('Annual by default; Monthly by keyboard — and back')
   const toggle = page.locator('#plans').getByRole('group', {
     name: t('en', 'pricePage.plans.cadenceLabel'),
   })
+  await expect(
+    page.getByText(saveBadge('en', 'en', ladder.plans)),
+  ).toBeVisible()
+  await toggle
+    .getByRole('button', { name: t('en', 'pricePage.plans.monthly') })
+    .focus()
+  await page.keyboard.press('Space')
+  await expect(cards.first().locator('[data-price="monthly"]')).toBeVisible()
+  await beat(page)
   await toggle
     .getByRole('button', { name: t('en', 'pricePage.plans.annual') })
     .focus()
@@ -171,12 +191,6 @@ test('a prospect reads the plans, toggles annual and estimates their usage, as M
       }),
     )
   }
-  await beat(page)
-  await toggle
-    .getByRole('button', { name: t('en', 'pricePage.plans.monthly') })
-    .focus()
-  await page.keyboard.press('Space')
-  await expect(cards.first().locator('[data-price="monthly"]')).toBeVisible()
   await beat(page)
 
   chapter('The calculator: an ordinary plan')

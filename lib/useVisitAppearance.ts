@@ -3,6 +3,8 @@ import {
   BACKGROUND_NONE,
   DEFAULT_BACKGROUND_ID,
   isBackgroundId,
+  PALETTE_IDS,
+  STYLE_IDS,
   type BackgroundChoice,
   type PaletteId,
   type StyleId,
@@ -174,6 +176,27 @@ function updateChoice(patch: Partial<VisitChoice>) {
   for (const listener of listeners) listener()
 }
 
+/** One of `options`, never `current` while there is anything else to pick. */
+function pickOther<T>(options: readonly T[], current: T): T {
+  const others = options.filter((option) => option !== current)
+  const pool = others.length > 0 ? others : options
+  return pool[Math.floor(Math.random() * pool.length)]!
+}
+
+/**
+ * A new random style and palette from EVERY one the design system has — the
+ * landing exclusions (`LANDING_STYLE_EXCLUDED`, `LANDING_PALETTE_EXCLUDED`)
+ * only keep a style or palette from being the first look a visit lands on —
+ * and never the ones showing now. The header's shuffle button does this; the
+ * rest of the pick is kept.
+ */
+export function shuffleVisitAppearance() {
+  updateChoice({
+    styleId: pickOther(STYLE_IDS as readonly StyleId[], choice.styleId),
+    palette: pickOther(PALETTE_IDS as readonly PaletteId[], choice.palette),
+  })
+}
+
 /** Back to the look the visit landed on. Reset does this; tests call it too. */
 export function forgetVisitAppearance() {
   choice = landing
@@ -269,5 +292,6 @@ export function useVisitAppearance() {
       updateChoice({ cjkFaces: next })
     },
     reset: forgetVisitAppearance,
+    shuffle: shuffleVisitAppearance,
   }
 }

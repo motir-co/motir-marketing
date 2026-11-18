@@ -102,26 +102,29 @@ export const LOCALE_ENDONYMS: Record<Locale, string> = {
  * bar between 768px and ~1100px. Each is the bar's own width in that locale's
  * catalogue, with the nav labels on one line, plus 16px to spare (re-measured
  * 2026-10-18, when "How Motir works" and "How to use" joined the nav, and
- * 2026-10-27, when "Price" did — MOTIR-8382). Change a nav label and
- * measure again: a bar narrower than its width wraps its labels.
+ * 2026-10-27, when "Price" did — MOTIR-8382). The shuffle button beside
+ * Design (2026-11-18) widened every bar by exactly its 36px (a 32px button
+ * plus its 4px margin, inside Design's own flex item), added to each width.
+ * Change a nav label and measure again: a bar narrower than its width wraps
+ * its labels.
  *
  * `app/_components/headerLadder.ts` turns these into the static class strings
  * Tailwind can see, and `tests/headerLadder.test.ts` holds the two together.
  */
 export const HEADER_LADDER: Record<Locale, { a: number; b: number }> = {
-  en: { a: 1541, b: 1324 },
-  zh: { a: 1428, b: 1247 },
+  en: { a: 1577, b: 1360 },
+  zh: { a: 1464, b: 1283 },
   // Measured with the zh-tw catalogue on 2026-10-27; it matches zh's to the pixel.
-  'zh-tw': { a: 1428, b: 1247 },
-  ja: { a: 1643, b: 1342 },
-  ko: { a: 1420, b: 1226 },
-  de: { a: 1721, b: 1428 },
-  fr: { a: 1799, b: 1477 },
-  es: { a: 1761, b: 1454 },
-  it: { a: 1677, b: 1361 },
-  nl: { a: 1637, b: 1370 },
-  pl: { a: 1699, b: 1406 },
-  pt: { a: 1721, b: 1418 },
+  'zh-tw': { a: 1464, b: 1283 },
+  ja: { a: 1679, b: 1378 },
+  ko: { a: 1456, b: 1262 },
+  de: { a: 1757, b: 1464 },
+  fr: { a: 1835, b: 1513 },
+  es: { a: 1797, b: 1490 },
+  it: { a: 1713, b: 1397 },
+  nl: { a: 1673, b: 1406 },
+  pl: { a: 1735, b: 1442 },
+  pt: { a: 1757, b: 1454 },
 }
 
 /**

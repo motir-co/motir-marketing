@@ -1,7 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { PALETTE_IDS, STYLE_IDS } from '@motir/design-system'
 import {
+  LANDING_PALETTES,
+  LANDING_PALETTE_EXCLUDED,
   LANDING_STYLES,
   LANDING_STYLE_EXCLUDED,
   SITE_APPEARANCE,
@@ -157,33 +160,37 @@ describe('the /design Background pick (MOTIR-11610)', () => {
 })
 
 describe('a new visit', () => {
-  it('lands on a random style and keeps it for the visit', () => {
+  it('lands on a random style and palette and keeps them for the visit', () => {
     navigation('navigate')
     vi.spyOn(Math, 'random').mockReturnValue(0.5)
     new Function(visitAppearanceScript)()
     const style = LANDING_STYLES[Math.floor(0.5 * LANDING_STYLES.length)]!
     expect(html.getAttribute('data-style')).toBe(style)
     expect(html.getAttribute('data-theme')).toBe(SITE_APPEARANCE.pattern)
-    expect(html.getAttribute('data-palette')).toBe(SITE_APPEARANCE.palette)
+    const palette = LANDING_PALETTES[Math.floor(0.5 * LANDING_PALETTES.length)]!
+    expect(html.getAttribute('data-palette')).toBe(palette)
 
-    // The next page replays the same style instead of drawing again.
+    // The next page replays the same look instead of drawing again.
     servedPage()
     vi.spyOn(Math, 'random').mockReturnValue(0)
     new Function(visitAppearanceScript)()
     expect(html.getAttribute('data-style')).toBe(style)
-    expect(
-      JSON.parse(window.sessionStorage.getItem(VISIT_LANDING_KEY)!).styleId,
-    ).toBe(style)
+    expect(html.getAttribute('data-palette')).toBe(palette)
+    const landing = JSON.parse(
+      window.sessionStorage.getItem(VISIT_LANDING_KEY)!,
+    )
+    expect(landing.styleId).toBe(style)
+    expect(landing.palette).toBe(palette)
   })
 
   it('never lands on an excluded style', () => {
     expect(LANDING_STYLE_EXCLUDED).toEqual([
-      'retrofuturism',
       'high-contrast-accessible',
       'cybercore-y2k',
       'art-deco',
-      'memphis',
-      '3d-immersive',
+      'bento',
+      'neo-brutalism',
+      'claymorphism',
     ])
     navigation('navigate')
     const seen = new Set<string>()
@@ -199,6 +206,22 @@ describe('a new visit', () => {
     for (const id of LANDING_STYLE_EXCLUDED) expect(seen.has(id)).toBe(false)
   })
 
+  it('never lands on an excluded palette', () => {
+    expect(LANDING_PALETTE_EXCLUDED).toEqual(['sienna', 'candy'])
+    navigation('navigate')
+    const seen = new Set<string>()
+    for (let i = 0; i < LANDING_PALETTES.length; i++) {
+      window.sessionStorage.clear()
+      vi.spyOn(Math, 'random').mockReturnValue(
+        (i + 0.5) / LANDING_PALETTES.length,
+      )
+      new Function(visitAppearanceScript)()
+      seen.add(html.getAttribute('data-palette')!)
+    }
+    expect([...seen].sort()).toEqual([...LANDING_PALETTES].sort())
+    for (const id of LANDING_PALETTE_EXCLUDED) expect(seen.has(id)).toBe(false)
+  })
+
   it('keeps the served style for an automated browser', () => {
     navigation('navigate')
     Object.defineProperty(navigator, 'webdriver', {
@@ -211,6 +234,7 @@ describe('a new visit', () => {
       Reflect.deleteProperty(navigator, 'webdriver')
     }
     expect(html.getAttribute('data-style')).toBe(SITE_APPEARANCE.style)
+    expect(html.getAttribute('data-palette')).toBe(SITE_APPEARANCE.palette)
     expect(window.sessionStorage.getItem(VISIT_APPEARANCE_KEY)).toBeNull()
   })
 
@@ -236,5 +260,53 @@ describe('a new visit', () => {
     act(() => result.current.reset())
     expect(result.current.styleId).toBe('bento')
     expect(html.getAttribute('data-style')).toBe('bento')
+  })
+})
+
+describe('the header shuffle', () => {
+  it('picks a new style and palette from all of them and keeps it for the visit', () => {
+    const { result } = renderHook(() => useVisitAppearance())
+    const before = {
+      style: result.current.styleId,
+      palette: result.current.palette,
+    }
+    for (let i = 0; i < 20; i++) {
+      const prev = {
+        style: result.current.styleId,
+        palette: result.current.palette,
+      }
+      act(() => result.current.shuffle())
+      expect(result.current.styleId).not.toBe(prev.style)
+      expect(result.current.palette).not.toBe(prev.palette)
+      expect(STYLE_IDS).toContain(result.current.styleId)
+      expect(PALETTE_IDS).toContain(result.current.palette)
+    }
+    expect(html.getAttribute('data-style')).toBe(result.current.styleId)
+    expect(html.getAttribute('data-palette')).toBe(result.current.palette)
+
+    // The next page replays the shuffled look; Reset returns to the landing.
+    servedPage()
+    navigation('navigate')
+    new Function(visitAppearanceScript)()
+    expect(html.getAttribute('data-style')).toBe(result.current.styleId)
+    act(() => result.current.reset())
+    expect(result.current.styleId).toBe(before.style)
+    expect(result.current.palette).toBe(before.palette)
+  })
+
+  it('can land on a style and palette the landing pick excludes', () => {
+    const { result } = renderHook(() => useVisitAppearance())
+    const style = LANDING_STYLE_EXCLUDED[0]!
+    const palette = LANDING_PALETTE_EXCLUDED[0]!
+    const styles = STYLE_IDS.filter((id) => id !== result.current.styleId)
+    const palettes = PALETTE_IDS.filter((id) => id !== result.current.palette)
+    vi.spyOn(Math, 'random')
+      .mockReturnValueOnce((styles.indexOf(style) + 0.5) / styles.length)
+      .mockReturnValueOnce((palettes.indexOf(palette) + 0.5) / palettes.length)
+    act(() => result.current.shuffle())
+    expect(result.current.styleId).toBe(style)
+    expect(result.current.palette).toBe(palette)
+    expect(html.getAttribute('data-style')).toBe(style)
+    expect(html.getAttribute('data-palette')).toBe(palette)
   })
 })
