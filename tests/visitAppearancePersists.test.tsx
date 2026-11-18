@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { PALETTE_IDS, STYLE_IDS } from '@motir/design-system'
 import {
   LANDING_PALETTES,
   LANDING_PALETTE_EXCLUDED,
@@ -263,7 +264,7 @@ describe('a new visit', () => {
 })
 
 describe('the header shuffle', () => {
-  it('picks a new landing style and palette and keeps it for the visit', () => {
+  it('picks a new style and palette from all of them and keeps it for the visit', () => {
     const { result } = renderHook(() => useVisitAppearance())
     const before = {
       style: result.current.styleId,
@@ -277,8 +278,8 @@ describe('the header shuffle', () => {
       act(() => result.current.shuffle())
       expect(result.current.styleId).not.toBe(prev.style)
       expect(result.current.palette).not.toBe(prev.palette)
-      expect(LANDING_STYLES).toContain(result.current.styleId)
-      expect(LANDING_PALETTES).toContain(result.current.palette)
+      expect(STYLE_IDS).toContain(result.current.styleId)
+      expect(PALETTE_IDS).toContain(result.current.palette)
     }
     expect(html.getAttribute('data-style')).toBe(result.current.styleId)
     expect(html.getAttribute('data-palette')).toBe(result.current.palette)
@@ -291,5 +292,21 @@ describe('the header shuffle', () => {
     act(() => result.current.reset())
     expect(result.current.styleId).toBe(before.style)
     expect(result.current.palette).toBe(before.palette)
+  })
+
+  it('can land on a style and palette the landing pick excludes', () => {
+    const { result } = renderHook(() => useVisitAppearance())
+    const style = LANDING_STYLE_EXCLUDED[0]!
+    const palette = LANDING_PALETTE_EXCLUDED[0]!
+    const styles = STYLE_IDS.filter((id) => id !== result.current.styleId)
+    const palettes = PALETTE_IDS.filter((id) => id !== result.current.palette)
+    vi.spyOn(Math, 'random')
+      .mockReturnValueOnce((styles.indexOf(style) + 0.5) / styles.length)
+      .mockReturnValueOnce((palettes.indexOf(palette) + 0.5) / palettes.length)
+    act(() => result.current.shuffle())
+    expect(result.current.styleId).toBe(style)
+    expect(result.current.palette).toBe(palette)
+    expect(html.getAttribute('data-style')).toBe(style)
+    expect(html.getAttribute('data-palette')).toBe(palette)
   })
 })

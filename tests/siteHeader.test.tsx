@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { SiteHeader } from '@/app/_components/SiteHeader'
 import { SITE_HOST, UNKNOWN_HOST } from '@/lib/publicHost'
 import { forgetVisitAppearance } from '@/lib/useVisitAppearance'
-import { LANDING_PALETTES, LANDING_STYLES } from '@/lib/siteDefaults'
+import { PALETTE_IDS, STYLE_IDS } from '@motir/design-system'
 import { englishCopy as copy } from '@/lib/copy'
 
 /*
@@ -148,8 +148,8 @@ describe('the shuffle button beside Design', () => {
     await user.click(button)
     const style = html.getAttribute('data-style')!
     expect(style).not.toBe(before)
-    expect(LANDING_STYLES).toContain(style)
-    expect(LANDING_PALETTES).toContain(html.getAttribute('data-palette')!)
+    expect(STYLE_IDS).toContain(style)
+    expect(PALETTE_IDS).toContain(html.getAttribute('data-palette')!)
   })
 
   it('is a labelled row in the Menu panel too', async () => {
