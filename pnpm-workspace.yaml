@@ -98,6 +98,13 @@ allowBuilds:
 # `/design` has no Background axis.** Published 2026-11-17T20:43Z, under an
 # hour before this install. The 0.22.0 line matches nothing once the pin moves,
 # so it was deleted.
+#
+# ⚠️ RE-POINTED design-system 0.24.0 → 0.24.1 by MOTIR-11672 (2026-11-18), for
+# the same reason. **0.24.1 stops Bento's Wave and Topography throwing "arcTo
+# radius is negative" in the 26×14 `/design` chip swatches: until it is pinned,
+# the /design style walk errors at Bento.** Published 2026-11-18, minutes
+# before this install. The 0.24.0 line matches nothing once the pin moves, so
+# it was deleted.
 minimumReleaseAgeExclude:
   - '@motir/brand@0.4.4'
-  - '@motir/design-system@0.24.0'
+  - '@motir/design-system@0.24.1'
