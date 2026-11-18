@@ -520,8 +520,16 @@
       "name": "Tipografía",
       "help": "La combinación de tipos de letra para títulos y texto."
     },
+    "background": {
+      "name": "Fondo",
+      "help": "Lo que la página dibuja detrás de su hero.",
+      "none": "Ninguno",
+      "noneNote": "Sin fondo: el hero muestra el color de la página.",
+      "followsNote": "Redibujado para {style}.",
+      "fixedNote": "Igual en todos los estilos: solo sigue la paleta y el tema."
+    },
     "reset": "Restablecer valores predeterminados",
-    "closing": "Los tres ejes de aquí son los mismos tres que tu proyecto elige cuando lo empiezas en Motir, con el mismo sistema de diseño debajo. Este sitio no te muestra una demo de él: está hecho con él.",
+    "closing": "Los ejes de aquí son los mismos que tu proyecto elige cuando lo empiezas en Motir, con el mismo sistema de diseño debajo. Este sitio no te muestra una demo de él: está hecho con él.",
     "styles": {
       "warm-editorial": {
         "name": "Editorial cálido",
@@ -698,6 +706,36 @@
       "humanist": {
         "name": "Humanista",
         "tagline": "Una sans humanista cálida en toda la interfaz: abierta y legible."
+      }
+    },
+    "backgrounds": {
+      "wave": {
+        "name": "Onda",
+        "tagline": "La línea del logotipo de Motir, repetida por toda la página. Las líneas se agrupan alrededor del contenido principal."
+      },
+      "topography": {
+        "name": "Topografía",
+        "tagline": "Curvas de nivel sobre un mapa de alturas que cambia despacio."
+      },
+      "aurora": {
+        "name": "Aurora",
+        "tagline": "Bandas de color suaves que se desplazan y cambian de color poco a poco."
+      },
+      "cyclic": {
+        "name": "Cyclic CA",
+        "tagline": "Dieciséis estados de color se persiguen en anillos y bandas."
+      },
+      "brian": {
+        "name": "Brian's Brain",
+        "tagline": "Las células se activan, se apagan y desaparecen. Nunca se detiene."
+      },
+      "daynight": {
+        "name": "Día y noche",
+        "tagline": "Grandes regiones sólidas con bordes que no dejan de moverse."
+      },
+      "rule110": {
+        "name": "Rule 110",
+        "tagline": "Una regla unidimensional dibujada fila a fila, que se desplaza hacia arriba."
       }
     }
   },

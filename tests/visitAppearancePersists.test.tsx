@@ -104,6 +104,58 @@ describe('a /design pick across document loads', () => {
   })
 })
 
+describe('the /design Background pick (MOTIR-11610)', () => {
+  it('starts on the Wave and is off default once it moves', () => {
+    const { result } = renderHook(() => useVisitAppearance())
+    expect(result.current.background).toBe('wave')
+    expect(result.current.offDefault).toBe(false)
+    act(() => result.current.setBackground('aurora'))
+    expect(result.current.background).toBe('aurora')
+    expect(result.current.offDefault).toBe(true)
+    act(() => result.current.reset())
+    expect(result.current.background).toBe('wave')
+  })
+
+  it('is kept for the visit but never written onto <html>', () => {
+    const { result } = renderHook(() => useVisitAppearance())
+    act(() => result.current.setBackground('none'))
+    const stored = JSON.parse(
+      window.sessionStorage.getItem(VISIT_APPEARANCE_KEY)!,
+    )
+    expect(stored.choice.background).toBe('none')
+    expect(Object.keys(stored.attributes)).not.toContain('data-background')
+    expect(html.hasAttribute('data-background')).toBe(false)
+  })
+
+  it('reads a stored pick back, and an id this build does not know as the Wave', async () => {
+    for (const [stored, read] of [
+      ['rule110', 'rule110'],
+      ['none', 'none'],
+      ['lava-lamp', 'wave'],
+      [undefined, 'wave'],
+    ] as const) {
+      window.sessionStorage.setItem(
+        VISIT_APPEARANCE_KEY,
+        JSON.stringify({
+          choice: {
+            pattern: 'light',
+            styleId: SITE_APPEARANCE.style,
+            palette: SITE_APPEARANCE.palette,
+            pinnedType: null,
+            cjkFaces: {},
+            background: stored,
+          },
+        }),
+      )
+      vi.resetModules()
+      const fresh = await import('@/lib/useVisitAppearance')
+      const { result, unmount } = renderHook(() => fresh.useVisitAppearance())
+      expect(result.current.background).toBe(read)
+      unmount()
+    }
+  })
+})
+
 describe('a new visit', () => {
   it('lands on a random style and keeps it for the visit', () => {
     navigation('navigate')

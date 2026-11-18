@@ -3,7 +3,7 @@ import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { cn } from '@motir/design-system'
 import { useCopy, usePageLocale } from '@/lib/copy'
 import { productPath, type ProductSlug } from '@/lib/destinations'
-import { HeroBriefIsland, HeroWavesIsland } from '../../../_islands'
+import { HeroBriefIsland, HeroBackgroundIsland } from '../../../_islands'
 import { PRODUCT_MARK, productOf } from '../../../_components/products'
 
 /*
@@ -83,7 +83,7 @@ export function ProductHero({
         GUTTER,
       )}
     >
-      <HeroWavesIsland />
+      <HeroBackgroundIsland />
       <div className="mx-auto grid max-w-[1400px] items-center gap-x-[clamp(32px,5vw,80px)] gap-y-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="grid gap-6">
           <p className={cn(MONO, 'm-0 flex items-center gap-2.5 text-[12px]')}>

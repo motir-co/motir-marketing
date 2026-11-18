@@ -516,8 +516,16 @@
       "name": "Schrift",
       "help": "Die Schriftkombination für Überschriften und Fließtext."
     },
+    "background": {
+      "name": "Hintergrund",
+      "help": "Was die Seite hinter ihren Hero zeichnet.",
+      "none": "Keiner",
+      "noneNote": "Kein Hintergrund – der Hero zeigt die Seitenfarbe.",
+      "followsNote": "Für {style} neu gezeichnet.",
+      "fixedNote": "In jedem Stil gleich – er folgt nur der Palette und dem Theme."
+    },
     "reset": "Auf Standard zurücksetzen",
-    "closing": "Die drei Achsen hier sind dieselben drei, die Ihr Projekt wählt, wenn Sie es in Motir anlegen – und darunter liegt dasselbe Designsystem. Diese Website zeigt Ihnen keine Demo davon; sie ist daraus gebaut.",
+    "closing": "Die Achsen hier sind dieselben, die Ihr Projekt wählt, wenn Sie es in Motir anlegen – und darunter liegt dasselbe Designsystem. Diese Website zeigt Ihnen keine Demo davon; sie ist daraus gebaut.",
     "styles": {
       "warm-editorial": {
         "name": "Warmes Editorial",
@@ -694,6 +702,36 @@
       "humanist": {
         "name": "Humanistisch",
         "tagline": "Eine warme humanistische Sans in der gesamten UI – offen und gut lesbar."
+      }
+    },
+    "backgrounds": {
+      "wave": {
+        "name": "Welle",
+        "tagline": "Die Linie aus dem Motir-Zeichen, über die ganze Seite wiederholt. Die Linien sammeln sich um den Hauptinhalt."
+      },
+      "topography": {
+        "name": "Topografie",
+        "tagline": "Höhenlinien über einer sich langsam verändernden Höhenkarte."
+      },
+      "aurora": {
+        "name": "Polarlicht",
+        "tagline": "Weiche Farbbänder, die treiben und langsam die Farbe wechseln."
+      },
+      "cyclic": {
+        "name": "Cyclic CA",
+        "tagline": "Sechzehn Farbzustände jagen einander in Ringen und Bändern."
+      },
+      "brian": {
+        "name": "Brian's Brain",
+        "tagline": "Zellen feuern, verblassen und erlöschen. Es kommt nie zur Ruhe."
+      },
+      "daynight": {
+        "name": "Day & Night",
+        "tagline": "Große geschlossene Flächen mit Rändern, die in Bewegung bleiben."
+      },
+      "rule110": {
+        "name": "Rule 110",
+        "tagline": "Eine eindimensionale Regel, Zeile für Zeile gezeichnet, die nach oben scrollt."
       }
     }
   },

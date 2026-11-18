@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import {
+  DEFAULT_PALETTE_ID,
   DEFAULT_STYLE_ID,
   DEFAULT_TYPE_ID,
   PALETTE_IDS,
@@ -125,20 +126,6 @@ const NEW_FACES: Record<string, string> = {
   rounded: 'Nunito',
   slab: 'Roboto Slab',
   humanist: 'Fira Sans',
-}
-
-/**
- * The palette the stylesheet falls back to: the one registered id the
- * stylesheet carries NO bare root block for, because it IS the Tier-3 base
- * (`theme.css`: "`amethyst` needs no root block — it is the Tier-3 base").
- * Since MOTIR-6471 that is not `DEFAULT_PALETTE_ID` (MOTIR-10834).
- */
-function basePaletteId(): string {
-  const unblocked = PALETTE_IDS.filter((id) => !bareBlock('palette', id))
-  expect(unblocked, 'exactly one palette is the stylesheet base').toHaveLength(
-    1,
-  )
-  return unblocked[0]!
 }
 
 // ── The page ──────────────────────────────────────────────────────────────
@@ -340,7 +327,10 @@ test('/design on the 0.22.0 re-pin, as the release is accepted', async ({
   // ── 2 · THE LAYOUT ─────────────────────────────────────────────────────
   chapter('The layout: one rail band, three stacked axes, the specimen below')
   await expect(rail(page)).toHaveCount(1)
-  await expect(rail(page).getByRole('radiogroup')).toHaveCount(4)
+  // Theme, the three registry axes, and Background (MOTIR-11610, which added
+  // the fifth row under story MOTIR-11600; its walk is
+  // acceptance-backgrounds.spec.ts).
+  await expect(rail(page).getByRole('radiogroup')).toHaveCount(5)
   await expect(rail(page).locator(axis(page, 'theme'))).toHaveCount(1)
   const [bar, band, themeBox, styleBox, paletteBox, typeBox, h1Box] =
     await Promise.all([
@@ -593,7 +583,11 @@ test('/design on the 0.22.0 re-pin, as the release is accepted', async ({
   await headline(page).scrollIntoViewIfNeeded()
   const fallbacks = [
     ['data-style', DEFAULT_STYLE_ID],
-    ['data-palette', basePaletteId()],
+    // An unregistered palette id renders `motir`, DEFAULT_PALETTE_ID, like the
+    // other two axes: the stylesheet's palette fallback (MOTIR-10834, shipped
+    // after 0.22.0). Before it, an unregistered id rendered the Tier-3 base,
+    // `amethyst`, and this walk compared against that.
+    ['data-palette', DEFAULT_PALETTE_ID],
     ['data-type', DEFAULT_TYPE_ID],
   ] as const
   for (const [attr, fallback] of fallbacks) {

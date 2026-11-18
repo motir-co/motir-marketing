@@ -139,6 +139,10 @@ describe('the copy catalogue', () => {
     // `AxisField` takes. A rename is a code change in MOTIR-1043, so it
     // surfaces here first.
     expect(Object.keys(copy.designShowcase).sort()).toEqual([
+      // MOTIR-11610 — the Background axis and each background's name and
+      // tagline; their English is the background registry's.
+      'background',
+      'backgrounds',
       'closing',
       'heading',
       'palette',
@@ -163,6 +167,14 @@ describe('the copy catalogue', () => {
         'name',
       ])
     }
+    expect(Object.keys(copy.designShowcase.background).sort()).toEqual([
+      'fixedNote',
+      'followsNote',
+      'help',
+      'name',
+      'none',
+      'noneNote',
+    ])
     expect(Object.keys(copy.designShowcase.theme).sort()).toEqual([
       'dark',
       'help',

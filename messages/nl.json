@@ -511,8 +511,16 @@
       "name": "Lettertype",
       "help": "De lettertypecombinatie voor koppen en tekst."
     },
+    "background": {
+      "name": "Achtergrond",
+      "help": "Wat de pagina achter de hero tekent.",
+      "none": "Geen",
+      "noneNote": "Geen achtergrond: de hero toont de paginakleur.",
+      "followsNote": "Opnieuw getekend voor {style}.",
+      "fixedNote": "In elke stijl gelijk: volgt alleen het palet en het thema."
+    },
     "reset": "Standaard herstellen",
-    "closing": "De drie assen hier zijn dezelfde drie die je project kiest wanneer je er een start in Motir — met hetzelfde designsysteem eronder. Deze site laat je geen demo ervan zien; hij is ermee gebouwd.",
+    "closing": "De assen hier zijn dezelfde die je project kiest wanneer je er een start in Motir — met hetzelfde designsysteem eronder. Deze site laat je geen demo ervan zien; hij is ermee gebouwd.",
     "styles": {
       "warm-editorial": {
         "name": "Warm redactioneel",
@@ -689,6 +697,36 @@
       "humanist": {
         "name": "Humanistisch",
         "tagline": "Een warme humanistische sans door de hele UI: open en goed leesbaar."
+      }
+    },
+    "backgrounds": {
+      "wave": {
+        "name": "Golf",
+        "tagline": "De lijn uit het Motir-logo, herhaald over de hele pagina. De lijnen komen samen rond de hoofdinhoud."
+      },
+      "topography": {
+        "name": "Topografie",
+        "tagline": "Hoogtelijnen over een hoogtekaart die langzaam verschuift."
+      },
+      "aurora": {
+        "name": "Noorderlicht",
+        "tagline": "Zachte kleurbanden die drijven en langzaam van kleur veranderen."
+      },
+      "cyclic": {
+        "name": "Cyclic CA",
+        "tagline": "Zestien kleurtoestanden jagen elkaar na in ringen en banden."
+      },
+      "brian": {
+        "name": "Brian's Brain",
+        "tagline": "Cellen vuren, vervagen en doven. Het komt nooit tot rust."
+      },
+      "daynight": {
+        "name": "Dag en nacht",
+        "tagline": "Grote egale vlakken met randen die blijven bewegen."
+      },
+      "rule110": {
+        "name": "Rule 110",
+        "tagline": "Een eendimensionale regel, rij voor rij getekend, die omhoog scrolt."
       }
     }
   },

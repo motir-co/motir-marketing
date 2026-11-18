@@ -136,7 +136,7 @@ describe('/motir-builds-itself in every locale', () => {
     // The live numbers, formatted for the locale.
     expect(html).toContain(`>${(9876).toLocaleString(locale)}<`)
     expect(html).toContain(`>${(12345).toLocaleString(locale)}<`)
-    expect(html).toContain('data-island="HeroWaves"')
+    expect(html).toContain('data-island="HeroBackground"')
   })
 })
 

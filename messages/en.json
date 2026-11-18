@@ -511,8 +511,16 @@
       "name": "Type",
       "help": "The typeface pairing for headings and body."
     },
+    "background": {
+      "name": "Background",
+      "help": "What the page draws behind its hero.",
+      "none": "None",
+      "noneNote": "No background — the hero shows the page colour.",
+      "followsNote": "Redrawn for {style}.",
+      "fixedNote": "Same in every style — it follows only the palette and the theme."
+    },
     "reset": "Reset to default",
-    "closing": "The three axes here are the same three your project picks when you start one in Motir — and the same design system underneath. This site is not showing you a demo of it; it is built from it.",
+    "closing": "The axes here are the same ones your project picks when you start one in Motir — and the same design system underneath. This site is not showing you a demo of it; it is built from it.",
     "styles": {
       "warm-editorial": {
         "name": "Warm Editorial",
@@ -689,6 +697,36 @@
       "humanist": {
         "name": "Humanist",
         "tagline": "A warm humanist sans across the whole UI — open and readable."
+      }
+    },
+    "backgrounds": {
+      "wave": {
+        "name": "Wave",
+        "tagline": "The line from the Motir mark, repeated across the page. The lines gather around the main content."
+      },
+      "topography": {
+        "name": "Topography",
+        "tagline": "Contour lines over a slowly shifting height map."
+      },
+      "aurora": {
+        "name": "Aurora",
+        "tagline": "Soft colour bands that drift and slowly change colour."
+      },
+      "cyclic": {
+        "name": "Cyclic CA",
+        "tagline": "Sixteen colour states chase each other in rings and bands."
+      },
+      "brian": {
+        "name": "Brian's Brain",
+        "tagline": "Cells fire, fade and clear. It never settles."
+      },
+      "daynight": {
+        "name": "Day & Night",
+        "tagline": "Large solid regions with edges that keep moving."
+      },
+      "rule110": {
+        "name": "Rule 110",
+        "tagline": "A one-dimensional rule drawn a row at a time, scrolling up."
       }
     }
   },

@@ -2022,3 +2022,133 @@ the record of the eleven-language moment it was drawn in.
 - **Fonts:** as before, a CJK endonym on a page in another script falls back to the system face,
   and its `lang` picks the regional forms, now `zh-TW` for 繁體中文. On a `zh-tw` page the
   zh-Hant set (LXGW WenKai TC by default) draws the page and its own endonym.
+
+---
+
+## The Background picker on /design (MOTIR-11603)
+
+**Subtask:** MOTIR-11603 (`type: design`) · **Story:** MOTIR-11600 (backgrounds in
+`@motir/design-system`) · **Builds it:** MOTIR-11610. **Delta mock:**
+[`design-showcase--background-picker.mock.html`](design-showcase--background-picker.mock.html). It
+holds only the panels that change. It amends § _The axis rail_ above and the rail and heading block
+of [`design-showcase.mock.html`](design-showcase.mock.html). What ships is
+`app/_components/DesignShowcase.tsx` and `app/_components/AppearancePickers.tsx`, and the delta is
+drawn against those files, not against the older mock.
+
+**The mock shows still frames, and that is deliberate.** Motir's design card frames a mock with
+`sandbox=""`, which runs no script, so a background drawn on a `<canvas>` by JavaScript shows nothing
+there. Every background in this mock is therefore a still frame of the shipped drawer, baked into an
+image when the mock is generated (`bake.cjs`, reduced motion, 2x). The motion each background has is
+described in words beside it; the build cards draw it live.
+
+**Design system: Motir Design (branch a).** Files read: `package.json` (depends on
+`@motir/design-system` **0.22.0**) and `app/globals.css` (`@import '@motir/design-system/theme.css'`).
+The site's axes are a per-visit random style (`LANDING_STYLES`), so the mock draws the package
+defaults the existing showcase mock uses: Warm Editorial, Motir, Motir type, light. **The mock is
+generated from the unreleased package build on MOTIR-11600's branch**, with the package's
+`renderMock` (`boardWidth: 'full'`). 0.22.0 has no backgrounds, and the version that does is
+MOTIR-11609's release, which MOTIR-11610 re-pins to. Every part is the package's own: `AxisField`,
+`AxisNote`, `AxisRadioGroup`, `ThemeSegmentedControl`, `Card`, `Button`, `SectionLabel`, and the
+backgrounds drawn by the package's drawers.
+
+### What changes
+
+1. **A fourth chip axis, Background, after Type** in the rail's `Card`. It is an `AxisField`
+   holding an `AxisRadioGroup` (`role="radiogroup"`, roving tabindex, arrow keys), built the way
+   `AppearancePickers.tsx` builds the other three: a `BackgroundChips` over the package's
+   `BACKGROUND_IDS`, with each label read from the catalogue. Its eight chips are the seven
+   backgrounds in registry order, then **None**. It sits in the same `AxisRow`, so below `md` it is
+   one horizontally scrolling row like the others.
+2. **Each chip leads with a still swatch of its background**, the way a palette chip leads with its
+   dot (`AxisOption.leading`). The swatch is a 28 × 16 frame, `rounded-(--radius-badge)`,
+   `border border-(--el-border)`, `bg-(--el-page-bg)`, with the background drawn once and never
+   animated, `aria-hidden`. It follows the page's palette and theme. None's swatch is a dashed
+   `--el-border-strong` frame around a `Ban` glyph in `--el-text-secondary`.
+3. **The note under the row** is `AxisNote` (the background's name and tagline) followed by one
+   sentence that answers "does this change with the style?":
+   - Wave and Topography: **"Redrawn for {style}."**, with the current style's catalogue name.
+   - Aurora, Cyclic CA, Brian's Brain, Day & Night and Rule 110: **"Same in every style — it
+     follows only the palette and the theme."**
+   - None: **"No background — the hero shows the page colour."**
+4. **The chosen background draws live behind the page's own hero**, the heading block (`h1` and
+   subline) under the rail. The block becomes a full-width band,
+   `relative isolate overflow-hidden bg-(--el-page-bg)`, with the package's `<Background>` behind it
+   and the inner `max-w-[1080px]` column as its focus element. Its bottom padding grows from `pb-4`
+   to `pb-10`, so the clear area and the Wave's gathering have room below the subline. The Wave
+   gathers its lines around the column. The other six fade to the page colour behind it. **None
+   draws no canvas**, and the block is the page as it ships today.
+5. **Reset to default** treats Background as an axis. It appears when Background is off the visit's
+   default (the Wave) and puts it back.
+
+The motir.co hero keeps the Wave whatever the visitor picks here. The picker restyles this page's
+hero only, and it persists for the visit the way the other axes do (`useVisitAppearance`).
+
+### States drawn
+
+1. **Wave selected** (the default), at 1440, with the site header's **Design** entry in its
+   current-page treatment as the door.
+2. **A style-fixed background**: Cyclic CA with its "same in every style" note, and Reset present.
+3. **None**: the hero on the page colour.
+4. **Phone width (390px)**: Topography selected. Every axis is one scrolling chip row, Background
+   included, and the page never scrolls sideways.
+
+### Copy (new catalogue keys under `designShowcase`)
+
+| Key                             | English                                                          |
+| ------------------------------- | ---------------------------------------------------------------- |
+| `background.name`               | Background                                                       |
+| `background.help`               | What the page draws behind its hero.                             |
+| `background.none`               | None                                                             |
+| `background.noneNote`           | No background — the hero shows the page colour.                  |
+| `background.followsNote`        | Redrawn for {style}.                                             |
+| `background.fixedNote`          | Same in every style — it follows only the palette and the theme. |
+| `backgrounds.<id>.name/tagline` | the registry's name and description, translated                  |
+
+`backgrounds.<id>` follows `styles` / `palettes` / `types`: the package's names are English, and
+the catalogue holds them to the registry the way `tests/cjkFaces.test.ts` holds the other three.
+
+### Tokens
+
+- Field name `--el-text`. Help and note: `AxisField`'s own `--el-text-muted`, which is 4.54:1 on the
+  rail's `Card`, as § _The axis rail_ measured. Selected chip: `AxisRadioGroup`'s own
+  `border-(--el-accent) bg-(--el-tint-lavender) text-(--el-accent-on-surface)`. Chip shape
+  `--radius-badge` with `--spacing-chip-x` / `--spacing-chip-y`.
+- The background's colours are read by the package from the live `--el-*` tokens. The page adds no
+  colour.
+- The dashed borders around the new axis and the hero band mark the change on the board. They are
+  not part of the design.
+
+### The fold, re-measured
+
+Measured in the mock at 1440 × 900, offsets from the top of the bar:
+
+| element                         | top → bottom |
+| ------------------------------- | ------------ |
+| bar                             | 0 → 57       |
+| rail (with Background)          | 57 → 806     |
+| the Background field            | 611 → 768    |
+| hero band                       | 806 → 1024   |
+| first composed section's `Card` | 1077 → 1167  |
+
+**§ _The measured fold_'s criterion (the whole rail and a whole composed section above the fold)
+no longer holds, and it had stopped holding before this card.** That table was taken with 11
+styles. The package now registers 19, and the Style row wraps to three rows at 1080. The rail
+without Background is already about 650px. The Background field adds about 130px (the dashed
+marker's padding is the rest of the 157 above). At 1440 the hero's heading still starts above the
+fold, at 806. **Decision:** keep Background in the rail with the other three rather than moving it.
+The card asks for it beside them, and the hero it restyles is the next thing below the rail.
+Getting the specimen back above the fold is a change to the rail itself, such as collapsing the
+Style row, and is not this card's.
+
+### Access path
+
+The door is the site header's **Design** entry (`nav.design`), drawn in panel 1 in its current-page
+treatment (`font-semibold text-(--el-accent-on-surface)`, `aria-current="page"`). The picker sits in
+the existing rail on `/design`. No new route or navigation entry is added.
+
+### Parts
+
+All from `@motir/design-system`, at the version MOTIR-11609 releases. No addition is proposed and no
+product-local component. `BackgroundChips` joins `AppearancePickers.tsx` beside the other three. The
+swatch is the package's `<Background>` at chip size with a still-frame flag, which MOTIR-11610 asks
+of the package if the release does not have it.

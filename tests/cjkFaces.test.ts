@@ -3,6 +3,8 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
+  BACKGROUND_IDS,
+  BACKGROUND_REGISTRY,
   PALETTE_IDS,
   PALETTE_REGISTRY,
   STYLE_IDS,
@@ -160,6 +162,22 @@ describe('the rail’s English is the registries’ English', () => {
       expect(show[key]?.[id]).toEqual({
         name: table[id]?.name,
         tagline: table[id]?.tagline,
+      })
+    }
+  })
+})
+
+describe('the Background row’s English is the background registry’s', () => {
+  it('names every registered background with its name and description', () => {
+    const table = en.designShowcase.backgrounds as Record<
+      string,
+      { name: string; tagline: string }
+    >
+    expect(Object.keys(table)).toEqual([...BACKGROUND_IDS])
+    for (const id of BACKGROUND_IDS) {
+      expect(table[id]).toEqual({
+        name: BACKGROUND_REGISTRY[id].name,
+        tagline: BACKGROUND_REGISTRY[id].description,
       })
     }
   })

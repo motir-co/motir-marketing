@@ -1,9 +1,13 @@
 import { useEffect, useSyncExternalStore } from 'react'
-import type {
-  PaletteId,
-  StyleId,
-  ThemePattern,
-  TypeId,
+import {
+  BACKGROUND_NONE,
+  DEFAULT_BACKGROUND_ID,
+  isBackgroundId,
+  type BackgroundChoice,
+  type PaletteId,
+  type StyleId,
+  type ThemePattern,
+  type TypeId,
 } from '@motir/design-system'
 import {
   SITE_APPEARANCE,
@@ -48,6 +52,12 @@ interface VisitChoice {
   pinnedType: TypeId | null
   /** The CJK font picked per language (`lib/cjkFaces.ts`); absent is the default. */
   cjkFaces: Partial<Record<CjkLang, string>>
+  /**
+   * What `/design` draws behind its own hero (MOTIR-11610). Unlike the four
+   * axes it is never written onto `<html>`: a background is chosen per page
+   * area, and the other heroes of motir.co keep the Wave.
+   */
+  background: BackgroundChoice
 }
 
 const SITE_CHOICE: VisitChoice = {
@@ -56,6 +66,14 @@ const SITE_CHOICE: VisitChoice = {
   palette: SITE_APPEARANCE.palette,
   pinnedType: null,
   cjkFaces: {},
+  background: DEFAULT_BACKGROUND_ID,
+}
+
+/** A stored background, or the default for one this build does not know. */
+function asBackground(value: unknown): BackgroundChoice {
+  return value === BACKGROUND_NONE || isBackgroundId(value)
+    ? value
+    : DEFAULT_BACKGROUND_ID
 }
 
 function storage(): Storage | null {
@@ -95,6 +113,7 @@ function asChoice(value: unknown): VisitChoice | null {
       palette: c.palette,
       pinnedType: typeof c.pinnedType === 'string' ? c.pinnedType : null,
       cjkFaces: c.cjkFaces && typeof c.cjkFaces === 'object' ? c.cjkFaces : {},
+      background: asBackground(c.background),
     }
   }
   return null
@@ -187,7 +206,8 @@ export function useVisitAppearance() {
     () => false,
   )
 
-  const { pattern, styleId, palette, pinnedType, cjkFaces } = current
+  const { pattern, styleId, palette, pinnedType, cjkFaces, background } =
+    current
   const type = pinnedType ?? siteTypeForStyle(styleId)
   const resolvedPattern =
     pattern === 'system' ? (osDark ? 'dark' : 'light') : pattern
@@ -223,7 +243,8 @@ export function useVisitAppearance() {
     styleId !== base.styleId ||
     palette !== base.palette ||
     type !== (base.pinnedType ?? siteTypeForStyle(base.styleId)) ||
-    Object.keys(cjkFaces).length > 0
+    Object.keys(cjkFaces).length > 0 ||
+    background !== base.background
 
   return {
     pattern,
@@ -231,11 +252,14 @@ export function useVisitAppearance() {
     palette,
     type,
     cjkFaces,
+    background,
     offDefault,
     setPattern: (next: ThemePattern) => updateChoice({ pattern: next }),
     setStyleId: (next: StyleId) => updateChoice({ styleId: next }),
     setPalette: (next: PaletteId) => updateChoice({ palette: next }),
     setType: (next: TypeId) => updateChoice({ pinnedType: next }),
+    setBackground: (next: BackgroundChoice) =>
+      updateChoice({ background: next }),
     // Picking the default face forgets the pick, so Reset shows only while a
     // language is genuinely off its default.
     setCjkFace: (lang: CjkLang, face: string) => {

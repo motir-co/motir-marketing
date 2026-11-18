@@ -3,7 +3,7 @@ import { cn } from '@motir/design-system'
 import { useCopy } from '@/lib/copy'
 import { MOTIR_PROJECT } from '@/lib/destinations'
 import type { ExploreQuery } from '@/lib/explore'
-import { HeroWaves } from '@/app/_components/landing/HeroWaves'
+import { HeroBackgroundIsland } from '@/app/_islands'
 import { ExploreSearchForm } from './SearchForm'
 
 /*
@@ -34,7 +34,7 @@ export function ExploreHero({
       aria-labelledby="explore-h"
       className="relative isolate overflow-hidden px-[clamp(16px,3vw,48px)] pt-[calc(clamp(48px,6vw,96px)+4.75rem)] pb-[clamp(56px,7vw,112px)]"
     >
-      <HeroWaves focusId="explore-search" />
+      <HeroBackgroundIsland focusId="explore-search" />
       <div className="mx-auto grid max-w-[1400px] items-center gap-x-[clamp(32px,5vw,80px)] gap-y-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
         <div className="grid gap-6">
           <p

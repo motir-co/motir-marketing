@@ -2,13 +2,19 @@
 
 import {
   AxisRadioGroup,
+  Background,
+  BACKGROUND_IDS,
+  BACKGROUND_NONE,
   PALETTE_IDS,
   STYLE_IDS,
   TYPE_IDS,
+  type AxisOption,
+  type BackgroundChoice,
   type PaletteId,
   type StyleId,
   type TypeId,
 } from '@motir/design-system'
+import { Ban } from 'lucide-react'
 import { useCopy } from '@/lib/copy'
 import { cjkFaceLabelClass, cjkFaces, type CjkLang } from '@/lib/cjkFaces'
 
@@ -68,6 +74,44 @@ export function TypeChips(props: PickerProps<TypeId>) {
     scope: { 'data-type': id },
     labelClassName: 'font-serif',
   }))
+  return <AxisRadioGroup {...props} options={options} />
+}
+
+/*
+ * The Background row (MOTIR-11610, drawn by MOTIR-11603): the seven
+ * backgrounds in registry order, then None. Each chip leads with a still
+ * swatch of its background, the way a palette chip leads with its dot: the
+ * package's `<Background still>` drawn once at chip size, following the page's
+ * palette and theme. None's swatch is an empty dashed frame.
+ */
+export function BackgroundChips(props: PickerProps<BackgroundChoice>) {
+  const ds = useCopy().designShowcase
+  const options: Array<AxisOption<BackgroundChoice>> = [
+    ...BACKGROUND_IDS.map((id) => ({
+      id,
+      label: ds.backgrounds[id].name,
+      leading: (
+        <span
+          aria-hidden="true"
+          className="relative isolate inline-block h-4 w-7 shrink-0 overflow-hidden rounded-(--radius-badge) border border-(--el-border) bg-(--el-page-bg)"
+        >
+          <Background id={id} still />
+        </span>
+      ),
+    })),
+    {
+      id: BACKGROUND_NONE,
+      label: ds.background.none,
+      leading: (
+        <span
+          aria-hidden="true"
+          className="inline-flex h-4 w-7 shrink-0 items-center justify-center rounded-(--radius-badge) border border-dashed border-(--el-border-strong) bg-(--el-page-bg)"
+        >
+          <Ban className="size-2.5 text-(--el-text-secondary)" />
+        </span>
+      ),
+    },
+  ]
   return <AxisRadioGroup {...props} options={options} />
 }
 

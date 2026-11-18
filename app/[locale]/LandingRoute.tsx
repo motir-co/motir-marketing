@@ -24,7 +24,7 @@ import {
   WatchArt,
 } from '../_components/landing/Art'
 import { BuiltByMotirSection } from '../_components/landing/BuiltByMotirSection'
-import { HeroBriefIsland, HeroWavesIsland } from '../_islands'
+import { HeroBriefIsland, HeroBackgroundIsland } from '../_islands'
 import { ProjectManagerSection } from '../_components/landing/ProjectManagerSection'
 import { enterLocale, type LocalePageProps } from '@/i18n/locale'
 import type { Locale } from '@/i18n/routing'
@@ -93,7 +93,7 @@ export default async function Page({ params }: LocalePageProps) {
     <>
       <SiteShell host={SITE_HOST} className="bg-(--el-surface)" overlayHeader>
         <section className="relative isolate grid justify-items-center gap-[22px] overflow-hidden px-[clamp(16px,3vw,48px)] pt-[calc(clamp(72px,9vw,136px)+4.75rem)] pb-[clamp(96px,11vw,168px)] text-center">
-          <HeroWavesIsland />
+          <HeroBackgroundIsland />
           <h1 className="m-0 font-(family-name:--font-serif) text-[clamp(56px,9.6vw,156px)] leading-[0.9] font-bold tracking-[-0.04em]">
             {l.hero.headline}
             {/* The full stop is drawn, not typed: it is the warm touch, and an

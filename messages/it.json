@@ -511,8 +511,16 @@
       "name": "Caratteri",
       "help": "L’abbinamento di caratteri per titoli e testo."
     },
+    "background": {
+      "name": "Sfondo",
+      "help": "Ciò che la pagina disegna dietro il suo hero.",
+      "none": "Nessuno",
+      "noneNote": "Nessuno sfondo: l’hero mostra il colore della pagina.",
+      "followsNote": "Ridisegnato per {style}.",
+      "fixedNote": "Uguale in ogni stile: segue solo la palette e il tema."
+    },
     "reset": "Ripristina predefinito",
-    "closing": "I tre assi qui sono gli stessi tre che il tuo progetto sceglie quando lo avvii in Motir, con lo stesso design system alla base. Questo sito non te ne mostra una demo: è costruito con esso.",
+    "closing": "Gli assi qui sono gli stessi che il tuo progetto sceglie quando lo avvii in Motir, con lo stesso design system alla base. Questo sito non te ne mostra una demo: è costruito con esso.",
     "styles": {
       "warm-editorial": {
         "name": "Editoriale caldo",
@@ -689,6 +697,36 @@
       "humanist": {
         "name": "Umanista",
         "tagline": "Un sans umanista caldo in tutta l’interfaccia: aperto e leggibile."
+      }
+    },
+    "backgrounds": {
+      "wave": {
+        "name": "Onda",
+        "tagline": "La linea del marchio Motir, ripetuta su tutta la pagina. Le linee si raccolgono attorno al contenuto principale."
+      },
+      "topography": {
+        "name": "Topografia",
+        "tagline": "Curve di livello su una mappa delle altezze che cambia lentamente."
+      },
+      "aurora": {
+        "name": "Aurora",
+        "tagline": "Morbide bande di colore che scorrono e cambiano lentamente colore."
+      },
+      "cyclic": {
+        "name": "Cyclic CA",
+        "tagline": "Sedici stati di colore si inseguono in anelli e bande."
+      },
+      "brian": {
+        "name": "Brian's Brain",
+        "tagline": "Le celle si accendono, sbiadiscono e si spengono. Non si ferma mai."
+      },
+      "daynight": {
+        "name": "Giorno e notte",
+        "tagline": "Grandi regioni piene con bordi sempre in movimento."
+      },
+      "rule110": {
+        "name": "Rule 110",
+        "tagline": "Una regola monodimensionale disegnata una riga alla volta, che scorre verso l’alto."
       }
     }
   },
