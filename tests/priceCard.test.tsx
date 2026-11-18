@@ -16,7 +16,10 @@ import {
   type LadderPlan,
   type PlanLadder,
 } from '@/lib/priceLadder'
-import { TRACKER_SEAT_FEE_USD_PER_MONTH } from '@/lib/seatFee'
+import {
+  TRACKER_SEAT_FEE_USD_PER_MONTH,
+  TRACKER_SEAT_FEE_USD_PER_YEAR,
+} from '@/lib/seatFee'
 import recorded from '@/tests/fixtures/price/plans.json'
 
 /*
@@ -306,11 +309,12 @@ describe('the price card', () => {
       plans: [{ ...recorded.plans[0], priceUsdByCadence: { monthly: 25 } }],
     }) as PlanLadder
     render(<PriceCard ladder={oneCadence} />)
-    const block = document.querySelector('[data-price="monthly"]')!
+    const plan = document.querySelector('[data-plan="standard"]')!
+    const block = plan.querySelector('[data-price="monthly"]')!
     expect(block.className).not.toContain(
       'group-data-[cadence=annual]/cadence:hidden',
     )
-    expect(document.querySelector('[data-price="annual"]')).toBeNull()
+    expect(plan.querySelector('[data-price="annual"]')).toBeNull()
   })
 
   it('names the largest plan in Need more credits, links the calculator, and states the top-up rate', () => {
@@ -337,21 +341,21 @@ describe('the price card', () => {
     ).toBeInTheDocument()
   })
 
-  it('switches cadence with the toggle, and shows the saving badge only on Annual', async () => {
+  it('starts on Annual, switches with the toggle, and shows the saving badge only on Annual', async () => {
     const user = userEvent.setup()
     const { container } = await renderHydrated(<PriceCard ladder={ladder} />)
     const wrapper = container.querySelector('[data-cadence]')!
     const badge = savingBadgeOf(recorded.plans)
-    expect(wrapper).toHaveAttribute('data-cadence', 'monthly')
-    expect(screen.queryByText(badge)).toBeNull()
+    expect(wrapper).toHaveAttribute('data-cadence', 'annual')
+    expect(screen.getByText(badge)).toBeInTheDocument()
     expect(
       screen.getByRole('group', { name: copy.cadenceLabel }),
     ).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: copy.annual }))
-    expect(wrapper).toHaveAttribute('data-cadence', 'annual')
-    expect(screen.getByText(badge)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: copy.monthly }))
     expect(wrapper).toHaveAttribute('data-cadence', 'monthly')
+    expect(screen.queryByText(badge)).toBeNull()
+    await user.click(screen.getByRole('button', { name: copy.annual }))
+    expect(wrapper).toHaveAttribute('data-cadence', 'annual')
   })
 
   describe('the Annual saving badge follows the ladder (MOTIR-10156)', () => {
@@ -425,16 +429,57 @@ describe('the price card', () => {
     )
   })
 
-  it('states the seat block, per-organisation and invoice lines', () => {
-    render(<PriceCard ladder={ladder} />)
+  it('draws the seat price card on both cadences, with the per-organisation and invoice lines', async () => {
+    const user = userEvent.setup()
+    await renderHydrated(<PriceCard ladder={ladder} />)
+    const seat = document.querySelector('[data-plan="seat"]') as HTMLElement
+    const card = within(seat)
+    const monthly = TRACKER_SEAT_FEE_USD_PER_MONTH
+    const annual = TRACKER_SEAT_FEE_USD_PER_YEAR
+    const save = String(monthly * 12 - annual)
+    expect(card.getByRole('heading', { level: 3 })).toHaveTextContent(
+      copy.seatTitle,
+    )
+    expect(card.getByText(copy.seatUseCase)).toBeInTheDocument()
     expect(
-      screen.getByText(/Every AI plan includes 1 Motir seat at no charge\./),
+      card.getByText(/Every AI plan includes 1 Motir seat at no charge\./),
     ).toBeInTheDocument()
     expect(
-      screen.getByText(
-        format(copy.seatFee, { price: String(TRACKER_SEAT_FEE_USD_PER_MONTH) }),
+      card.getByText(format(copy.seatPerYr, { n: String(annual) })),
+    ).toBeInTheDocument()
+    expect(
+      card.getByText(format(copy.seatAnnualSub, { n: save })),
+    ).toBeInTheDocument()
+    expect(
+      card.getByText(format(copy.seatPerMo, { n: String(monthly) })),
+    ).toBeInTheDocument()
+    expect(
+      card.getByText(
+        format(copy.seatMonthlySub, { yr: String(monthly * 12), n: save }),
       ),
     ).toBeInTheDocument()
+    // It follows the plans' toggle: Annual first, Monthly on a click.
+    const annualBlock = seat.querySelector('[data-price="annual"]')!
+    const monthlyBlock = seat.querySelector('[data-price="monthly"]')!
+    expect(annualBlock.className).toContain(
+      'group-data-[cadence=annual]/cadence:block',
+    )
+    expect(monthlyBlock.className).toContain(
+      'group-data-[cadence=annual]/cadence:hidden',
+    )
+    expect(seat.closest('[data-cadence]')).toHaveAttribute(
+      'data-cadence',
+      'annual',
+    )
+    await user.click(screen.getByRole('button', { name: copy.monthly }))
+    expect(seat.closest('[data-cadence]')).toHaveAttribute(
+      'data-cadence',
+      'monthly',
+    )
+    expect(card.getByRole('link', { name: copy.seatCta })).toHaveAttribute(
+      'href',
+      PLANS_SIGN_UP,
+    )
     expect(screen.getByText(copy.perOrg)).toBeInTheDocument()
     expect(screen.getByText(copy.invoice)).toBeInTheDocument()
   })
@@ -454,9 +499,12 @@ describe('the price card when the ladder cannot be read', () => {
     }
     expect(screen.queryByText(/credits \/ mo/)).toBeNull()
     expect(screen.getByText(copy.perOrg)).toBeInTheDocument()
+    // No cadence wrapper here, so the seat card shows its Monthly price.
+    const seat = document.querySelector('[data-plan="seat"]')!
+    expect(seat.closest('[data-cadence]')).toBeNull()
     expect(
-      screen.getByText(
-        format(copy.seatFee, { price: String(TRACKER_SEAT_FEE_USD_PER_MONTH) }),
+      within(seat as HTMLElement).getByText(
+        format(copy.seatPerMo, { n: String(TRACKER_SEAT_FEE_USD_PER_MONTH) }),
       ),
     ).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: copy.retry }))

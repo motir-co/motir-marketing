@@ -10,6 +10,8 @@ import {
   type TypeId,
 } from '@motir/design-system'
 import {
+  LANDING_PALETTES,
+  LANDING_STYLES,
   SITE_APPEARANCE,
   VISIT_APPEARANCE_KEY,
   VISIT_LANDING_KEY,
@@ -174,6 +176,25 @@ function updateChoice(patch: Partial<VisitChoice>) {
   for (const listener of listeners) listener()
 }
 
+/** One of `options`, never `current` while there is anything else to pick. */
+function pickOther<T>(options: readonly T[], current: T): T {
+  const others = options.filter((option) => option !== current)
+  const pool = others.length > 0 ? others : options
+  return pool[Math.floor(Math.random() * pool.length)]!
+}
+
+/**
+ * A new random style and palette, from the same pools a new visit lands on
+ * (`LANDING_STYLES`, `LANDING_PALETTES`) and never the ones showing now. The
+ * header's shuffle button does this; the rest of the pick is kept.
+ */
+export function shuffleVisitAppearance() {
+  updateChoice({
+    styleId: pickOther(LANDING_STYLES, choice.styleId),
+    palette: pickOther(LANDING_PALETTES, choice.palette),
+  })
+}
+
 /** Back to the look the visit landed on. Reset does this; tests call it too. */
 export function forgetVisitAppearance() {
   choice = landing
@@ -269,5 +290,6 @@ export function useVisitAppearance() {
       updateChoice({ cjkFaces: next })
     },
     reset: forgetVisitAppearance,
+    shuffle: shuffleVisitAppearance,
   }
 }

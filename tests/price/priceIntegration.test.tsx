@@ -12,7 +12,10 @@ import type { Estimate } from '@/app/_components/price/calculatorApi'
 import { LOCALES, type Locale } from '@/i18n/routing'
 import { format, getCopy, type Copy } from '@/lib/copy'
 import { PLAN_LADDER_PATH, readPlanLadder } from '@/lib/priceLadder'
-import { TRACKER_SEAT_FEE_USD_PER_MONTH } from '@/lib/seatFee'
+import {
+  TRACKER_SEAT_FEE_USD_PER_MONTH,
+  TRACKER_SEAT_FEE_USD_PER_YEAR,
+} from '@/lib/seatFee'
 import ladderA from '@/tests/fixtures/price/plans.json'
 import ladderB from '@/tests/fixtures/price/plans-b.json'
 import unknownVersion from '@/tests/fixtures/price/plans-unknown-version.json'
@@ -143,10 +146,16 @@ describe('whole-story wording, in every locale', () => {
       const text = (document.body.textContent ?? '').toLowerCase()
       for (const term of FORBIDDEN_TERMS[locale])
         expect(text).not.toContain(term)
-      // The seat fee is the one constant, and it reaches the page through it.
+      // The seat fees are the one pair of constants, and they reach the page
+      // through them.
       expect(document.body.textContent).toContain(
-        format(messages.pricePage.plans.seatFee, {
-          price: numberIn(locale)(TRACKER_SEAT_FEE_USD_PER_MONTH),
+        format(messages.pricePage.plans.seatPerMo, {
+          n: numberIn(locale)(TRACKER_SEAT_FEE_USD_PER_MONTH),
+        }),
+      )
+      expect(document.body.textContent).toContain(
+        format(messages.pricePage.plans.seatPerYr, {
+          n: numberIn(locale)(TRACKER_SEAT_FEE_USD_PER_YEAR),
         }),
       )
       expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
@@ -211,9 +220,10 @@ describe('the source holds no figure', () => {
     )
   })
 
-  it('names the seat fee in one place', () => {
+  it('names the seat fees in one place', () => {
     const seat = readFileSync(join(process.cwd(), 'lib/seatFee.ts'), 'utf8')
     expect(strip(seat)).toMatch(/TRACKER_SEAT_FEE_USD_PER_MONTH = \d+/)
+    expect(strip(seat)).toMatch(/TRACKER_SEAT_FEE_USD_PER_YEAR = \d+/)
   })
 })
 
@@ -301,7 +311,11 @@ describe('the ladder read fails alone', () => {
         for (const plan of ladderA.plans) {
           expect(within(plansSection()).queryByText(plan.name)).toBeNull()
         }
-        expect(plansSection().querySelector('[data-price]')).toBeNull()
+        expect(
+          plansSection().querySelector(
+            '[data-plan]:not([data-plan="seat"]) [data-price]',
+          ),
+        ).toBeNull()
         expect(within(plansSection()).getByText(p.perOrg)).toBeInTheDocument()
         expect(within(plansSection()).getByText(p.invoice)).toBeInTheDocument()
         await screen.findByRole('checkbox', { name: /^Balanced,/ })
@@ -400,7 +414,8 @@ describe('an estimate the page cannot read', () => {
         )
         expect(
           within(plansSection()).getAllByRole('heading', { level: 3 }).length,
-        ).toBe(ladderA.plans.length + 2)
+          // Every plan, plus Need more credits, Top up and the seat card.
+        ).toBe(ladderA.plans.length + 3)
       },
     )
   }

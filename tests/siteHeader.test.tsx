@@ -1,9 +1,11 @@
-import { screen, within } from '@testing-library/react'
+import { act, screen, within } from '@testing-library/react'
 import { render as renderOnPage } from '@/tests/helpers/withCopy'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import { SiteHeader } from '@/app/_components/SiteHeader'
-import { SITE_HOST } from '@/lib/publicHost'
+import { SITE_HOST, UNKNOWN_HOST } from '@/lib/publicHost'
+import { forgetVisitAppearance } from '@/lib/useVisitAppearance'
+import { LANDING_PALETTES, LANDING_STYLES } from '@/lib/siteDefaults'
 import { englishCopy as copy } from '@/lib/copy'
 
 /*
@@ -123,5 +125,51 @@ describe("the bar's right group keeps its give-way ladder from sm up (MOTIR-8135
       .parentElement as HTMLElement
     expect(group.className).toContain('min-w-0')
     expect(group.className).toContain('sm:flex-none')
+  })
+})
+
+describe('the shuffle button beside Design', () => {
+  afterEach(() => {
+    act(() => forgetVisitAppearance())
+    window.sessionStorage.clear()
+  })
+
+  it('sits right after the Design link and restyles the page at random', async () => {
+    const user = userEvent.setup()
+    render(<SiteHeader host={SITE_HOST} />)
+    const button = within(bar()).getByRole('button', {
+      name: copy.nav.shuffleDesign,
+    })
+    const design = within(bar()).getByRole('link', { name: copy.nav.design })
+    expect(design.nextElementSibling).toBe(button)
+
+    const html = document.documentElement
+    const before = html.getAttribute('data-style')
+    await user.click(button)
+    const style = html.getAttribute('data-style')!
+    expect(style).not.toBe(before)
+    expect(LANDING_STYLES).toContain(style)
+    expect(LANDING_PALETTES).toContain(html.getAttribute('data-palette')!)
+  })
+
+  it('is a labelled row in the Menu panel too', async () => {
+    const user = userEvent.setup()
+    render(<SiteHeader host={SITE_HOST} />)
+    await user.click(screen.getByRole('button', { name: copy.nav.menu }))
+    const panel = screen.getAllByRole('navigation', {
+      name: copy.nav.ariaLabel,
+    })[1]!
+    const before = document.documentElement.getAttribute('data-style')
+    await user.click(
+      within(panel).getByRole('button', { name: copy.nav.shuffleDesign }),
+    )
+    expect(document.documentElement.getAttribute('data-style')).not.toBe(before)
+  })
+
+  it('is not drawn off motir.co', () => {
+    render(<SiteHeader host={UNKNOWN_HOST} />)
+    expect(
+      screen.queryByRole('button', { name: copy.nav.shuffleDesign }),
+    ).toBeNull()
   })
 })

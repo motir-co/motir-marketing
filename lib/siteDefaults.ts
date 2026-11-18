@@ -1,5 +1,6 @@
 import {
   DEFAULT_PALETTE_ID,
+  PALETTE_IDS,
   STYLE_DEFAULT_TYPE,
   STYLE_IDS,
   THEME_STORAGE_KEYS,
@@ -33,8 +34,9 @@ import {
  *
  * A NEW VISIT LANDS ON A RANDOM STYLE. With nothing stored for the tab (a new
  * tab, or a reload), the head script picks one of `LANDING_STYLES` and keeps
- * it for the visit like a `/design` pick; theme and palette stay the site's.
- * The server still renders the style below, which is what a visitor without
+ * it for the visit like a `/design` pick, together with a random palette from
+ * `LANDING_PALETTES`; the light/dark theme stays the site's.
+ * The server still renders the style and palette below, which is what a visitor without
  * script, and an automated browser (`navigator.webdriver`), sees.
  */
 export const SITE_DEFAULT_STYLE: StyleId = 'hand-drawn-indie'
@@ -105,18 +107,31 @@ export const VISIT_APPEARANCE_KEY = 'motir-visit-appearance'
  * Styles motir.co never lands on at random — they stay pickable on `/design`.
  */
 export const LANDING_STYLE_EXCLUDED: readonly StyleId[] = [
-  'retrofuturism',
   'high-contrast-accessible',
   'cybercore-y2k',
   'art-deco',
-  'memphis',
-  '3d-immersive',
+  'bento',
+  'neo-brutalism',
+  'claymorphism',
 ]
 
 /** The styles a new visit lands on, one picked at random. */
 export const LANDING_STYLES: readonly StyleId[] = (
   STYLE_IDS as readonly StyleId[]
 ).filter((id) => !LANDING_STYLE_EXCLUDED.includes(id))
+
+/**
+ * Palettes motir.co never lands on at random — they stay pickable on `/design`.
+ */
+export const LANDING_PALETTE_EXCLUDED: readonly PaletteId[] = [
+  'sienna',
+  'candy',
+]
+
+/** The palettes a new visit lands on, one picked at random. */
+export const LANDING_PALETTES: readonly PaletteId[] = (
+  PALETTE_IDS as readonly PaletteId[]
+).filter((id) => !LANDING_PALETTE_EXCLUDED.includes(id))
 
 /**
  * The visit's landing look, kept beside the pick so `/design`'s Reset returns
@@ -131,7 +146,8 @@ const landingTypes = Object.fromEntries(
 /*
  * Runs in every `<head>` before the first paint. A reload starts a new visit
  * (the stored pick is dropped); a link, back or forward keeps it. With nothing
- * stored, a new visit draws a random landing style and stores it. Then the
+ * stored, a new visit draws a random landing style and palette and stores
+ * them. Then the
  * visit's look is replayed onto `<html>` — only the appearance attributes are
  * ever written, whatever the stored value holds.
  */
@@ -139,11 +155,11 @@ export const visitAppearanceScript = `(function(){try{var ss=window.sessionStora
   JSON.stringify(VISIT_APPEARANCE_KEY),
 )},lk=${escapeUnsafeScriptChars(JSON.stringify(VISIT_LANDING_KEY))},n=window.performance&&performance.getEntriesByType&&performance.getEntriesByType('navigation')[0];if(n&&n.type==='reload'){ss.removeItem(k);ss.removeItem(lk);}var v=JSON.parse(ss.getItem(k)||'null');if(!v&&!navigator.webdriver){var t=${escapeUnsafeScriptChars(
   JSON.stringify(landingTypes),
-)},o=Object.keys(t),s=o[Math.floor(Math.random()*o.length)],c={pattern:${escapeUnsafeScriptChars(
+)},o=Object.keys(t),s=o[Math.floor(Math.random()*o.length)],p=${escapeUnsafeScriptChars(
+  JSON.stringify(LANDING_PALETTES),
+)},c={pattern:${escapeUnsafeScriptChars(
   JSON.stringify(SITE_APPEARANCE.pattern),
-)},styleId:s,palette:${escapeUnsafeScriptChars(
-  JSON.stringify(SITE_APPEARANCE.palette),
-)},pinnedType:null,cjkFaces:{}};v={choice:c,attributes:{'data-theme':c.pattern,'data-style':s,'data-palette':c.palette,'data-type':t[s]},system:false};ss.setItem(k,JSON.stringify(v));ss.setItem(lk,JSON.stringify(c));}if(!v||typeof v.attributes!=='object'||!v.attributes)return;var h=document.documentElement,a=v.attributes;for(var x in a){if(/^data-(theme|style|palette|type|cjk-[a-z-]+)$/.test(x)&&typeof a[x]==='string')h.setAttribute(x,a[x]);}if(v.system&&window.matchMedia)h.setAttribute('data-theme',window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');}catch(e){}})();`
+)},styleId:s,palette:p[Math.floor(Math.random()*p.length)],pinnedType:null,cjkFaces:{}};v={choice:c,attributes:{'data-theme':c.pattern,'data-style':s,'data-palette':c.palette,'data-type':t[s]},system:false};ss.setItem(k,JSON.stringify(v));ss.setItem(lk,JSON.stringify(c));}if(!v||typeof v.attributes!=='object'||!v.attributes)return;var h=document.documentElement,a=v.attributes;for(var x in a){if(/^data-(theme|style|palette|type|cjk-[a-z-]+)$/.test(x)&&typeof a[x]==='string')h.setAttribute(x,a[x]);}if(v.system&&window.matchMedia)h.setAttribute('data-theme',window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');}catch(e){}})();`
 
 /** The one inline script every motir.co `<head>` runs. */
 export const appearanceHeadScript =

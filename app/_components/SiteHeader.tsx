@@ -30,6 +30,7 @@ import {
 import { siteLinkFor, type PublicHost } from '@/lib/publicHost'
 import { ChromeLink } from './ChromeLink'
 import { SetupPromptButton } from './SetupPromptButton'
+import { ShuffleDesignButton } from './ShuffleDesignButton'
 
 /*
  * The top bar, carrying DOOR 3's first half: the `Start free` nav entry.
@@ -275,7 +276,7 @@ export function SiteHeader({
             <ProductsMenu host={host} />
             {navItemsFor(copy).map((item) => {
               const current = isCurrent(host, item.path, pathname)
-              return (
+              const link = (
                 <ChromeLink
                   key={item.path}
                   href={siteLinkFor(host, item.path, locale)}
@@ -289,6 +290,16 @@ export function SiteHeader({
                   {'feature' in item && LIVE_SQUARE}
                   {item.label}
                 </ChromeLink>
+              )
+              // The shuffle button sits right after Design, on motir.co only:
+              // a tenant host does not wear the visitor's /design pick.
+              return item.path === DESIGN && host.kind === 'site' ? (
+                <span key={item.path} className="inline-flex items-center">
+                  {link}
+                  <ShuffleDesignButton className="ml-1" />
+                </span>
+              ) : (
+                link
               )
             })}
           </nav>
@@ -410,6 +421,7 @@ export function SiteHeader({
               {item.label}
             </ChromeLink>
           ))}
+          {host.kind === 'site' ? <ShuffleDesignButton look="row" /> : null}
         </nav>
       ) : null}
     </header>

@@ -122,6 +122,48 @@ body {
 }
 
 /*
+ * THE PRICE PAGE'S INVERTED PLAN CARD (Host, 2026-11-18). The slot captures
+ * the theme's strongest ink and its page ground BEFORE the card re-points the
+ * text tokens, so the card can swap the two without a token referring to
+ * itself: a dark card in a light theme, a light card in a dark one, under
+ * every palette and style. Secondary ink is the ground mixed 20% toward the
+ * card; ticks take the full ground; the outlined button keeps a visible rule
+ * and a hover fill of its own.
+ */
+.plan-slot {
+  --plan-ink: var(--el-text-strong);
+  --plan-ground: var(--el-page-bg);
+}
+.plan-accent-wash {
+  background-color: color-mix(in srgb, var(--el-accent) 16%, var(--el-page-bg));
+}
+.plan-pill {
+  background-color: var(--el-surface);
+  color: var(--el-text-strong);
+}
+.plan-inverted {
+  background-color: var(--plan-ink);
+  --el-text: var(--plan-ground);
+  --el-text-strong: var(--plan-ground);
+  --el-text-secondary: color-mix(
+    in srgb,
+    var(--plan-ground) 80%,
+    var(--plan-ink)
+  );
+  --el-success: var(--plan-ground);
+  --el-surface: color-mix(in srgb, var(--plan-ground) 14%, var(--plan-ink));
+  --el-button-border: color-mix(
+    in srgb,
+    var(--plan-ground) 45%,
+    var(--plan-ink)
+  );
+}
+.plan-inverted .plan-pill {
+  background-color: var(--plan-ground);
+  color: var(--plan-ink);
+}
+
+/*
  * THE LANDING'S PICTURES — "Vibe the project" (2026-10 redesign).
  *
  * The pictures on the landing and on "How Motir works" paint with the design

@@ -11,6 +11,7 @@ import {
 import {
   INCLUDED_TRACKER_SEATS,
   TRACKER_SEAT_FEE_USD_PER_MONTH,
+  TRACKER_SEAT_FEE_USD_PER_YEAR,
 } from '@/lib/seatFee'
 import { PlansUnavailableIsland, PriceCadenceIsland } from '../../_islands'
 
@@ -29,6 +30,36 @@ import { PlansUnavailableIsland, PriceCadenceIsland } from '../../_islands'
  * ladder cannot be read.
  */
 
+/*
+ * Each plan card wears its own colour so the rungs read apart at a glance
+ * (2026-11-18). The tints are the design system's own (`--el-tint-*`, the
+ * tinted `Card`'s), so every style and palette repaints them; the card's inks
+ * were measured on all six over every palette and theme and clear AA.
+ *
+ * Max ×2 wears a light wash of the palette's own accent (`.plan-accent-wash`,
+ * globals.css), so it changes with the palette rather than being a fixed tint.
+ *
+ * Host, the top rung, is INVERTED instead (`.plan-inverted`, globals.css): the
+ * theme's strongest ink becomes its ground and the page ground its ink — a
+ * dark card in a light theme, a light one in a dark theme. A plan the list
+ * does not name takes the next of the spare tints, in ladder order.
+ */
+const PLAN_TINT: Record<string, string> = {
+  standard: 'bg-(--el-tint-sky)',
+  pro: 'bg-(--el-tint-lavender)',
+  max: 'bg-(--el-tint-mint)',
+  max_x2: 'plan-accent-wash',
+  host: 'plan-inverted',
+}
+const SPARE_TINTS = [
+  'bg-(--el-tint-peach)',
+  'bg-(--el-tint-rose)',
+  'bg-(--el-tint-yellow)',
+] as const
+
+const tintFor = (key: string, i: number) =>
+  PLAN_TINT[key] ?? SPARE_TINTS[i % SPARE_TINTS.length]!
+
 type PlansCopy = ReturnType<typeof useCopy>['pricePage']['plans']
 type Tier = { useCase: string; features: string[] }
 
@@ -41,21 +72,12 @@ export function PriceCard({ ladder }: { ladder: PlanLadderRead }) {
   })
   const fmt = (n: number) => number.format(n)
 
-  const seats = (
-    <Card tint="mint">
-      <div className="grid gap-1">
-        <p className="m-0 text-sm text-(--el-text)">
-          {formatIcu(locale, copy.seatsIncluded, {
-            count: INCLUDED_TRACKER_SEATS,
-          })}
-        </p>
-        <p className="m-0 text-sm text-(--el-text)">
-          {format(copy.seatFee, { price: fmt(TRACKER_SEAT_FEE_USD_PER_MONTH) })}
-        </p>
-        <p className="m-0 text-sm text-(--el-text)">{copy.perOrg}</p>
-        <p className="m-0 text-xs text-(--el-text-secondary)">{copy.invoice}</p>
-      </div>
-    </Card>
+  const seats = <SeatCard copy={copy} fmt={fmt} locale={locale} />
+  const orgNote = (
+    <div className="grid gap-1">
+      <p className="m-0 text-sm text-(--el-text)">{copy.perOrg}</p>
+      <p className="m-0 text-xs text-(--el-text-secondary)">{copy.invoice}</p>
+    </div>
   )
 
   if (ladder.kind === 'unavailable') {
@@ -63,6 +85,7 @@ export function PriceCard({ ladder }: { ladder: PlanLadderRead }) {
       <div className="grid gap-4">
         <PlansUnavailableIsland />
         {seats}
+        {orgNote}
       </div>
     )
   }
@@ -97,10 +120,11 @@ export function PriceCard({ ladder }: { ladder: PlanLadderRead }) {
             <div
               role="listitem"
               key={plan.key}
-              className="min-w-[13rem] grow basis-0"
+              className="plan-slot min-w-[13rem] grow basis-0"
             >
               <PlanCard
                 plan={plan}
+                tint={tintFor(plan.key, i)}
                 previous={plans[i - 1] ?? null}
                 copy={copy}
                 fmt={fmt}
@@ -109,60 +133,65 @@ export function PriceCard({ ladder }: { ladder: PlanLadderRead }) {
             </div>
           ))}
         </div>
-      </PriceCadenceIsland>
-      <Card>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="grid gap-1">
-            <h3 className="m-0 font-semibold text-(--el-text-strong)">
-              {copy.needMoreTitle}
-            </h3>
-            <p className="m-0 max-w-prose text-sm text-(--el-text-secondary)">
-              {format(copy.needMoreBody, {
-                plan: largest.name,
-                credits: fmt(largest.monthlyCredits),
-              })}
-            </p>
-          </div>
-          <a
-            href="#calculator"
-            className={buttonVariants({ variant: 'secondary', size: 'sm' })}
-          >
-            {copy.needMoreAction}
-          </a>
-        </div>
-      </Card>
-      <div className="grid gap-3 md:grid-cols-2">
-        <Card
-          header={
-            <h3 className="m-0 font-semibold text-(--el-text-strong)">
-              {copy.topupTitle}
-            </h3>
-          }
-        >
-          <div className="grid gap-1">
-            <p className="m-0 text-sm text-(--el-text)">{copy.topupSubtitle}</p>
-            <p className="m-0 text-xs text-(--el-text-secondary)">
-              {format(copy.topupRate, {
-                unit: fmt(topUp.unitAmountUsd),
-                credits: fmt(topUp.unitCredits),
-              })}
-            </p>
+        <Card>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="grid gap-1">
+              <h3 className="m-0 font-semibold text-(--el-text-strong)">
+                {copy.needMoreTitle}
+              </h3>
+              <p className="m-0 max-w-prose text-sm text-(--el-text-secondary)">
+                {format(copy.needMoreBody, {
+                  plan: largest.name,
+                  credits: fmt(largest.monthlyCredits),
+                })}
+              </p>
+            </div>
+            <a
+              href="#calculator"
+              className={buttonVariants({ variant: 'secondary', size: 'sm' })}
+            >
+              {copy.needMoreAction}
+            </a>
           </div>
         </Card>
-        {seats}
-      </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          <Card
+            header={
+              <h3 className="m-0 font-semibold text-(--el-text-strong)">
+                {copy.topupTitle}
+              </h3>
+            }
+          >
+            <div className="grid gap-1">
+              <p className="m-0 text-sm text-(--el-text)">
+                {copy.topupSubtitle}
+              </p>
+              <p className="m-0 text-xs text-(--el-text-secondary)">
+                {format(copy.topupRate, {
+                  unit: fmt(topUp.unitAmountUsd),
+                  credits: fmt(topUp.unitCredits),
+                })}
+              </p>
+            </div>
+          </Card>
+          {seats}
+        </div>
+      </PriceCadenceIsland>
+      {orgNote}
     </div>
   )
 }
 
 function PlanCard({
   plan,
+  tint,
   previous,
   copy,
   fmt,
   locale,
 }: {
   plan: LadderPlan
+  tint: string
   previous: LadderPlan | null
   copy: PlansCopy
   fmt: (n: number) => string
@@ -175,8 +204,9 @@ function PlanCard({
       data-plan={plan.key}
       aria-labelledby={`plan-${plan.key}`}
       className={cn(
-        'flex h-full flex-col gap-2 rounded-(--radius-card) border bg-(--el-surface) p-(--spacing-card-padding) shadow-(--shadow-card)',
-        recommended ? 'border-(--el-accent)' : 'border-(--el-border-soft)',
+        'flex h-full flex-col gap-2 rounded-(--radius-card) border p-(--spacing-card-padding) shadow-(--shadow-card)',
+        tint,
+        recommended ? 'border-(--el-accent)' : 'border-transparent',
       )}
     >
       <div className="flex items-center justify-between gap-2">
@@ -187,7 +217,7 @@ function PlanCard({
           {plan.name}
         </h3>
         {recommended ? (
-          <Pill className="border-transparent bg-(--el-tint-lavender) text-(--el-text-strong)">
+          <Pill className="plan-pill border-transparent">
             {copy.recommended}
           </Pill>
         ) : null}
@@ -232,6 +262,82 @@ function PlanCard({
           {format(recommended ? copy.ctaUpgrade : copy.ctaChoose, {
             plan: plan.name,
           })}
+        </a>
+      </div>
+    </article>
+  )
+}
+
+/*
+ * The seat's own price card (2026-11-18): $5 per user a month, or $40 a year —
+ * motir-core's seat prices (`lib/seatFee.ts`), not a ladder figure, so it
+ * renders even when the ladder cannot be read. Inside the cadence island it
+ * follows the Monthly / Annual toggle like the plan cards; outside it (the
+ * ladder-unavailable state) no `data-cadence` is set and it shows Monthly.
+ */
+function SeatCard({
+  copy,
+  fmt,
+  locale,
+}: {
+  copy: PlansCopy
+  fmt: (n: number) => string
+  locale: ReturnType<typeof usePageLocale>
+}) {
+  const monthly = TRACKER_SEAT_FEE_USD_PER_MONTH
+  const annual = TRACKER_SEAT_FEE_USD_PER_YEAR
+  const save = monthly * 12 - annual
+  const big = 'font-serif text-2xl whitespace-nowrap text-(--el-text)'
+  const sub = 'm-0 text-xs text-(--el-text-secondary)'
+  return (
+    <article
+      data-plan="seat"
+      aria-labelledby="plan-seat"
+      className="flex h-full flex-col gap-2 rounded-(--radius-card) border border-transparent bg-(--el-tint-peach) p-(--spacing-card-padding) shadow-(--shadow-card)"
+    >
+      <h3
+        id="plan-seat"
+        className="m-0 text-base font-semibold text-(--el-text)"
+      >
+        {copy.seatTitle}
+      </h3>
+      <p className="m-0 text-xs text-(--el-text-secondary)">
+        {copy.seatUseCase}
+      </p>
+      <div
+        data-price="monthly"
+        className="group-data-[cadence=annual]/cadence:hidden"
+      >
+        <span className={big}>
+          {format(copy.seatPerMo, { n: fmt(monthly) })}
+        </span>
+        <p className={sub}>
+          {format(copy.seatMonthlySub, { yr: fmt(monthly * 12), n: fmt(save) })}
+        </p>
+      </div>
+      <div
+        data-price="annual"
+        className="hidden group-data-[cadence=annual]/cadence:block"
+      >
+        <span className={big}>
+          {format(copy.seatPerYr, { n: fmt(annual) })}
+        </span>
+        <p className={sub}>{format(copy.seatAnnualSub, { n: fmt(save) })}</p>
+      </div>
+      <p className="m-0 text-xs text-(--el-text-secondary)">
+        {formatIcu(locale, copy.seatsIncluded, {
+          count: INCLUDED_TRACKER_SEATS,
+        })}
+      </p>
+      <div className="mt-auto pt-1">
+        <a
+          href={PLANS_SIGN_UP}
+          className={cn(
+            buttonVariants({ variant: 'secondary', size: 'sm' }),
+            'w-full',
+          )}
+        >
+          {copy.seatCta}
         </a>
       </div>
     </article>
@@ -290,7 +396,7 @@ function PriceBlocks({
           </span>
           <p className={sub}>{format(copy.annualSub, { yr: fmt(annual) })}</p>
           {save > 0 ? (
-            <Pill className="mt-1 border-transparent bg-(--el-tint-mint) text-(--el-text-strong)">
+            <Pill className="plan-pill mt-1 border-transparent">
               {format(copy.annualSave, { n: fmt(save) })}
             </Pill>
           ) : null}

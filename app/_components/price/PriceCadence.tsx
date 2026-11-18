@@ -12,7 +12,9 @@ import type { Cadence } from '@/lib/priceLadder'
  * card's two price blocks are already in the server markup (the island's
  * slot); the toggle only writes `data-cadence` on the wrapper, and each block
  * shows itself under `group-data-[cadence=…]/cadence:`. So the page's figures
- * render without JavaScript, at the design's default of Monthly (panel 2).
+ * render without JavaScript. It starts on ANNUAL (2026-11-18), not the
+ * design's Monthly (panel 2): the page leads with the annual price and its
+ * saving badge, and the server markup renders the same default.
  * The Annual badge's wording arrives computed from the ladder (MOTIR-10156).
  */
 export function PriceCadence({
@@ -24,7 +26,7 @@ export function PriceCadence({
   children: ReactNode
 }) {
   const words = useCopy().pricePage.plans
-  const [cadence, setCadence] = useState<Cadence>('monthly')
+  const [cadence, setCadence] = useState<Cadence>('annual')
   return (
     <div data-cadence={cadence} className="group/cadence grid gap-4">
       <div className="flex flex-wrap items-center gap-3">
