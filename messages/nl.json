@@ -514,9 +514,9 @@
     },
     "background": {
       "name": "Achtergrond",
-      "help": "Wat de pagina achter de hero tekent.",
+      "help": "Wat de pagina achter de inhoud tekent.",
       "none": "Geen",
-      "noneNote": "Geen achtergrond: de hero toont de paginakleur.",
+      "noneNote": "Geen achtergrond: de pagina toont haar eigen kleur.",
       "followsNote": "Opnieuw getekend voor {style}.",
       "fixedNote": "In elke stijl gelijk: volgt alleen het palet en het thema."
     },

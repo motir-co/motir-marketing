@@ -523,9 +523,9 @@
     },
     "background": {
       "name": "Fondo",
-      "help": "Lo que la página dibuja detrás de su hero.",
+      "help": "Lo que la página dibuja detrás de su contenido.",
       "none": "Ninguno",
-      "noneNote": "Sin fondo: el hero muestra el color de la página.",
+      "noneNote": "Sin fondo: la página muestra su propio color.",
       "followsNote": "Redibujado para {style}.",
       "fixedNote": "Igual en todos los estilos: solo sigue la paleta y el tema."
     },

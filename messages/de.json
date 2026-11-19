@@ -519,9 +519,9 @@
     },
     "background": {
       "name": "Hintergrund",
-      "help": "Was die Seite hinter ihren Hero zeichnet.",
+      "help": "Was die Seite hinter ihren Inhalten zeichnet.",
       "none": "Keiner",
-      "noneNote": "Kein Hintergrund – der Hero zeigt die Seitenfarbe.",
+      "noneNote": "Kein Hintergrund – die Seite zeigt ihre eigene Farbe.",
       "followsNote": "Für {style} neu gezeichnet.",
       "fixedNote": "In jedem Stil gleich – er folgt nur der Palette und dem Theme."
     },

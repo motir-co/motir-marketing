@@ -87,9 +87,8 @@ const expectNote = (page: Page, text: string) =>
       .getByText(text, { exact: false }),
   ).toBeVisible()
 
-/** The showcase hero's canvas — the chips' swatches carry no focus id. */
-const heroCanvas = (page: Page) =>
-  page.locator('canvas[data-background-focus="design-hero"]')
+/** The showcase's full-page canvas — the chips' swatches sit outside its layer. */
+const heroCanvas = (page: Page) => page.locator('[data-page-background] canvas')
 const heroBox = (page: Page) => page.locator('#design-hero')
 
 /** Every CSS transition finished. */

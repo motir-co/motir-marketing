@@ -519,9 +519,9 @@
     },
     "background": {
       "name": "Tło",
-      "help": "To, co strona rysuje za swoim hero.",
+      "help": "To, co strona rysuje za swoją treścią.",
       "none": "Brak",
-      "noneNote": "Bez tła — hero pokazuje kolor strony.",
+      "noneNote": "Bez tła — strona pokazuje własny kolor.",
       "followsNote": "Rysowane na nowo dla stylu {style}.",
       "fixedNote": "Takie samo w każdym stylu — zmienia się tylko z paletą i motywem."
     },

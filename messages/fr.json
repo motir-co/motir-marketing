@@ -528,9 +528,9 @@
     },
     "background": {
       "name": "Arrière-plan",
-      "help": "Ce que la page dessine derrière son hero.",
+      "help": "Ce que la page dessine derrière son contenu.",
       "none": "Aucun",
-      "noneNote": "Aucun arrière-plan : le hero affiche la couleur de la page.",
+      "noneNote": "Aucun arrière-plan : la page affiche sa propre couleur.",
       "followsNote": "Redessiné pour {style}.",
       "fixedNote": "Identique dans tous les styles : il ne suit que la palette et le thème."
     },
