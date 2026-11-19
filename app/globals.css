@@ -33,6 +33,16 @@
 @source '../node_modules/@motir/design-system/dist';
 @source '../node_modules/@motir/brand/dist';
 
+/* The site header is fixed to the top (SiteHeader). Its height is measured
+   at runtime into `--site-header-h`; this is the at-rest value before that
+   runs. Anchor jumps land below the bar, not under it. */
+:root {
+  --site-header-h: 4.5rem;
+}
+html {
+  scroll-padding-top: var(--site-header-h);
+}
+
 /* The page canvas. Colour routes through Tier-3 `--el-*` tokens, never a
    Tier-0 `--color-*`, so a palette swap re-skins the site for free. */
 body {
@@ -951,8 +961,8 @@ body {
   }
   .hiw-pin {
     position: sticky;
-    top: 0;
-    height: 100vh;
+    top: var(--site-header-h);
+    height: calc(100vh - var(--site-header-h));
     display: flex;
     flex-direction: column;
     justify-content: center;

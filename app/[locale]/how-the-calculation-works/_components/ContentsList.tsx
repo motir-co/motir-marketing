@@ -29,7 +29,7 @@ export function ContentsAside({ copy }: { copy: ExplainerCopy }) {
     <nav
       aria-label={copy.contentsLabel}
       data-element="contents-list"
-      className="sticky top-6 grid content-start gap-2"
+      className="sticky top-[calc(var(--site-header-h)+1.5rem)] grid content-start gap-2"
     >
       <span className="font-mono text-xs tracking-wide text-(--el-text-secondary) uppercase">
         {copy.contentsLabel}
