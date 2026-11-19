@@ -249,8 +249,14 @@ function useHeaderHeightVar(ref: React.RefObject<HTMLDivElement | null>) {
     const bar = ref.current
     if (!bar) return
     const root = document.documentElement
-    const write = () =>
-      root.style.setProperty('--site-header-h', `${bar.offsetHeight}px`)
+    // The bar plus the header's own bottom hairline, which sits under it.
+    const write = () => {
+      const header = bar.parentElement
+      const rule = header
+        ? parseFloat(getComputedStyle(header).borderBottomWidth) || 0
+        : 0
+      root.style.setProperty('--site-header-h', `${bar.offsetHeight + rule}px`)
+    }
     write()
     // No observer (old engines, jsdom): the one write above stands.
     if (typeof ResizeObserver === 'undefined') return
