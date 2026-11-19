@@ -514,9 +514,9 @@
     },
     "background": {
       "name": "Sfondo",
-      "help": "Ciò che la pagina disegna dietro il suo hero.",
+      "help": "Ciò che la pagina disegna dietro i suoi contenuti.",
       "none": "Nessuno",
-      "noneNote": "Nessuno sfondo: l’hero mostra il colore della pagina.",
+      "noneNote": "Nessuno sfondo: la pagina mostra il proprio colore.",
       "followsNote": "Ridisegnato per {style}.",
       "fixedNote": "Uguale in ogni stile: segue solo la palette e il tema."
     },

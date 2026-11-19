@@ -514,9 +514,9 @@
     },
     "background": {
       "name": "Background",
-      "help": "What the page draws behind its hero.",
+      "help": "What the page draws behind its content.",
       "none": "None",
-      "noneNote": "No background — the hero shows the page colour.",
+      "noneNote": "No background — the page shows its own colour.",
       "followsNote": "Redrawn for {style}.",
       "fixedNote": "Same in every style — it follows only the palette and the theme."
     },

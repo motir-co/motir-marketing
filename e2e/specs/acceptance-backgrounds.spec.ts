@@ -87,9 +87,8 @@ const expectNote = (page: Page, text: string) =>
       .getByText(text, { exact: false }),
   ).toBeVisible()
 
-/** The showcase hero's canvas — the chips' swatches carry no focus id. */
-const heroCanvas = (page: Page) =>
-  page.locator('canvas[data-background-focus="design-hero"]')
+/** The showcase's full-page canvas — the chips' swatches sit outside its layer. */
+const heroCanvas = (page: Page) => page.locator('[data-page-background] canvas')
 const heroBox = (page: Page) => page.locator('#design-hero')
 
 /** Every CSS transition finished. */
@@ -144,14 +143,18 @@ const readCanvas = (canvas: Locator) =>
     }
   })
 
-/** The canvas draws: more than a handful of colours across the sample. */
+/**
+ * The canvas draws: more than the one colour a blank or flat canvas holds. A
+ * cellular background is only its cell states over the page colour (Brian's
+ * Brain is three), now that the full-page layer clears no box behind the hero.
+ */
 async function expectDrawn(canvas: Locator, what: string) {
   await expect(canvas, what).toHaveCount(1)
   await expect
     .poll(async () => (await readCanvas(canvas)).colours, {
       message: `${what}: the canvas draws non-blank pixels`,
     })
-    .toBeGreaterThan(4)
+    .toBeGreaterThan(1)
 }
 
 /** The frame, once two reads 400ms apart agree (a still frame has redrawn). */
@@ -168,7 +171,7 @@ async function stillFrame(page: Page): Promise<string> {
         await page.waitForTimeout(400)
         const read = await readCanvas(heroCanvas(page))
         current = `${read.size}:${read.hash}`
-        return current === previous && read.colours > 4
+        return current === previous && read.colours > 1
       },
       { message: 'the still frame settles', timeout: 15_000 },
     )

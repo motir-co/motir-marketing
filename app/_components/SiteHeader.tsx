@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSitePathname } from '@/i18n/sitePathname'
 import { ArrowRight, ArrowUpRight, ChevronDown, Menu } from 'lucide-react'
 import { buttonVariants, cn, ImmersiveTilt } from '@motir/design-system'
@@ -224,6 +224,51 @@ const LIVE_SQUARE = (
   <i aria-hidden="true" className="mk-live size-2 flex-none" />
 )
 
+/** Whether the page has scrolled away from its very top. */
+function useScrolled() {
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > 0)
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    return () => window.removeEventListener('scroll', update)
+  }, [])
+  return scrolled
+}
+
+/*
+ * The fixed bar's measured height, published as `--site-header-h` on the root
+ * so anchors (`scroll-padding-top`) and the site's other sticky elements sit
+ * BELOW it rather than under it. Measured, not assumed: the bar's height
+ * changes with the locale's give-way ladder and when Start free wraps at
+ * phone width. Only the bar is observed — the open Menu panel is not part of
+ * what the page has to clear.
+ */
+function useHeaderHeightVar(ref: React.RefObject<HTMLDivElement | null>) {
+  useEffect(() => {
+    const bar = ref.current
+    if (!bar) return
+    const root = document.documentElement
+    // The bar plus the header's own bottom hairline, which sits under it.
+    const write = () => {
+      const header = bar.parentElement
+      const rule = header
+        ? parseFloat(getComputedStyle(header).borderBottomWidth) || 0
+        : 0
+      root.style.setProperty('--site-header-h', `${bar.offsetHeight + rule}px`)
+    }
+    write()
+    // No observer (old engines, jsdom): the one write above stands.
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(write)
+    observer.observe(bar)
+    return () => {
+      observer.disconnect()
+      root.style.removeProperty('--site-header-h')
+    }
+  }, [ref])
+}
+
 export function SiteHeader({
   host,
   overlay = false,
@@ -239,16 +284,35 @@ export function SiteHeader({
   // The give-way ladder (MOTIR-7947 revision 2): the widths each rung needs
   // are this locale's, measured, not shared breakpoints.
   const ladder = LADDER_CLASSES[locale]
+  const barRef = useRef<HTMLDivElement>(null)
+  const scrolled = useScrolled()
+  useHeaderHeightVar(barRef)
 
   return (
-    <header className={cn(overlay && 'absolute inset-x-0 top-0 z-30')}>
+    <header
+      data-scrolled={scrolled ? '' : undefined}
+      className={cn(
+        // Fixed to the top of the viewport on every page. Over a hero
+        // (`overlay`) it takes no room of its own; above the page it keeps
+        // its row and sticks.
+        overlay ? 'fixed inset-x-0 top-0' : 'sticky top-0',
+        'z-30 border-b border-transparent transition-[background-color,border-color] duration-200',
+        // Unfilled at rest so it still reads as the top of the hero; once the
+        // page moves under it, it takes the page's own fill and a hairline so
+        // the content scrolling beneath never shows through the links.
+        scrolled && 'border-(--el-border) bg-(--el-page-bg)',
+      )}
+    >
       {/* The 3D / Immersive style's pointer tilt, which animates the page's
           `data-tilt` panels. It is an effect with no markup, and it rides the
           header so that the header stays the only island a page's chrome
           hydrates (MOTIR-10643). Inert under every other style and under
           reduced motion. */}
       <ImmersiveTilt />
-      <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-(--spacing-card-padding) sm:py-4">
+      <div
+        ref={barRef}
+        className="flex items-center justify-between gap-4 px-4 py-3 sm:px-(--spacing-card-padding) sm:py-4"
+      >
         <div className="flex min-w-0 items-center gap-8">
           {/* motir.co's own root — internal ON THE SITE, and an absolute link
             HOME from a tenant host, where `/` is that workspace's or that
@@ -377,7 +441,7 @@ export function SiteHeader({
           aria-label={copy.nav.ariaLabel}
           data-surface="popover"
           className={cn(
-            'flex flex-col gap-3 border-t border-(--el-border) bg-(--el-page-bg) px-4 py-3 shadow-(--shadow-elevated)',
+            'flex max-h-[calc(100dvh-var(--site-header-h))] flex-col gap-3 overflow-y-auto border-t border-(--el-border) bg-(--el-page-bg) px-4 py-3 shadow-(--shadow-elevated)',
             ladder.menu,
           )}
         >

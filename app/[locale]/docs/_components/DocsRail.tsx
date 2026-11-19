@@ -189,7 +189,7 @@ export function DocsRail({
     >
       {/* Sticky on the wide layout; static and above the content when narrow, so
           it never overlays what it navigates (panel 7). */}
-      <div className="px-3.5 py-4 md:sticky md:top-0 md:max-h-dvh md:overflow-y-auto md:py-5">
+      <div className="px-3.5 py-4 md:sticky md:top-(--site-header-h) md:max-h-[calc(100dvh-var(--site-header-h))] md:overflow-y-auto md:py-5">
         {operations ? (
           <>
             <label className="sr-only" htmlFor="docs-operation-filter">

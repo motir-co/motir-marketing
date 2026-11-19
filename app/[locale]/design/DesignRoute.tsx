@@ -36,7 +36,9 @@ export function generateMetadata({
 export default async function DesignPage({ params }: LocalePageProps) {
   await enterLocale(params)
   return (
-    <SiteShell host={SITE_HOST}>
+    // `isolate`: the showcase's full-page Background layer (`-z-10`) paints
+    // above this shell's fill and below everything else on the page.
+    <SiteShell host={SITE_HOST} className="isolate">
       <DesignShowcaseIsland />
     </SiteShell>
   )

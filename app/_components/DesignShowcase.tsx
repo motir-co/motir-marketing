@@ -9,6 +9,7 @@ import {
   BACKGROUND_REGISTRY,
   Button,
   Card,
+  cn,
   Combobox,
   EmptyState,
   ErrorState,
@@ -125,7 +126,12 @@ function AxisRail({ theme }: { theme: ReturnType<typeof useVisitAppearance> }) {
   return (
     <section
       aria-label={copy.designShowcase.heading}
-      className="border-b border-(--el-border) bg-(--el-surface-soft)"
+      className={cn(
+        'border-b border-(--el-border)',
+        // With a background picked the band lets it through: the pick covers
+        // the whole page, and the axes stay on their `Card`.
+        theme.background === BACKGROUND_NONE && 'bg-(--el-surface-soft)',
+      )}
     >
       <div className="mx-auto max-w-[1080px] px-4 py-3 sm:px-7">
         <Card
@@ -337,13 +343,23 @@ function Specimen({
   return (
     <>
       {/*
-       * The page's own hero, with the Background pick drawn live behind it
-       * (MOTIR-11603). The band is full width; the column is the focus the Wave
-       * gathers around and every other background clears behind. `none` draws
-       * no canvas, and the band is then the page colour.
+       * The Background pick, drawn live behind THE WHOLE PAGE (MOTIR-11603
+       * drew it behind the hero band only). The canvas sizes itself to its
+       * parent, so the parent is a viewport-fixed layer: the pick stays behind
+       * whatever is scrolled into view without painting a document-tall canvas.
+       * It has no focus element — a focus box measured once would sit still
+       * while the hero scrolls away — so the Wave gathers around the centre.
+       * It paints above the shell's fill because `DesignRoute` makes the shell
+       * its own stacking context. `none` draws no canvas.
        */}
-      <div className="relative isolate overflow-hidden bg-(--el-page-bg)">
-        <Background id={background} focusId="design-hero" />
+      <div
+        aria-hidden="true"
+        data-page-background=""
+        className="pointer-events-none fixed inset-0 -z-10"
+      >
+        <Background id={background} />
+      </div>
+      <div>
         <div
           id="design-hero"
           className="mx-auto max-w-[1080px] px-4 pt-10 pb-10 sm:px-7"

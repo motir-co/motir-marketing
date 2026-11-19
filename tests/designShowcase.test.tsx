@@ -365,9 +365,7 @@ describe('the Background axis (MOTIR-11610)', () => {
   const bg = copy.designShowcase.background
   const group = () => screen.getByRole('radiogroup', { name: bg.name })
   const heroCanvas = () =>
-    document.querySelector<HTMLCanvasElement>(
-      'canvas[data-background-focus="design-hero"]',
-    )
+    document.querySelector<HTMLCanvasElement>('[data-page-background] canvas')
 
   it('offers the seven registered backgrounds in registry order, then None', () => {
     render(<DesignShowcase />)
@@ -393,7 +391,7 @@ describe('the Background axis (MOTIR-11610)', () => {
     expect(radios.at(-1)!.querySelector('canvas')).toBeNull()
   })
 
-  it('draws the Wave behind the page hero on arrival, around its column', () => {
+  it('draws the Wave behind the whole page on arrival, in a viewport-fixed layer', () => {
     render(<DesignShowcase />)
     expect(
       within(group()).getByRole('radio', {
@@ -401,6 +399,7 @@ describe('the Background axis (MOTIR-11610)', () => {
       }),
     ).toHaveAttribute('aria-checked', 'true')
     expect(heroCanvas()?.dataset.background).toBe('wave')
+    expect(heroCanvas()?.parentElement).toHaveClass('fixed', 'inset-0')
     expect(document.getElementById('design-hero')).toContainElement(
       screen.getByRole('heading', {
         level: 1,

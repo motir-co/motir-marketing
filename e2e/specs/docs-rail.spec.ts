@@ -156,10 +156,15 @@ test.describe('the docs rail at the wide layout', () => {
 
     // The surface scrolls with the page — it is the full-height grid item.
     expect(scrolled.rail.top).toBeLessThan(0)
-    // The region inside it does not: it pins to the top of the viewport. This is
-    // the assertion that fails on a rail made full-height by deleting
-    // `items-start` and leaving `position: sticky` on the surface.
-    expect(Math.abs(scrolled.inner.top)).toBeLessThanOrEqual(1)
+    // The region inside it does not: it pins to the top of the viewport, just
+    // under the fixed site header. This is the assertion that fails on a rail
+    // made full-height by deleting `items-start` and leaving `position: sticky`
+    // on the surface.
+    const headerBottom = await page
+      .locator('header')
+      .first()
+      .evaluate((el) => el.getBoundingClientRect().bottom)
+    expect(Math.abs(scrolled.inner.top - headerBottom)).toBeLessThanOrEqual(1)
   })
 })
 
